@@ -1,0 +1,6 @@
+{
+  "name": "iot-builder",
+  "version": "0.1.0",
+  "description": "Build, flash and debug boards from the chat.",
+  "interface": { "displayName": "IoT Builder", "category": "hardware" }
+}
