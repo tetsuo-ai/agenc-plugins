@@ -1,0 +1,6 @@
+{
+  "name": "ledger",
+  "version": "0.1.0",
+  "description": "Balances, transfers and signing with a Ledger device.",
+  "interface": { "displayName": "Ledger", "category": "wallets" }
+}
