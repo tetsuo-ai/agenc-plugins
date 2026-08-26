@@ -1,0 +1,9 @@
+{
+  "publisher": "tetsuo-ai",
+  "signature": "KhqqYbB1Ul6Z7Pgsdq1crTAOA+ZqoHnVS59Ep7YadiH+HlurfOsV8KQSYoVVswkwVLhbmH78pG+KVxPHdFcTDA==",
+  "files": {
+    ".mcp.json": "1859e233de92604314f5d8d254fd2c378b40e0c6d3aa0b0bb404d2495fcfae8e",
+    "commands/flash.md": "6f7bbe8cd2f74c157cc70715dd60e25154210baba59b3ae216f1ba0f99ae743e",
+    "skills/flash-board/SKILL.md": "f596e3ff88ebc0cef0813a945227714d0a85102bff84e0a9098f7c0f7c8559b4"
+  }
+}
