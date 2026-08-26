@@ -30,24 +30,33 @@ function arg(name, fallback) {
   return process.argv[index + 1];
 }
 
-/** Every file under the plugin except its manifest and the signature itself. */
-function payloadFiles(root, manifestRel, signatureRel) {
-  const found = [];
+/**
+ * Exactly the files core digests: everything under the plugin except its
+ * manifest, the signature itself, the install metadata, and VCS
+ * directories. Paths are repo-relative with forward slashes.
+ */
+function payloadDigests(root) {
+  const out = {};
   const walk = (dir) => {
-    for (const entry of readdirSync(dir)) {
-      const full = join(dir, entry);
-      if (statSync(full).isDirectory()) {
-        if (entry === ".git" || entry === "node_modules") continue;
-        walk(full);
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      if (entry.isDirectory()) {
+        if (entry.name === ".git" || entry.name === ".hg" || entry.name === ".svn") {
+          continue;
+        }
+        walk(join(dir, entry.name));
         continue;
       }
+      if (!entry.isFile()) continue;
+      const full = join(dir, entry.name);
       const rel = relative(root, full).split(sep).join("/");
-      if (rel === manifestRel || rel === signatureRel) continue;
-      found.push(rel);
+      if (rel === "plugin.json") continue;
+      if (rel === ".agenc-plugin/signature.json") continue;
+      if (rel === ".agenc-plugin/agenc-install.json") continue;
+      out[rel] = `sha256:${createHash("sha256").update(readFileSync(full)).digest("hex")}`;
     }
   };
   walk(root);
-  return found.sort();
+  return out;
 }
 
 const keyPath = arg("key");
@@ -57,28 +66,31 @@ const privateKey = createPrivateKey(readFileSync(keyPath));
 const manifest = JSON.parse(readFileSync("marketplace.json", "utf8"));
 for (const plugin of manifest.plugins) {
   const root = String(plugin.source).replace(/^\.\//, "");
-  const manifestRel = "plugin.json";
-  const signatureRel = ".agenc-plugin/signature.json";
+  const files = payloadDigests(root);
 
-  const files = {};
-  for (const rel of payloadFiles(root, manifestRel, signatureRel)) {
-    files[rel] = createHash("sha256").update(readFileSync(join(root, rel))).digest("hex");
-  }
-
-  // The payload is the manifest bytes followed by the canonical file digest
-  // map — the same two things core hashes when it verifies, so any edit to a
-  // skill or an MCP config invalidates the signature.
-  const manifestBytes = readFileSync(join(root, manifestRel));
-  const payload = Buffer.concat([
-    manifestBytes,
-    Buffer.from(JSON.stringify(files, Object.keys(files).sort()), "utf8"),
-  ]);
+  /*
+   * The signed payload is exactly what core rebuilds to verify: the
+   * manifest's own sha256 beside the digest map, keys sorted. Signing the
+   * manifest bytes directly, or the map in insertion order, produces a
+   * signature that verifies nowhere.
+   */
+  const sorted = Object.fromEntries(
+    Object.entries(files).sort(([a], [b]) => a.localeCompare(b)),
+  );
+  const payload = Buffer.from(
+    JSON.stringify({
+      manifestSha256: createHash("sha256")
+        .update(readFileSync(join(root, "plugin.json")))
+        .digest("hex"),
+      files: sorted,
+    }),
+  );
   const signature = sign(null, payload, privateKey).toString("base64");
 
   mkdirSync(join(root, ".agenc-plugin"), { recursive: true });
   writeFileSync(
-    join(root, signatureRel),
-    `${JSON.stringify({ publisher, signature, files }, null, 2)}\n`,
+    join(root, ".agenc-plugin/signature.json"),
+    `${JSON.stringify({ publisher, signature, files: sorted }, null, 2)}\n`,
   );
-  console.log(`signed ${plugin.name} — ${Object.keys(files).length} files`);
+  console.log(`signed ${plugin.name} — ${Object.keys(sorted).length} files`);
 }
