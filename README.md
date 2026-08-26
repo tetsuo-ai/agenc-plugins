@@ -54,6 +54,31 @@ Override the repo the manifest points at with `PLUGIN_REPO_URL` and
 For DigitalOcean App Platform the same repo works as a static site: build
 command `node build-manifest.mjs`, output directory `public`.
 
+## Signing (required once it is hosted)
+
+AgenC requires a signature for any non-local source, so a marketplace served
+over HTTPS or cloned from GitHub refuses to install unsigned plugins. A local
+checkout does not, which is why this only shows up after publishing.
+
+```bash
+openssl genpkey -algorithm ed25519 -out ~/.agenc/keys/agenc-plugins.pem
+openssl pkey -in ~/.agenc/keys/agenc-plugins.pem -pubout -out agenc-plugins.pub
+node sign-plugins.mjs --key ~/.agenc/keys/agenc-plugins.pem --publisher tetsuo-ai
+```
+
+Commit the `.agenc-plugin/signature.json` files, never the private key.
+
+Anyone installing has to trust the matching public key. In their
+`~/.agenc/plugin-publishers.json`:
+
+```json
+{ "publishers": { "tetsuo-ai": "<contents of agenc-plugins.pub>" } }
+```
+
+That is the trust model: not "anyone can install", but "anyone who trusts
+this key can install". Re-sign after any change to a skill, command or MCP
+config — the signature covers every payload file.
+
 ## The one thing hosting needs
 
 The hosted manifest names this repository as each plugin's source, so the
