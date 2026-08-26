@@ -107,6 +107,32 @@ The hosted manifest names this repository as each plugin's source, so the
 repo has to be reachable at the URL in `PLUGIN_REPO_URL` before anyone can
 install from the deployment. Publish the repo first, deploy second.
 
+## What a plugin manifest can carry
+
+Core reads far more than a name and a description. The two plugins here use:
+
+| field | why it matters |
+|---|---|
+| `interface.defaultPrompt` | the suggestion chips the app offers on a fresh session |
+| `interface.brandColor`, `logo` | how the plugin reads in the Plugins pane |
+| `interface.capabilities` | what it claims to do, in the user's language |
+| `userConfig` | typed settings with `sensitive`, `min`/`max` and defaults — the right way to ask for a port or a key path instead of inventing one |
+| `author`, `homepage`, `repository`, `license`, `keywords` | discovery and provenance |
+
+`agenc plugin validate <path>` checks a plugin, and
+`agenc plugin validate marketplace.json --marketplace` checks the index.
+
+## Known gaps
+
+- **No engine compatibility.** VS Code extensions pin a minimum host with
+  `engines.vscode`; nothing here says which AgenC versions a plugin needs, so
+  an old client installs a plugin it cannot run.
+- **No update signal.** `marketplace upgrade` refreshes the index, but nothing
+  tells a user their installed copy is behind.
+- **Key distribution is manual.** Every user pastes the publisher key into
+  their own keyring. A well-known location served beside the manifest would
+  make that one step instead of two.
+
 ## Verified
 
 Against a real AgenC daemon (runtime 0.17.0):

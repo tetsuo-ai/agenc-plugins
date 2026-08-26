@@ -2,5 +2,40 @@
   "name": "ledger",
   "version": "0.1.0",
   "description": "Balances, transfers and signing with a Ledger device.",
-  "interface": { "displayName": "Ledger", "category": "wallets" }
+  "author": { "name": "tetsuo-ai" },
+  "homepage": "https://agenc.tech",
+  "repository": "https://github.com/tetsuo-ai/agenc-plugins",
+  "license": "MIT",
+  "keywords": ["ledger", "wallet", "solana", "hardware", "signing"],
+  "interface": {
+    "displayName": "Ledger",
+    "shortDescription": "Balances, transfers and signing with a Ledger device.",
+    "longDescription": "Read accounts and balances from a connected Ledger, and prepare transfers the device itself approves. Every signature happens on the device, against the recipient and amount shown on its screen — this plugin never holds a key and never asks for a recovery phrase.",
+    "developerName": "tetsuo-ai",
+    "category": "wallets",
+    "capabilities": ["readonly-balances", "device-signing", "mainnet"],
+    "websiteUrl": "https://agenc.tech",
+    "brandColor": "#2f8cff",
+    "defaultPrompt": [
+      "What is on my Ledger?",
+      "Show my Ledger accounts and balances",
+      "Is my Ledger connected and unlocked?"
+    ],
+    "screenshots": []
+  },
+  "userConfig": {
+    "network": {
+      "type": "string",
+      "title": "Network",
+      "description": "Which cluster to read. Mainnet and devnet balances look identical on screen and are not the same money.",
+      "default": "mainnet",
+      "required": true
+    },
+    "keyPath": {
+      "type": "string",
+      "title": "Default key path",
+      "description": "Derivation path to read first, for example 0/0. Leave empty to scan the device instead of assuming one.",
+      "required": false
+    }
+  }
 }

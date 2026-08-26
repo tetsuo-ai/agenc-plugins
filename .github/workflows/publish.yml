@@ -1,0 +1,119 @@
+name: validate and publish
+
+# Signing is the step people forget, and it fails silently: the manifest goes
+# up fine and every remote install then refuses. Doing it here means a push
+# cannot publish an unsigned or stale signature.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Manifests parse and match the schema
+        run: |
+          node -e '
+            const m = require("./marketplace.json");
+            if (!Array.isArray(m.plugins) || m.plugins.length === 0) {
+              throw new Error("marketplace.json lists no plugins");
+            }
+            for (const p of m.plugins) {
+              const root = String(p.source).replace(/^\.\//, "");
+              const manifest = require(`./${root}/plugin.json`);
+              if (manifest.name !== p.name) {
+                throw new Error(`${root}: plugin.json says ${manifest.name}, manifest says ${p.name}`);
+              }
+              if (manifest.version !== p.version) {
+                throw new Error(`${root}: version ${manifest.version} != ${p.version} in the marketplace`);
+              }
+            }
+            console.log(`${m.plugins.length} plugins consistent`);
+          '
+
+      - name: Every declared component exists
+        run: |
+          node -e '
+            const { existsSync } = require("node:fs");
+            const m = require("./marketplace.json");
+            for (const p of m.plugins) {
+              const root = String(p.source).replace(/^\.\//, "");
+              for (const kind of p.components ?? []) {
+                const path = kind === "mcp" ? `${root}/.mcp.json` : `${root}/${kind}`;
+                if (!existsSync(path)) {
+                  throw new Error(`${p.name} declares ${kind} but ${path} is missing`);
+                }
+              }
+            }
+            console.log("declared components all present");
+          '
+
+      - name: Signatures verify against the published key
+        run: |
+          node -e '
+            const { createHash, createPublicKey, verify } = require("node:crypto");
+            const { readFileSync, readdirSync, existsSync } = require("node:fs");
+            const { join, relative, sep } = require("node:path");
+            const m = require("./marketplace.json");
+
+            if (!existsSync("agenc-plugins.pub")) {
+              console.log("::warning::no published key in the repo — cannot verify signatures");
+              process.exit(0);
+            }
+            const der = readFileSync("agenc-plugins.pub", "utf8")
+              .split("\n").filter((l) => !l.startsWith("-----")).join("");
+            const key = createPublicKey({
+              key: Buffer.from(der, "base64"), format: "der", type: "spki",
+            });
+
+            for (const p of m.plugins) {
+              const root = String(p.source).replace(/^\.\//, "");
+              const sigPath = join(root, ".agenc-plugin/signature.json");
+              if (!existsSync(sigPath)) {
+                throw new Error(`${p.name} is unsigned — remote installs will refuse it`);
+              }
+              const sig = JSON.parse(readFileSync(sigPath, "utf8"));
+
+              // Rebuild exactly what core rebuilds. The manifest is not in the
+              // file map — it is hashed on its own — so a manifest edited after
+              // signing leaves the map looking current while the signature is
+              // already dead.
+              const files = {};
+              const walk = (dir) => {
+                for (const e of readdirSync(dir, { withFileTypes: true })) {
+                  if (e.isDirectory()) {
+                    if ([".git", ".hg", ".svn"].includes(e.name)) continue;
+                    walk(join(dir, e.name));
+                    continue;
+                  }
+                  const rel = relative(root, join(dir, e.name)).split(sep).join("/");
+                  if (["plugin.json", ".agenc-plugin/signature.json", ".agenc-plugin/agenc-install.json"].includes(rel)) continue;
+                  files[rel] = "sha256:" + createHash("sha256").update(readFileSync(join(dir, e.name))).digest("hex");
+                }
+              };
+              walk(root);
+              const sorted = Object.fromEntries(
+                Object.entries(files).sort(([a], [b]) => a.localeCompare(b)),
+              );
+              const payload = Buffer.from(JSON.stringify({
+                manifestSha256: createHash("sha256")
+                  .update(readFileSync(join(root, "plugin.json"))).digest("hex"),
+                files: sorted,
+              }));
+              if (!verify(null, payload, key, Buffer.from(sig.signature, "base64"))) {
+                throw new Error(`${p.name}: signature does not verify — re-run sign-plugins.mjs`);
+              }
+              console.log(`${p.name} verified (${Object.keys(sorted).length} files)`);
+            }
+          '
+
+      - name: Hosted manifest builds
+        run: node build-manifest.mjs
