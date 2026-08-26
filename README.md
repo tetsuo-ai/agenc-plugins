@@ -28,7 +28,29 @@ Then install from the app's Plugins pane, or:
 agenc plugin marketplace install iot-builder@agenc --product desktop
 ```
 
-## Hosting it
+## Live
+
+The manifest is served from the existing `agenc-mainnet` droplet, as a static
+file under the `agenc.tech` root:
+
+    https://agenc.tech/plugins/marketplace.json
+
+No nginx change and no DNS change: that vhost already serves static files
+through `try_files`, so publishing is a copy into
+`/var/www/agenc-tech/plugins/`. Nothing else on the droplet is touched.
+
+```bash
+node build-manifest.mjs
+scp public/marketplace.json agenc-mainnet:/var/www/agenc-tech/plugins/marketplace.json
+```
+
+Add it with:
+
+```bash
+agenc plugin marketplace add https://agenc.tech/plugins/marketplace.json --name agenc-plugins
+```
+
+## Hosting it elsewhere
 
 A marketplace added by URL downloads only the manifest, so a relative
 `./plugins/ledger` has nothing to resolve against on the client. Each plugin
