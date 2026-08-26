@@ -1,0 +1,47 @@
+# DigitalOcean App Platform: a static site that serves the plugin manifest.
+#
+# The build rewrites each plugin's source from a repo-relative path to a
+# git-subdir entry, because a marketplace added by URL downloads only this
+# file — a relative path has nothing to resolve against on the client.
+#
+# Deploy:
+#   doctl apps create --spec .do/app.yaml
+# Update after a push:
+#   doctl apps update <APP_ID> --spec .do/app.yaml
+name: agenc-plugins
+region: fra
+
+static_sites:
+  - name: marketplace
+    # Point this at wherever the repository actually lives. The same value
+    # must reach the build as PLUGIN_REPO_URL, since it is what the manifest
+    # tells clients to fetch each plugin from.
+    github:
+      repo: tetsuo-ai/agenc-plugins
+      branch: main
+      deploy_on_push: true
+
+    build_command: node build-manifest.mjs
+    output_dir: public
+    environment_slug: node-js
+
+    envs:
+      - key: PLUGIN_REPO_URL
+        scope: BUILD_TIME
+        value: https://github.com/tetsuo-ai/agenc-plugins
+      - key: PLUGIN_REPO_REF
+        scope: BUILD_TIME
+        value: main
+
+    # A marketplace is fetched by the daemon, not a browser, but CORS costs
+    # nothing and lets a web client read the same manifest.
+    routes:
+      - path: /
+
+    headers:
+      - path: /marketplace.json
+        name: access-control-allow-origin
+        value: "*"
+      - path: /marketplace.json
+        name: cache-control
+        value: public, max-age=300, must-revalidate
