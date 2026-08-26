@@ -1,6 +1,6 @@
 {
   "publisher": "tetsuo-ai",
-  "signature": "ztJxO9T5Y5toKeRZ/iUQeWkqpKi9liRl9qHdvp5ucQe+3QYNis05nmDjnnAp+kA7Ai7vQEoY96aw9WjwRssLCg==",
+  "signature": "91jicjd5J2WUZCHxrOiQUH74D5TTXtbVHMFqQt/AevfSG/P3e9dRaFObO4nga3kB4RuSc5BcFYhXwdR8hNZLBw==",
   "files": {
     ".mcp.json": "sha256:b1d418e0dc72adb8995c2fdb4f5b5b68cae97ac532ef87b01138e493c91fe116",
     "commands/ledger-balance.md": "sha256:41d3f9c6344af3005356fff7cd904c9d948be8ddbb099c55272b197345419425",
