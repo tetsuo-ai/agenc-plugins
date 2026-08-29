@@ -1,9 +1,0 @@
-{
-  "mcpServers": {
-    "agenc-market": {
-      "command": "agenc-marketplace",
-      "args": ["mcp", "serve", "--network", "mainnet", "--readonly"],
-      "env": {}
-    }
-  }
-}

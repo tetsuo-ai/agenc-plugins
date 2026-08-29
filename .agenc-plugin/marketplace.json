@@ -1,0 +1,39 @@
+{
+  "name": "agenc-plugins",
+  "metadata": {
+    "name": "agenc-plugins",
+    "displayName": "AgenC Plugins"
+  },
+  "interface": {
+    "displayName": "AgenC Plugins"
+  },
+  "plugins": [
+    {
+      "name": "zeroday-hunter",
+      "source": "./plugins/zeroday-hunter",
+      "category": "security",
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      }
+    },
+    {
+      "name": "iot-builder",
+      "source": "./plugins/iot-builder",
+      "category": "hardware",
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      }
+    },
+    {
+      "name": "ledger",
+      "source": "./plugins/ledger",
+      "category": "wallets",
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_USE"
+      }
+    }
+  ]
+}

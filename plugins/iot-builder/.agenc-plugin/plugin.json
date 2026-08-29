@@ -1,0 +1,39 @@
+{
+  "name": "iot-builder",
+  "version": "0.2.0",
+  "description": "Build and safely upload configured PlatformIO projects to an explicitly selected board.",
+  "author": { "name": "tetsuo-ai" },
+  "homepage": "https://agenc.tech",
+  "repository": "https://github.com/tetsuo-ai/agenc-plugins",
+  "license": "MIT",
+  "keywords": ["iot", "platformio", "firmware", "embedded", "hardware"],
+  "commands": {
+    "flash": {
+      "source": "./commands/flash.md",
+      "description": "Build and upload a PlatformIO environment with confirmation",
+      "argumentHint": "[environment]",
+      "allowedTools": ["Bash", "Read", "Grep"]
+    }
+  },
+  "skills": ["./skills/flash-board"],
+  "interface": {
+    "displayName": "IoT Builder",
+    "shortDescription": "Build and upload configured PlatformIO projects safely.",
+    "longDescription": "Builds an existing PlatformIO environment, selects a serial device from PlatformIO's inventory, and requires an explicit review immediately before upload. It never exposes the whole device filesystem or performs raw address-based flashing.",
+    "developerName": "tetsuo-ai",
+    "category": "hardware",
+    "capabilities": [
+      "platformio-build",
+      "serial-device-discovery",
+      "confirmed-firmware-upload"
+    ],
+    "websiteUrl": "https://agenc.tech",
+    "brandColor": "#18a558",
+    "defaultPrompt": [
+      "Show the PlatformIO boards connected to this computer",
+      "Build this PlatformIO environment",
+      "Build and upload this PlatformIO project"
+    ],
+    "screenshots": []
+  }
+}

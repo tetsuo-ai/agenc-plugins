@@ -1,145 +1,173 @@
 # AgenC Plugins
 
-A plugin marketplace for AgenC Desktop: **IoT Builder** and **Ledger**, each
-carrying a skill, a slash command and an MCP server.
+The first-party plugin marketplace for AgenC. It contains three packages:
 
-## What is in here
+- **Zero Day Hunter** — a security-research campaign skill.
+- **IoT Builder** — a guarded PlatformIO build/upload workflow.
+- **Ledger** — read-only wallet inspection with Ledger's official `wallet-cli`.
 
+## Plugin, skill, and MCP
+
+They are different layers:
+
+```text
+plugin package
+├── .agenc-plugin/plugin.json   identity and declared capabilities
+├── skills/                     agent instructions and operating method
+├── commands/                   user-invocable prompt commands
+├── scripts/, templates/        signed package resources
+└── mcpServers                  optional external tool servers
 ```
-marketplace.json          the manifest, plugin sources relative to this repo
-plugins/iot-builder/      skill + /flash command + iot-serial MCP server
-plugins/ledger/           skill + /ledger-balance command + agenc-market MCP
-build-manifest.mjs        rewrites the manifest for hosting
-vercel.json               static deploy: builds public/marketplace.json
-```
 
-## Installing it locally
+A skill is instructions for the agent. An MCP server is an optional process or
+remote endpoint that contributes tools. A plugin is the signed package that can
+contain either or both. These three packages intentionally ship without MCP
+servers today: their previous MCP declarations were broader than their real
+capabilities. Ledger calls `wallet-cli` through its skill, IoT calls PlatformIO,
+and Zero Day uses its signed scripts and references.
 
-Point AgenC at the checkout. Plugin sources are relative paths, so they
-resolve against the repo:
+## Requirements
+
+- A current AgenC build using the canonical `.agenc-plugin/` contract.
+- Node.js 22 or newer for repository validation and publishing.
+- Ledger plugin: globally installed `@ledgerhq/wallet-cli` (`wallet-cli` 2.1+
+  recommended). The plugin never installs or downloads it automatically.
+- IoT plugin: an existing `platformio.ini` and a locally installed `pio`.
+
+## Install from a local checkout
 
 ```bash
-agenc plugin marketplace add /path/to/agenc-plugins --name agenc
+agenc plugin marketplace add /path/to/agenc-plugins --name agenc-plugins
 ```
 
-Then install from the app's Plugins pane, or:
+Open `/plugins` inside AgenC, choose `agenc-plugins`, and install a package.
+Core does not currently expose `marketplace catalog` or `marketplace install`
+as CLI commands.
+
+## Install from agenc.tech
+
+Remote plugins are signed by `tetsuo-ai`. Before trusting the publisher, fetch
+the proposed keyring and verify the DER-SPKI key fingerprint through a trusted
+channel:
 
 ```bash
-agenc plugin marketplace install iot-builder@agenc --product desktop
+curl -fsS https://agenc.tech/plugins/plugin-publishers.json -o /tmp/agenc-plugin-publishers.json
+jq -r '.publishers["tetsuo-ai"].publicKey' /tmp/agenc-plugin-publishers.json \
+  | base64 -d | sha256sum
 ```
 
-## Live
+Expected SHA-256:
 
-The manifest is served from the existing `agenc-mainnet` droplet, as a static
-file under the `agenc.tech` root:
+```text
+8174e96296289bd8eed26b832296309015216afe544a7f15097356b10aa1b932
+```
 
-    https://agenc.tech/plugins/marketplace.json
+Merge the `tetsuo-ai` entry into `$AGENC_HOME/plugin-publishers.json` (normally
+`~/.agenc/plugin-publishers.json`) without replacing other trusted publishers.
+The value must be DER-SPKI encoded as Base64; do not paste the PEM headers from
+`agenc-plugins.pub` into the JSON.
 
-No nginx change and no DNS change: that vhost already serves static files
-through `try_files`, so publishing is a copy into
-`/var/www/agenc-tech/plugins/`. Nothing else on the droplet is touched.
+Then register the marketplace:
 
 ```bash
-node build-manifest.mjs
-scp public/marketplace.json agenc-mainnet:/var/www/agenc-tech/plugins/marketplace.json
+agenc plugin marketplace add \
+  https://agenc.tech/plugins/marketplace.json \
+  --name agenc-plugins
 ```
 
-Add it with:
+Use `/plugins` to browse and install.
+
+## Zero Day Hunter and the built-in copy
+
+Current Core builds already bundle `zeroday-hunter@builtin`. The marketplace
+copy is opt-in and has a separate ID, `zeroday-hunter@agenc-plugins`. Until Core
+gains a `replaces`/`conflicts` contract, avoid enabling both copies. To use the
+marketplace package, disable the built-in explicitly in `config.toml`:
+
+```toml
+[plugins.plugins."zeroday-hunter@builtin"]
+enabled = false
+```
+
+The marketplace copy is vendored from the Core revision recorded in
+`plugins/zeroday-hunter/UPSTREAM.json`; its scripts, templates, methodology, and
+references are part of the signed payload.
+
+## Repository layout
+
+```text
+.agenc-plugin/marketplace.json        local source-of-truth catalog
+plugins/zeroday-hunter/               skill + scripts + templates
+plugins/iot-builder/                  skill + /flash prompt command
+plugins/ledger/                       skill + /ledger-balance prompt command
+plugin-signing.mjs                    shared Core-compatible payload logic
+sign-plugins.mjs                      Ed25519 release signer
+build-manifest.mjs                    SHA-pinned hosted catalog builder
+validate.mjs                          repository and signature checks
+validate-core.mjs                     isolated real-Core smoke test
+```
+
+Generated files under `public/` are intentionally ignored. A hosted build
+rewrites local plugin paths to `git-subdir` sources pinned to the full Git commit
+SHA, and emits both `/marketplace.json` and
+`/.agenc-plugin/marketplace.json` with identical bytes.
+
+## Validate
 
 ```bash
-agenc plugin marketplace add https://agenc.tech/plugins/marketplace.json --name agenc-plugins
+npm ci
+npm test
 ```
 
-## Hosting it elsewhere
-
-A marketplace added by URL downloads only the manifest, so a relative
-`./plugins/ledger` has nothing to resolve against on the client. Each plugin
-has to name a fetchable source of its own — which is why `build-manifest.mjs`
-rewrites them to `git-subdir` entries pointing back at this repository.
-
-Deploy to Vercel:
+To validate against a current Core checkout:
 
 ```bash
-vercel deploy --prod
+AGENC_BIN='/path/to/agenc-core/runtime/bin/agenc' npm run validate:core
 ```
 
-`vercel.json` runs the build and serves `public/marketplace.json` with CORS
-and a five-minute cache. Users then add it with:
+That test uses a temporary `AGENC_HOME`, validates the catalog and all three
+plugins, registers the local marketplace, installs each package, and checks the
+resulting inventory. It does not modify the operator's AgenC configuration.
+
+CI also generates a catalog pinned to the commit under test, downloads every
+`git-subdir` source from GitHub, and installs it through current Core with
+signature verification required. This catches a valid-looking catalog that
+points to a commit without the advertised plugin payload.
+
+## Sign a release
+
+Normal releases reuse the existing publisher key. The private key must remain
+outside the repository; `*.pem` and `*.key` are ignored as an additional guard.
 
 ```bash
-agenc plugin marketplace add https://<your-deployment>/marketplace.json --name agenc
+node sign-plugins.mjs \
+  --key ~/.agenc/keys/agenc-plugins.pem \
+  --publisher tetsuo-ai
+npm test
 ```
 
-Override the repo the manifest points at with `PLUGIN_REPO_URL` and
-`PLUGIN_REPO_REF` at build time — a fork or a pinned tag both work.
+The signer refuses a private key that does not match the checked-in public key.
+Each signature covers the canonical plugin manifest plus the exact set of all
+other payload files. CI verifies the declared file map, publisher, and Ed25519
+signature; a missing public key is a hard failure.
 
-For DigitalOcean App Platform the same repo works as a static site: build
-command `node build-manifest.mjs`, output directory `public`.
+Generate a new Ed25519 key only when bootstrapping a new publisher or carrying
+out an explicit key rotation. A rotation also requires distributing the new
+trusted keyring and fingerprint through an independent trusted channel; simply
+replacing `agenc-plugins.pub` would break existing clients.
 
-## Signing (required once it is hosted)
+## Publish
 
-AgenC requires a signature for any non-local source, so a marketplace served
-over HTTPS or cloned from GitHub refuses to install unsigned plugins. A local
-checkout does not, which is why this only shows up after publishing.
+Vercel and DigitalOcean builds run `npm run build`, which pins every plugin
+source to the commit being deployed. The existing droplet can be updated from a
+clean, pushed `main` checkout:
 
 ```bash
-openssl genpkey -algorithm ed25519 -out ~/.agenc/keys/agenc-plugins.pem
-openssl pkey -in ~/.agenc/keys/agenc-plugins.pem -pubout -out agenc-plugins.pub
-node sign-plugins.mjs --key ~/.agenc/keys/agenc-plugins.pem --publisher tetsuo-ai
+./deploy-droplet.sh
 ```
 
-Commit the `.agenc-plugin/signature.json` files, never the private key.
+The deployment script refuses dirty or unpublished trees, stages every artifact,
+moves each file atomically, and compares the live marketplace hash with the
+local build.
 
-Anyone installing has to trust the matching public key. In their
-`~/.agenc/plugin-publishers.json`:
-
-```json
-{ "publishers": { "tetsuo-ai": "<contents of agenc-plugins.pub>" } }
-```
-
-That is the trust model: not "anyone can install", but "anyone who trusts
-this key can install". Re-sign after any change to a skill, command or MCP
-config — the signature covers every payload file.
-
-## The one thing hosting needs
-
-The hosted manifest names this repository as each plugin's source, so the
-repo has to be reachable at the URL in `PLUGIN_REPO_URL` before anyone can
-install from the deployment. Publish the repo first, deploy second.
-
-## What a plugin manifest can carry
-
-Core reads far more than a name and a description. The two plugins here use:
-
-| field | why it matters |
-|---|---|
-| `interface.defaultPrompt` | the suggestion chips the app offers on a fresh session |
-| `interface.brandColor`, `logo` | how the plugin reads in the Plugins pane |
-| `interface.capabilities` | what it claims to do, in the user's language |
-| `userConfig` | typed settings with `sensitive`, `min`/`max` and defaults — the right way to ask for a port or a key path instead of inventing one |
-| `author`, `homepage`, `repository`, `license`, `keywords` | discovery and provenance |
-
-`agenc plugin validate <path>` checks a plugin, and
-`agenc plugin validate marketplace.json --marketplace` checks the index.
-
-## Known gaps
-
-- **No engine compatibility.** VS Code extensions pin a minimum host with
-  `engines.vscode`; nothing here says which AgenC versions a plugin needs, so
-  an old client installs a plugin it cannot run.
-- **No update signal.** `marketplace upgrade` refreshes the index, but nothing
-  tells a user their installed copy is behind.
-- **Key distribution is manual.** Every user pastes the publisher key into
-  their own keyring. A well-known location served beside the manifest would
-  make that one step instead of two.
-
-## Verified
-
-Against a real AgenC daemon (runtime 0.17.0):
-
-- `plugin marketplace add` accepts the local checkout and the hosted URL
-- `plugin marketplace catalog --product desktop --json` lists both plugins
-- installing both puts their skills, commands and MCP files under
-  `~/.agenc/plugins/`
-- `mcp list --config-only --json` reports `plugin:iot-builder:iot-serial`
-  sourced from `plugin:iot-builder@agenc`
+Licensed under the MIT License. See `LICENSE`.

@@ -1,0 +1,89 @@
+name: validate plugins
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: plugins-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  repository:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out plugin repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22.23.2"
+          cache: npm
+
+      - run: npm ci --ignore-scripts
+      - run: npm test
+
+  core-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Check out plugin repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Check out current AgenC Core contract
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: tetsuo-ai/agenc-core
+          ref: main
+          path: _agenc-core
+
+      - name: Read Core toolchain contract
+        id: core-toolchain
+        run: |
+          echo "node-version=$(node -p "require('./_agenc-core/release-toolchain.json').nodeVersion")" >> "$GITHUB_OUTPUT"
+          echo "npm-version=$(node -p "require('./_agenc-core/release-toolchain.json').npmVersion")" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ steps.core-toolchain.outputs.node-version }}
+
+      - name: Install Core-pinned npm
+        env:
+          CORE_NODE_VERSION: ${{ steps.core-toolchain.outputs.node-version }}
+          CORE_NPM_VERSION: ${{ steps.core-toolchain.outputs.npm-version }}
+        run: |
+          npm_archive="$RUNNER_TEMP/npm-$CORE_NPM_VERSION.tgz"
+          node _agenc-core/scripts/fetch-pinned-npm.mjs "$npm_archive"
+          npm install --global "$npm_archive" --ignore-scripts --no-audit --no-fund
+          test "$(node --version)" = "v$CORE_NODE_VERSION"
+          test "$(npm --version)" = "$CORE_NPM_VERSION"
+
+      - name: Build current Core
+        working-directory: _agenc-core
+        run: |
+          npm ci
+          npm run build
+
+      - name: Validate and install all plugins in an isolated home
+        env:
+          AGENC_BIN: ${{ github.workspace }}/_agenc-core/runtime/bin/agenc
+        run: npm run validate:core
+
+      - name: Build the hosted catalog for this commit
+        env:
+          PLUGIN_REPO_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: npm run build
+
+      - name: Download and install every signed hosted plugin
+        env:
+          AGENC_CORE_ROOT: ${{ github.workspace }}/_agenc-core
+          PLUGIN_REPO_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: npm run validate:core:remote

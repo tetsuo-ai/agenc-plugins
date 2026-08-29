@@ -1,9 +1,0 @@
-{
-  "mcpServers": {
-    "iot-serial": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/dev"],
-      "env": {}
-    }
-  }
-}

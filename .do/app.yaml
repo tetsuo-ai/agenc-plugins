@@ -21,7 +21,7 @@ static_sites:
       branch: main
       deploy_on_push: true
 
-    build_command: node build-manifest.mjs
+    build_command: npm run build
     output_dir: public
     environment_slug: node-js
 
@@ -29,10 +29,6 @@ static_sites:
       - key: PLUGIN_REPO_URL
         scope: BUILD_TIME
         value: https://github.com/tetsuo-ai/agenc-plugins
-      - key: PLUGIN_REPO_REF
-        scope: BUILD_TIME
-        value: main
-
     # A marketplace is fetched by the daemon, not a browser, but CORS costs
     # nothing and lets a web client read the same manifest.
     routes:
@@ -43,5 +39,17 @@ static_sites:
         name: access-control-allow-origin
         value: "*"
       - path: /marketplace.json
+        name: cache-control
+        value: public, max-age=300, must-revalidate
+      - path: /.agenc-plugin/marketplace.json
+        name: access-control-allow-origin
+        value: "*"
+      - path: /.agenc-plugin/marketplace.json
+        name: cache-control
+        value: public, max-age=300, must-revalidate
+      - path: /plugin-publishers.json
+        name: access-control-allow-origin
+        value: "*"
+      - path: /plugin-publishers.json
         name: cache-control
         value: public, max-age=300, must-revalidate

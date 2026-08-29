@@ -1,0 +1,16 @@
+{
+  "name": "@tetsuo-ai/agenc-plugins",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build-manifest.mjs",
+    "validate": "node validate.mjs",
+    "validate:core": "node validate-core.mjs",
+    "validate:core:remote": "node validate-core-remote.mjs",
+    "test": "npm run build && node --test tests/*.test.mjs && npm run validate"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

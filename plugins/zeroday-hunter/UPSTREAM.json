@@ -1,0 +1,5 @@
+{
+  "repo": "https://github.com/tetsuo-ai/agenc-core.git",
+  "commit": "74c811c437a37431a6d4de1277864e9c8e7c2b20",
+  "subtree": "plugins/zeroday-hunter"
+}
