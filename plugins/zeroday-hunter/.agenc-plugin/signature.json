@@ -1,0 +1,25 @@
+{
+  "publisher": "tetsuo-ai",
+  "signature": "KKtQCnJTbVIB26G5Ce23O8OKXg7KcD7bBsHyTHUQcwfdgEYTYrdOEbI5+0MG23cYPpPeEQ0BR18roX/TffIlDA==",
+  "files": {
+    "README.md": "sha256:aba31819d833b63d2fa5bf70c70b5910de394b2db2950902b5b782f581c19f4d",
+    "scripts/campaign.sh": "sha256:bdd961df6a92f1ef8bdc131eed2788c06b89e937794d0b1895fab9484013e9a0",
+    "scripts/poc-check.sh": "sha256:80671177f9c7edcd2adcc5f58a0b1c1b7517e474edddfc9a7fe690a220d09a12",
+    "scripts/zdh-init.sh": "sha256:599888135425f16f0360f9e5bf2c3a6d5dba2ba238a498356f957833b04b2511",
+    "scripts/zdh-slice.sh": "sha256:3240b8de6109c5ebed1230561045dd3cb0374cd6c59c88b2f612e8e5022652ee",
+    "scripts/zdh-triage.sh": "sha256:d341c090ce24fb4115d691d0c423e2a0b05665723f1ea7c08be022776cef4fbc",
+    "scripts/zdh-variant.sh": "sha256:2446ba0ac364bdfe12050abe1d1fa2bde799eaf33bbbb24d4063ddcecf113422",
+    "scripts/zdh-watch.sh": "sha256:657b8e6819f8bdbf18cedf6414c9cd8f004699b1a25968bb8c4af10109fb7d23",
+    "skills/zeroday-hunter/references/bug-class-playbooks.md": "sha256:b191eed628bf8878cf41294e200a8131ee26fac5492e162380e8d89b23d02f7e",
+    "skills/zeroday-hunter/references/campaign-manual.md": "sha256:4596d032a2dcdb5a24bcb09d54f630db95d7fcaec6e9fcd114493c046f463b5a",
+    "skills/zeroday-hunter/references/exploit-primitives.md": "sha256:70253df9f636cf900ef9b11e5cb0528911cf3d6c31943a27132a6a4810febe0b",
+    "skills/zeroday-hunter/references/fp-patterns.md": "sha256:6e034a6551570a83d9af3361b337dab86c7440d753c8dd646319184abec4ae07",
+    "skills/zeroday-hunter/references/methodology-sources.md": "sha256:b8e9cfb1dd20a482b761a082798a7356e7c4378969852687f4027d0c73a33a45",
+    "skills/zeroday-hunter/references/toolchain.md": "sha256:78b6bd212148999900f9514770370661cb494df7d02a354000d931c172fe77ed",
+    "skills/zeroday-hunter/SKILL.md": "sha256:3587d90cf01a5f66b6feb75b6e4677aa2d147370b41727c99eb6e28db09a2a86",
+    "templates/campaign.yaml": "sha256:e055181a18811018467b5344f80e41634f88f6a8c0c65d1a01e2d745b352c622",
+    "templates/finding.md": "sha256:25cf187548846f201c51d7d8545c2a13649d294fe7af4e4021b2953d6b546fa0",
+    "templates/hypothesis.md": "sha256:e8c62e137b3eb461ba9bcfad094b944581aedf6c6f302229844274a8d24d2494",
+    "UPSTREAM.json": "sha256:c445e96139a789d5d57720ee562181d4cd83aaeaa9d83564d4a1d5d635b3fe8e"
+  }
+}
