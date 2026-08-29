@@ -1,0 +1,41 @@
+{
+  "name": "ledger",
+  "version": "0.2.0",
+  "description": "Read Ledger accounts, balances and history, and verify receive addresses with wallet-cli.",
+  "author": { "name": "tetsuo-ai" },
+  "homepage": "https://agenc.tech",
+  "repository": "https://github.com/tetsuo-ai/agenc-plugins",
+  "license": "MIT",
+  "keywords": ["ledger", "wallet", "hardware", "balances", "readonly"],
+  "commands": {
+    "ledger-balance": {
+      "source": "./commands/ledger-balance.md",
+      "description": "Show Ledger accounts and balances without signing",
+      "argumentHint": "[account-label]",
+      "allowedTools": ["Bash"]
+    }
+  },
+  "skills": ["./skills/ledger-status"],
+  "interface": {
+    "displayName": "Ledger",
+    "shortDescription": "Inspect a Ledger wallet without signing or sending.",
+    "longDescription": "Uses the official wallet-cli to discover accounts, read balances and history, verify receive addresses on the trusted device display, and check device authenticity. This plugin never signs, broadcasts, or asks for a recovery phrase.",
+    "developerName": "tetsuo-ai",
+    "category": "wallets",
+    "capabilities": [
+      "account-discovery",
+      "readonly-balances",
+      "readonly-history",
+      "verified-receive-addresses",
+      "genuine-check"
+    ],
+    "websiteUrl": "https://agenc.tech",
+    "brandColor": "#2f8cff",
+    "defaultPrompt": [
+      "What is on my Ledger?",
+      "Show my Ledger accounts and balances",
+      "Verify a receive address on my Ledger"
+    ],
+    "screenshots": []
+  }
+}

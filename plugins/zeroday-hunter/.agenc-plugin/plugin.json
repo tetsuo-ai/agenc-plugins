@@ -1,0 +1,38 @@
+{
+  "name": "zeroday-hunter",
+  "version": "0.2.0",
+  "description": "Exploit-first 0-day hunting: campaigns with quantitative gates, deterministic proof and hashed evidence.",
+  "author": {
+    "name": "tetsuo-ai"
+  },
+  "homepage": "https://agenc.tech",
+  "repository": "https://github.com/tetsuo-ai/agenc-plugins",
+  "license": "MIT",
+  "keywords": [
+    "security",
+    "vulnerability-research",
+    "zero-day",
+    "code-audit"
+  ],
+  "skills": "./skills",
+  "interface": {
+    "displayName": "Zero Day Hunter",
+    "shortDescription": "Hunt exploitable bugs with proof and evidence.",
+    "longDescription": "Runs a gated vulnerability-research campaign from attack-surface mapping through deterministic proof, independent falsification and hashed evidence.",
+    "developerName": "tetsuo-ai",
+    "category": "security",
+    "capabilities": [
+      "security-audit",
+      "vulnerability-research",
+      "deterministic-poc",
+      "hashed-evidence"
+    ],
+    "websiteUrl": "https://agenc.tech",
+    "defaultPrompt": [
+      "Audit this codebase for exploitable vulnerabilities",
+      "Run a Zero Day Hunter campaign on this project",
+      "Falsify and verify the highest-risk security findings"
+    ],
+    "screenshots": []
+  }
+}
