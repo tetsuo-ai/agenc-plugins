@@ -36,6 +36,7 @@ for (const plugin of catalog.plugins ?? []) {
 }
 
 const verifierProgram = `
+import { createHash } from "node:crypto";
 import { mkdtemp, mkdir, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -83,10 +84,44 @@ try {
     if (result.plugin.name !== entry.name) {
       throw new Error(entry.name + ": installed manifest name mismatch");
     }
+    const installedManifest = JSON.parse(
+      await readFile(join(result.destination, ".agenc-plugin", "plugin.json"), "utf8")
+    );
+    if (installedManifest.interface?.logo !== "./assets/logo.png") {
+      throw new Error(entry.name + ": installed manifest logo path mismatch");
+    }
+    const logo = await readFile(join(result.destination, "assets", "logo.png"));
+    const pngMagic = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+    if (logo.length < 33 || logo.length > 1024 * 1024 || !logo.subarray(0, 8).equals(pngMagic)) {
+      throw new Error(entry.name + ": installed logo is not a bounded PNG");
+    }
+    const width = logo.readUInt32BE(16);
+    const height = logo.readUInt32BE(20);
+    if (
+      logo.readUInt32BE(8) !== 13 ||
+      logo.toString("ascii", 12, 16) !== "IHDR" ||
+      width !== height ||
+      width < 128 ||
+      width > 1024 ||
+      width * height > 1024 * 1024 ||
+      logo[24] !== 8 ||
+      logo[25] !== 6
+    ) {
+      throw new Error(entry.name + ": installed logo has an invalid IHDR");
+    }
+    const installedSignature = JSON.parse(
+      await readFile(join(result.destination, ".agenc-plugin", "signature.json"), "utf8")
+    );
+    const expectedLogoDigest = "sha256:" + createHash("sha256").update(logo).digest("hex");
+    if (installedSignature.files?.["assets/logo.png"] !== expectedLogoDigest) {
+      throw new Error(entry.name + ": installed logo digest is not signed");
+    }
     console.log(JSON.stringify({
       plugin: result.plugin.id,
       resolutionKind: result.resolutionKind,
       signatureVerified: result.signatureVerified,
+      logo: installedManifest.interface.logo,
+      logoBytes: logo.length,
     }));
   }
   console.log("Core remote catalog smoke test passed");

@@ -1,6 +1,6 @@
 {
   "name": "zeroday-hunter",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Exploit-first 0-day hunting: campaigns with quantitative gates, deterministic proof and hashed evidence.",
   "author": {
     "name": "tetsuo-ai"
@@ -28,6 +28,7 @@
       "hashed-evidence"
     ],
     "websiteUrl": "https://agenc.tech",
+    "logo": "./assets/logo.png",
     "defaultPrompt": [
       "Audit this codebase for exploitable vulnerabilities",
       "Run a Zero Day Hunter campaign on this project",

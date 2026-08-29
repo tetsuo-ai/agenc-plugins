@@ -1,6 +1,6 @@
 {
   "name": "ledger",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Read Ledger accounts, balances and history, and verify receive addresses with wallet-cli.",
   "author": { "name": "tetsuo-ai" },
   "homepage": "https://agenc.tech",
@@ -31,6 +31,7 @@
     ],
     "websiteUrl": "https://agenc.tech",
     "brandColor": "#2f8cff",
+    "logo": "./assets/logo.png",
     "defaultPrompt": [
       "What is on my Ledger?",
       "Show my Ledger accounts and balances",

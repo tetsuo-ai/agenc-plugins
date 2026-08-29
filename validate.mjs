@@ -17,6 +17,14 @@ import {
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const MARKETPLACE_PATH = join(ROOT, ".agenc-plugin", "marketplace.json");
 const EXPECTED_PLUGINS = ["zeroday-hunter", "iot-builder", "ledger"];
+const EXPECTED_PLUGIN_VERSION = "0.2.1";
+const EXPECTED_LOGO_PATH = "./assets/logo.png";
+const LOGO_PAYLOAD_PATH = "assets/logo.png";
+const PNG_MAGIC = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+const MIN_LOGO_DIMENSION = 128;
+const MAX_LOGO_DIMENSION = 1024;
+const MAX_LOGO_BYTES = 1024 * 1024;
+const MAX_LOGO_PIXELS = 1024 * 1024;
 const EXPECTED_PUBLISHER_FINGERPRINT =
   "8174e96296289bd8eed26b832296309015216afe544a7f15097356b10aa1b932";
 const ALLOWED_MANIFEST_FIELDS = new Set([
@@ -90,6 +98,64 @@ function assertDeclaredPaths(pluginRoot, declaration, field) {
   }
 }
 
+function assertPluginLogo(pluginRoot, manifest, pluginName) {
+  const declaredLogo = manifest.interface?.logo;
+  assert.equal(
+    declaredLogo,
+    EXPECTED_LOGO_PATH,
+    `${pluginName}: interface.logo must be ${EXPECTED_LOGO_PATH}`,
+  );
+  const logoPath = resolve(pluginRoot, declaredLogo.slice(2));
+  assertInside(logoPath, pluginRoot, `${pluginName}.interface.logo`);
+  assert.ok(existsSync(logoPath), `${pluginName}: logo does not exist: ${logoPath}`);
+  const logoStats = lstatSync(logoPath);
+  assert.ok(!logoStats.isSymbolicLink(), `${pluginName}: logo must not be a symlink`);
+  assert.ok(logoStats.isFile(), `${pluginName}: logo must be a regular file`);
+  assert.ok(logoStats.size >= 33, `${pluginName}: logo is too small to be a PNG`);
+  assert.ok(
+    logoStats.size <= MAX_LOGO_BYTES,
+    `${pluginName}: logo exceeds ${MAX_LOGO_BYTES} bytes`,
+  );
+
+  const logo = readFileSync(logoPath);
+  assert.equal(logo.length, logoStats.size, `${pluginName}: logo size changed while reading`);
+  assert.ok(logo.subarray(0, PNG_MAGIC.length).equals(PNG_MAGIC), `${pluginName}: invalid PNG magic`);
+  assert.equal(logo.readUInt32BE(8), 13, `${pluginName}: first PNG chunk must be a 13-byte IHDR`);
+  assert.equal(logo.toString("ascii", 12, 16), "IHDR", `${pluginName}: PNG is missing IHDR`);
+
+  const width = logo.readUInt32BE(16);
+  const height = logo.readUInt32BE(20);
+  assert.equal(width, height, `${pluginName}: logo must be square`);
+  assert.ok(
+    width >= MIN_LOGO_DIMENSION && width <= MAX_LOGO_DIMENSION,
+    `${pluginName}: logo dimension must be ${MIN_LOGO_DIMENSION}-${MAX_LOGO_DIMENSION}px`,
+  );
+  assert.ok(width * height <= MAX_LOGO_PIXELS, `${pluginName}: logo has too many pixels`);
+  assert.equal(logo[24], 8, `${pluginName}: logo must use 8-bit PNG channels`);
+  assert.equal(logo[25], 6, `${pluginName}: logo must use PNG RGBA color type 6`);
+  assert.equal(logo[26], 0, `${pluginName}: PNG compression method must be 0`);
+  assert.equal(logo[27], 0, `${pluginName}: PNG filter method must be 0`);
+  assert.ok(logo[28] === 0 || logo[28] === 1, `${pluginName}: invalid PNG interlace method`);
+
+  const signaturePath = join(pluginRoot, ".agenc-plugin", "signature.json");
+  const signature = readJson(signaturePath);
+  assert.ok(
+    signature.files !== null && typeof signature.files === "object" && !Array.isArray(signature.files),
+    `${pluginName}: signature file map is missing`,
+  );
+  assert.ok(
+    Object.hasOwn(signature.files, LOGO_PAYLOAD_PATH),
+    `${pluginName}: signature does not include ${LOGO_PAYLOAD_PATH}`,
+  );
+  const expectedDigest = `sha256:${createHash("sha256").update(logo).digest("hex")}`;
+  assert.equal(
+    signature.files[LOGO_PAYLOAD_PATH],
+    expectedDigest,
+    `${pluginName}: signed logo digest does not match the asset`,
+  );
+  return { bytes: logo.length, width, height };
+}
+
 function walkPayload(root, visitor, directory = root) {
   for (const entry of readdirSync(directory, { withFileTypes: true })) {
     if ([".git", ".hg", ".svn"].includes(entry.name)) continue;
@@ -131,12 +197,17 @@ for (const entry of marketplace.plugins) {
   assert.ok(!existsSync(join(pluginRoot, ".mcp.json")), `${entry.name}: .mcp.json is retired`);
   const manifest = readJson(manifestPath);
   assert.equal(manifest.name, entry.name, `${entry.name}: manifest name mismatch`);
-  assert.equal(manifest.version, "0.2.0", `${entry.name}: expected release version 0.2.0`);
+  assert.equal(
+    manifest.version,
+    EXPECTED_PLUGIN_VERSION,
+    `${entry.name}: expected release version ${EXPECTED_PLUGIN_VERSION}`,
+  );
   for (const field of Object.keys(manifest)) {
     assert.ok(ALLOWED_MANIFEST_FIELDS.has(field), `${entry.name}: unknown manifest field ${field}`);
   }
   assertDeclaredPaths(pluginRoot, manifest.skills, `${entry.name}.skills`);
   assertDeclaredPaths(pluginRoot, manifest.commands, `${entry.name}.commands`);
+  const logo = assertPluginLogo(pluginRoot, manifest, entry.name);
   walkPayload(pluginRoot, (path) => {
     if (!/\.(?:json|md|sh|yaml|yml)$/iu.test(path)) return;
     const content = readFileSync(path, "utf8");
@@ -145,7 +216,9 @@ for (const entry of marketplace.plugins) {
     }
   });
   const signature = verifyPluginSignatureFile(pluginRoot, publicKey);
-  console.log(`verified ${entry.name} (${signature.files} signed payload files)`);
+  console.log(
+    `verified ${entry.name} (${signature.files} signed payload files; ${logo.width}x${logo.height} RGBA logo, ${logo.bytes} bytes)`,
+  );
 }
 
 for (const script of [

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { createPublicKey } from "node:crypto";
+import { createHash, createPublicKey } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import test from "node:test";
@@ -11,6 +11,8 @@ import {
 } from "../plugin-signing.mjs";
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
+const PLUGINS = ["zeroday-hunter", "iot-builder", "ledger"];
+const PNG_MAGIC = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 
 test("publisher export is DER-SPKI base64 accepted by Core", () => {
   const pem = readFileSync(join(ROOT, "agenc-plugins.pub"), "utf8");
@@ -31,6 +33,38 @@ test("signature payload is deterministic", () => {
     pluginSignaturePayload(pluginRoot, files),
     pluginSignaturePayload(pluginRoot, reversed),
   );
+});
+
+test("every plugin declares a bounded signed RGBA PNG logo", () => {
+  for (const plugin of PLUGINS) {
+    const pluginRoot = join(ROOT, "plugins", plugin);
+    const manifest = JSON.parse(
+      readFileSync(join(pluginRoot, ".agenc-plugin", "plugin.json"), "utf8"),
+    );
+    const signature = JSON.parse(
+      readFileSync(join(pluginRoot, ".agenc-plugin", "signature.json"), "utf8"),
+    );
+    assert.equal(manifest.interface?.logo, "./assets/logo.png", `${plugin}: logo path`);
+    const logo = readFileSync(join(pluginRoot, "assets", "logo.png"));
+    assert.ok(logo.length >= 33 && logo.length <= 1024 * 1024, `${plugin}: logo bytes`);
+    assert.ok(logo.subarray(0, PNG_MAGIC.length).equals(PNG_MAGIC), `${plugin}: PNG magic`);
+    assert.equal(logo.readUInt32BE(8), 13, `${plugin}: IHDR length`);
+    assert.equal(logo.toString("ascii", 12, 16), "IHDR", `${plugin}: IHDR type`);
+    const width = logo.readUInt32BE(16);
+    const height = logo.readUInt32BE(20);
+    assert.equal(width, height, `${plugin}: square logo`);
+    assert.ok(width >= 128 && width <= 1024, `${plugin}: logo dimension`);
+    assert.ok(width * height <= 1024 * 1024, `${plugin}: logo pixels`);
+    assert.equal(logo[24], 8, `${plugin}: PNG bit depth`);
+    assert.equal(logo[25], 6, `${plugin}: PNG RGBA color type`);
+    const expectedDigest = `sha256:${createHash("sha256").update(logo).digest("hex")}`;
+    assert.equal(signature.files?.["assets/logo.png"], expectedDigest, `${plugin}: signed digest`);
+    assert.equal(
+      collectPluginPayloadDigests(pluginRoot)["assets/logo.png"],
+      expectedDigest,
+      `${plugin}: payload digest`,
+    );
+  }
 });
 
 test("hosted catalog aliases contain identical bytes", () => {
