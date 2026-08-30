@@ -1,147 +1,257 @@
 ---
 name: local-model-fit
-description: Work out which local LLM this machine can actually run, using the llm-checker CLI to read real hardware and a VRAM budget. Use when the user asks which model to run locally, whether a model will fit, or what their machine can handle.
+description: Recommend or assess local LLM artifacts against this machine's measured usable-memory budget with llm-checker. Use when the user asks which model to run locally, whether a named model or quantization will fit, or what the machine can handle.
 allowed-tools: [Bash, Read]
 ---
 
 # Local model fit
 
-Answer "which model can I actually run here" from measured hardware, not from
-memory. Model footprints and quantization sizes change constantly, and a wrong
-answer costs a multi-gigabyte download.
+Base answers on the installed `llm-checker` release and measured hardware. Do
+not infer model footprints from memory or parameter count alone when the
+registry exposes an exact artifact.
 
 ## Preflight
 
 ```bash
 command -v llm-checker
-```
-
-If the binary is absent, stop and tell the user to install it
-(`npm install -g llm-checker`). Do not install it automatically, do not
-substitute `npx`, and do not answer from memory instead.
-
-Check what you are working with before relying on any flag:
-
-```bash
 llm-checker --version
-llm-checker <command> --help
+llm-checker registry-recommend --help
 ```
 
-This skill targets the published CLI. If a flag below is missing on the
-installed version, say so rather than guessing an alternative.
+If the binary is absent, stop and tell the user to install it with
+`npm install -g llm-checker`. Do not install it automatically or substitute
+`npx`. This skill targets `llm-checker` 3.8.1; if the installed help lacks a
+documented command or flag, report the version mismatch instead of guessing.
 
-## Always start from the hardware
+## Measure the budget
 
-Never assume the machine. This is the only command here with clean,
-parseable JSON:
+Run this before answering what fits:
 
 ```bash
 llm-checker hw-detect --json
 ```
 
-Returns `backends`, `primary`, `cpu`, `systemGpu`, `summary`, `fingerprint`.
-Read the budget from `summary` — it carries the tier and the largest model size
-the machine is judged able to hold.
+Retain `summary.effectiveMemory`, `summary.bestBackend`,
+`summary.runtimeBackend`, `summary.totalVRAM`, `summary.hasIntegratedGPU`,
+`summary.hasDedicatedGPU`, and `summary.systemRAM`. They distinguish dedicated
+VRAM, unified memory, and CPU fallback. Do not look for a serialized "largest
+model" field; the JSON does not contain one.
 
-### Reading the memory budget correctly
+Use the values returned by the detector instead of applying a separate memory
+percentage. On Apple Silicon, `effectiveMemory` already represents the usable
+unified-memory budget.
 
-- **Discrete GPU (NVIDIA / AMD):** dedicated VRAM is the budget. System RAM is
-  not a substitute — a model that spills out of VRAM runs an order of magnitude
-  slower.
-- **Apple Silicon:** there is no separate VRAM. CPU and GPU share one unified
-  memory pool, and roughly 60-75% of total RAM is addressable by the GPU
-  depending on the machine. Report the unified figure; do not look for a
-  dedicated VRAM number and do not report "no GPU" because none is listed.
-- **No discrete GPU on a PC:** say plainly that inference will run on CPU at a
-  few tokens per second, rather than recommending a model as if it were fast.
+## Recommend an exact artifact
 
-## Ranked recommendations
+Use the registry command because it has clean JSON and reports the artifact's
+estimated memory requirement:
 
 ```bash
-llm-checker recommend
-llm-checker recommend -c coding
+llm-checker registry-recommend --category general --runtime auto --target-context 8192 --limit 5 --json
+llm-checker registry-recommend --category coding --runtime auto --target-context 8192 --limit 5 --json
 ```
 
-`-c` / `--category` takes a category such as `coding`, `talking` or `reading`.
+Valid categories are `general`, `coding`, `reasoning`, `embeddings`, and
+`multimodal`. If the user's task does not map cleanly to one, use `general` and
+say so. Valid runtime targets are `auto`, `ollama`, `llama.cpp`, `vllm`, `mlx`,
+and `transformers`.
 
-There is **no `--json` on `recommend`** — the output is a human-readable report.
-Read it and summarise; do not pipe it into a JSON parser.
+`--runtime auto` chooses a preferred runtime from artifact metadata; it does
+not prove that runtime is installed, serving, or supported by this operating
+system. Treat its result as hardware/artifact fit until runtime availability is
+checked separately.
 
-Useful flags that do exist: `--runtime <ollama|vllm|mlx>`, `--optimize
-<profile>`, `--max-size`, and `--simulate` with `--gpu` / `--ram` / `--vram` to
-model a machine other than this one.
+Use the user's requested context when provided. Otherwise keep the explicit
+8192-token assumption shown above and state it in the answer.
 
-### Be honest about what the ranking is
+Read these fields from each recommendation:
 
-The published CLI ranks with a deterministic scorer built on parameter count,
-quantization footprint, hardware fit, context and popularity. It is a **fit and
-suitability ranking, not a benchmark leaderboard.** Present it that way.
+- `model`, `artifact`, `source`, and `quantization`
+- `required_gb`: estimated memory needed, including the selector's assumptions
+- `size_gb`: artifact or file size metadata when the registry knows it
+- `runtime`, `install_command`, and `download_url`
+- `score`, `rationale`, and `memory.memorySource`
 
-Do not claim a model is "the best at coding" or attribute a score to
-HumanEval, MMLU, LiveBench or any public benchmark. The CLI does not publish
-per-model benchmark provenance, so any such number would be invented.
-
-## Check what fits
+Before finalizing any pick, cross-check its exact artifact and quantization:
 
 ```bash
-llm-checker check
-llm-checker check --max-size 14B
-llm-checker check --runtime ollama
+llm-checker registry-search "RETURNED MODEL" --source <source> --quant <quantization> --limit 20 --json
 ```
 
-Reports the system summary and compatible models against the detected hardware.
-There is no `--json` here either, and no flag to check one named model — so when
-the user asks about a specific model, use `--max-size` / `--min-size` to bracket
-it and read the report, rather than inventing a per-model command.
+Accept the fit verdict only when `model` matches that row's
+`canonical_model_id` or `repo_id`, `artifact` matches its `artifact_name` or
+`filename`, and source plus quantization also match. Require one unique row;
+generic filenames such as `model.safetensors` are not identities. Before
+presenting a command or URL, also require it to equal `install_command` or
+`download_url` from that same row. Apply this check to category recommendations
+as well as named-model queries; if the top pick fails it, inspect the next
+candidate rather than silently changing identity or quantization.
+
+`--target-context` affects scoring but is not a hard capability filter. Require
+the matched search row's `context_length` to be at least the requested target
+before saying the artifact meets that context. If the field is absent, context
+support is unknown; if it is lower, the model may fit memory but does not meet
+the requested context.
+
+Derive the selector budget from the top-level `hardware` returned by the same
+command: use `effectiveMemory` for Metal or integrated-only hardware; otherwise
+use a positive `totalVRAM`, falling back to `effectiveMemory`. Cross-check those
+fields against the preceding `hw-detect`, and report the remaining headroom.
+All returned recommendations already fit this selector budget, so do not infer
+a numeric deficit from an empty result. `required_gb` is an estimate, not a
+measurement. Say whether `memory.memorySource` is
+`observed_artifact_size`, `estimated_from_params`, or `moe_total_params`;
+observed artifact size still leaves context and runtime overhead estimated.
+Describe the score as deterministic fit and suitability, never as a public
+benchmark result.
+
+Do not accept a fit verdict for FP16/BF16 (including `F16`, `FP32`, or `F32`) or
+a sharded safetensors/bin artifact when `memory.memorySource` is not
+`observed_artifact_size`. Version 3.8.1 can underestimate those weights from
+parameter count. Without an observed total size, report exact fit as unknown.
+
+If `recommendations` is empty, inspect the counters. `total_artifacts: 0` means
+no eligible artifact matched the active query and filters; gated artifacts are
+excluded by default. A positive `total_artifacts` with no recommendations means
+no matching artifact produced a fitting, rankable candidate under the requested
+constraints. Do not run `registry-sync` or silently fall back to an unrelated
+model.
+
+## Assess a named model
+
+Pass the user's model name as one safely quoted query argument and inspect the
+registry matches before scoring them:
+
+```bash
+llm-checker registry-search "MODEL QUERY" --runtime auto --limit 20 --json
+llm-checker registry-recommend "MODEL QUERY" --category general --runtime auto --target-context 8192 --limit 20 --json
+```
+
+The search is substring-based. Use its `source_id`, `canonical_model_id`,
+`artifact_name`, `parameter_count_b`, `format`, and `quantization` to verify the
+identity. Add `--source`, `--format`, or `--quant` to both commands when needed
+to isolate the requested artifact. Only treat a recommendation as the requested
+model when its `source`, `artifact`, and `quantization` identify the same row
+from `registry-search`.
+
+The 3.8.1 selector can hypothesize a more compressed quantization than the
+indexed artifact while retaining that artifact's install command. If the
+recommendation's `quantization` differs from the uniquely matched search row,
+do not use its fit verdict or install command for that artifact. Search for a
+row with the recommended quantization and re-run with `--quant`; if none exists,
+label the result hypothetical and the exact fit unknown.
+
+A family name alone is not an exact model. If it matches multiple sizes or
+quantizations, enumerate them and ask for the intended variant or report each
+variant separately. Never let a fitting small variant answer for a larger
+member of the same family.
+
+A returned recommendation proves that variant fits the selector budget. An
+empty recommendation list is conclusive only when the exact artifact was
+isolated and `total_candidates` is positive; otherwise report the result as
+unknown. Never turn a substring match or an empty ambiguous result into a
+yes/no answer, and do not approximate with `check --min-size` or `--max-size`.
+
+Do not present `size_gb` as the model's complete footprint unless
+`memory.memorySource` is `observed_artifact_size`; for sharded artifacts it may
+describe only one file. Use `required_gb` for the fit decision.
+
+`registry-recommend --max-size <gb>` filters artifact size in GB.
+`--min-params <billion>` and `--max-params <billion>` filter parameter count.
+Keep those units distinct.
+
+## Verify the selected runtime
+
+Before saying an artifact is runnable *now*, verify the runtime returned by the
+recommendation. Use only the relevant probes:
+
+```bash
+command -v ollama
+command -v llama-cli
+command -v llama-server
+command -v vllm
+```
+
+If `python3` is available, locate Python runtimes without importing them:
+
+```bash
+python3 -c 'import importlib.util as u; print({m: bool(u.find_spec(m)) for m in ("vllm", "mlx_lm", "transformers")})'
+```
+
+For Ollama, use `llm-checker ollama` to distinguish an installed client from a
+reachable server. For MLX, also require Apple Silicon/Metal. Report a missing
+runtime separately from model fit; do not convert it into a claim that the
+artifact itself does not fit. LM Studio's `lms` command is not a valid
+`--runtime` value for this CLI.
 
 ## Installed Ollama models
 
+Check integration first:
+
 ```bash
 llm-checker ollama
-llm-checker installed
 ```
 
-`ollama` reports integration status; `installed` ranks the models already
-present. `installed --json` exists but its progress output goes to stdout and
-corrupts the JSON, so read the human output instead of parsing it.
-
-## Runtimes
-
-The CLI's `--runtime` flag accepts `ollama`, `vllm` and `mlx`. It does **not**
-discover which runtimes are installed on the machine, and `toolcheck` is not a
-discovery command — it is a tool-calling compatibility tester that loads
-installed Ollama models and runs inference against them.
-
-If the user wants to know what is installed, check directly:
+If Ollama is available, inspect the installed models with parseable JSON:
 
 ```bash
-command -v ollama llama-cli lms
+llm-checker installed --json
 ```
 
-and report only what you actually found.
+Use `fileSizeGB`, `quantization`, `score`, and `useCase` from that output. An
+empty array together with a non-zero exit status means Ollama is unavailable;
+an empty array after a successful integration check means no models are
+installed. Do not describe `installed --json` as malformed or mix stderr
+progress text into stdout JSON.
+
+For a named model that appears in this installed list, make the fit assessment
+against its exact Ollama tag:
+
+```bash
+llm-checker ollama-plan --models "EXACT INSTALLED TAG" --ctx 8192 --concurrency 1 --json
+llm-checker verify-context --model "EXACT INSTALLED TAG" --target 8192 --json
+```
+
+Use the user's requested context or concurrency when provided. Compare
+`plan.memory.requestedEstimatedGB` with `plan.memory.budgetGB` to decide whether
+the requested settings fit. First confirm that `selection.selected` contains
+the exact requested tag because selection also accepts prefix and family
+matches. If the request does not fit, report whether the reduced profile fits
+from `plan.recommendation.fits`; if that is false, report `plan.fallback.fits`
+and its `estimated_memory_gb`. Do not claim the original request fits merely
+because a reduced profile does, and do not execute the environment-variable
+recommendations from `plan.shell`.
+
+Use `verify-context` to check the model's declared and memory-limited context;
+confirm its output `model` is the exact requested tag. `ollama-plan --ctx` alone
+does not prove that the model declares support for that context.
+
+When the user did not provide workload settings, state that the assessment
+assumes an 8192-token context and concurrency 1.
 
 ## Reporting
 
-Lead with the answer, then the reason. Name the model, its quantization, what it
-needs against what the machine has, and the command to get it:
+Lead with the artifact and fit result. A useful answer contains:
 
-> `qwen2.5-coder:7b` — about 6 GB of your 12 GB, Q6_K.
-> Ranked top for coding on this hardware by fit and suitability.
-> `ollama pull qwen2.5-coder:7b-base-q6_K`
+- exact model/artifact and quantization
+- `required_gb` of the selector budget, plus remaining headroom
+- selected runtime, its separately verified availability, and the rationale
+- the install command or download URL exactly as returned
 
-State memory as *needed of available*, never as a bare number. Flag the case
-where a model fits but leaves no headroom for a long context window, because
-the user will hit it.
+Only present the command after model/repository, source, artifact,
+quantization, and command/URL match one unique registry-search row, the context
+requirement passes, and the memory-source guard does not make fit unknown. Do
+not invent a command when `install_command` is empty, and never attribute the
+suitability score to HumanEval, MMLU, LiveBench, or another leaderboard.
 
 ## Boundaries
 
-- Do not download or pull a model. Hand over the command.
+- Do not execute an `install_command`, download, or pull a model.
 - Do not start or stop a runtime server.
-- Do not run `sync`, `calibrate`, or anything that rewrites the catalog unless
-  the user explicitly asks.
-- Avoid `toolcheck` unless the user specifically wants tool-calling tested: it
-  loads models and runs inference, which is slow and uses real memory.
+- Do not run `sync`, `registry-sync`, `calibrate`, or another catalog-writing
+  command unless the user explicitly asks.
+- Do not use `toolcheck` for discovery; it loads an Ollama model and runs
+  inference.
 
-These commands are non-destructive but not side-effect free — `llm-checker`
-maintains a catalog and cache under `~/.llm-checker/`. Say "it does not change
-your models or runtimes" rather than "it writes nothing".
+These commands do not change the user's models or runtime configuration, but
+`llm-checker` may maintain its own database and cache under `~/.llm-checker`.

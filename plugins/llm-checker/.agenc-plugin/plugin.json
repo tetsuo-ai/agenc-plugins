@@ -15,13 +15,13 @@
     "vram",
     "ollama",
     "llama.cpp",
-    "readonly"
+    "model-selection"
   ],
   "commands": {
     "pick-model": {
       "source": "./commands/pick-model.md",
-      "description": "Recommend a local model that fits this machine's VRAM",
-      "argumentHint": "[use case, e.g. coding]",
+      "description": "Recommend an exact local model artifact that fits this machine's memory budget",
+      "argumentHint": "[category or model name]",
       "allowedTools": [
         "Bash",
         "Read"
@@ -42,13 +42,13 @@
   "interface": {
     "displayName": "LLM Checker",
     "shortDescription": "Find which local models this machine can actually run.",
-    "longDescription": "Reads the real GPU, unified or dedicated memory budget and installed Ollama models with the llm-checker CLI, then ranks local models by what fits this hardware. The ranking is a fit and suitability score, not a public benchmark result, and the skill requires presenting it that way. It never downloads a model, starts a server, or changes runtime configuration.",
+    "longDescription": "Reads the real usable-memory budget with the llm-checker CLI, then ranks exact registry artifacts by hardware fit and reports their estimated memory requirement, quantization, runtime and provenance. The score is deterministic fit and suitability, not a public benchmark result. It never downloads a model, starts a server, or changes runtime configuration.",
     "developerName": "tetsuo-ai",
     "category": "developer-tools",
     "capabilities": [
       "hardware-detection",
       "memory-fit-analysis",
-      "fit-ranked-recommendations",
+      "artifact-aware-recommendations",
       "installed-model-ranking"
     ],
     "websiteUrl": "https://agenc.tech",
