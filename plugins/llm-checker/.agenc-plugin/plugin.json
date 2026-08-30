@@ -1,0 +1,49 @@
+{
+  "name": "llm-checker",
+  "version": "0.2.1",
+  "description": "Pick a local LLM that fits this machine's VRAM, and see which local runtimes are installed.",
+  "author": { "name": "tetsuo-ai" },
+  "homepage": "https://agenc.tech",
+  "repository": "https://github.com/tetsuo-ai/agenc-plugins",
+  "license": "MIT",
+  "keywords": ["llm", "local-models", "hardware", "vram", "ollama", "llama.cpp", "readonly"],
+  "commands": {
+    "pick-model": {
+      "source": "./commands/pick-model.md",
+      "description": "Recommend a local model that fits this machine's VRAM",
+      "argumentHint": "[use case, e.g. coding]",
+      "allowedTools": ["Bash", "Read"]
+    },
+    "runtime-check": {
+      "source": "./commands/runtime-check.md",
+      "description": "Show which local LLM runtimes are installed and usable",
+      "argumentHint": "",
+      "allowedTools": ["Bash"]
+    }
+  },
+  "skills": ["./skills/local-model-fit"],
+  "interface": {
+    "displayName": "LLM Checker",
+    "shortDescription": "Find which local models this machine can actually run.",
+    "longDescription": "Reads the real GPU, VRAM budget and installed runtimes with the llm-checker CLI, then ranks local models by what fits and how well they score on public benchmarks. Distinguishes a measured benchmark from a size-based estimate so a recommendation is never presented as more certain than it is. Read-only: it never downloads a model, starts a server, or changes runtime configuration.",
+    "developerName": "tetsuo-ai",
+    "category": "developer-tools",
+    "capabilities": [
+      "hardware-detection",
+      "vram-fit-analysis",
+      "benchmark-backed-ranking",
+      "runtime-discovery",
+      "readonly-recommendations"
+    ],
+    "websiteUrl": "https://agenc.tech",
+    "brandColor": "#f0a93c",
+    "logo": "./assets/logo.png",
+    "defaultPrompt": [
+      "Which local model can my machine run?",
+      "What is the best local coding model for this GPU?",
+      "Will a 14B model fit in my VRAM?",
+      "Which local LLM runtimes do I have installed?"
+    ],
+    "screenshots": []
+  }
+}
