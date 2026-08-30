@@ -1,14 +1,14 @@
 ---
 name: local-model-fit
-description: Pick a local LLM that actually fits this machine, and see which local runtimes are installed. Uses the llm-checker CLI to read real hardware, VRAM budget and benchmark-backed rankings. Use whenever the user asks which model to run locally, whether a model will fit, or what their machine can handle.
+description: Work out which local LLM this machine can actually run, using the llm-checker CLI to read real hardware and a VRAM budget. Use when the user asks which model to run locally, whether a model will fit, or what their machine can handle.
 allowed-tools: [Bash, Read]
 ---
 
 # Local model fit
 
-Answer "which model can I actually run here" from measured facts, not from
-memory. Model sizes, VRAM budgets and quantization footprints change constantly,
-and a wrong answer wastes a multi-gigabyte download.
+Answer "which model can I actually run here" from measured hardware, not from
+memory. Model footprints and quantization sizes change constantly, and a wrong
+answer costs a multi-gigabyte download.
 
 ## Preflight
 
@@ -17,116 +17,131 @@ command -v llm-checker
 ```
 
 If the binary is absent, stop and tell the user to install it
-(`npm install -g llm-checker`). Do not install it automatically, do not fall
-back to `npx`, and do not answer the question from memory instead.
+(`npm install -g llm-checker`). Do not install it automatically, do not
+substitute `npx`, and do not answer from memory instead.
 
-Every command below is read-only. None of them download a model, start a
-server, or change the user's runtime configuration.
+Check what you are working with before relying on any flag:
+
+```bash
+llm-checker --version
+llm-checker <command> --help
+```
+
+This skill targets the published CLI. If a flag below is missing on the
+installed version, say so rather than guessing an alternative.
 
 ## Always start from the hardware
 
-Never assume the machine. Run this first for any question about what fits:
+Never assume the machine. This is the only command here with clean,
+parseable JSON:
 
 ```bash
-llm-checker hw-detect
+llm-checker hw-detect --json
 ```
 
-This reports the GPU and its dedicated VRAM, the CPU and its instruction set,
-system memory, the selected backend (CUDA / ROCm / Metal), and a "largest model"
-figure. The VRAM number is the budget every later answer is measured against —
-system RAM is not a substitute, because a model that spills out of VRAM runs
-an order of magnitude slower.
+Returns `backends`, `primary`, `cpu`, `systemGpu`, `summary`, `fingerprint`.
+Read the budget from `summary` — it carries the tier and the largest model size
+the machine is judged able to hold.
 
-On a machine with no discrete GPU, say so plainly rather than recommending a
-model that will only run on CPU at a few tokens per second.
+### Reading the memory budget correctly
+
+- **Discrete GPU (NVIDIA / AMD):** dedicated VRAM is the budget. System RAM is
+  not a substitute — a model that spills out of VRAM runs an order of magnitude
+  slower.
+- **Apple Silicon:** there is no separate VRAM. CPU and GPU share one unified
+  memory pool, and roughly 60-75% of total RAM is addressable by the GPU
+  depending on the machine. Report the unified figure; do not look for a
+  dedicated VRAM number and do not report "no GPU" because none is listed.
+- **No discrete GPU on a PC:** say plainly that inference will run on CPU at a
+  few tokens per second, rather than recommending a model as if it were fast.
 
 ## Ranked recommendations
 
 ```bash
-llm-checker recommend --json
+llm-checker recommend
+llm-checker recommend -c coding
 ```
 
-Returns ranked picks per use case: general, coding, reasoning, multimodal,
-creative, chat and long-context. Each entry carries the model name, parameter
-count, quantization, estimated VRAM (`estimatedRAM`, in GB), estimated speed,
-and the exact install command.
+`-c` / `--category` takes a category such as `coding`, `talking` or `reading`.
 
-Add `--runtime <name>` to target one runtime, and `--use-case <category>` when
-the user named a task. For a "just tell me one model" request, take the
-`general` pick and say why it won.
+There is **no `--json` on `recommend`** — the output is a human-readable report.
+Read it and summarise; do not pipe it into a JSON parser.
 
-### Read the provenance before you present a score
+Useful flags that do exist: `--runtime <ollama|vllm|mlx>`, `--optimize
+<profile>`, `--max-size`, and `--simulate` with `--gpu` / `--ram` / `--vram` to
+model a machine other than this one.
 
-Each recommendation carries a `qualitySource`:
+### Be honest about what the ranking is
 
-- `{ kind: 'measured', metric, rawScore, source }` — a real public benchmark
-  (BigCodeBench, EvalPlus, LiveBench, MMMU) matched to this model.
-- `{ kind: 'estimated', basis: 'parameter count' }` — no benchmark exists for
-  it, so quality was inferred from size alone.
+The published CLI ranks with a deterministic scorer built on parameter count,
+quantization footprint, hardware fit, context and popularity. It is a **fit and
+suitability ranking, not a benchmark leaderboard.** Present it that way.
 
-Most of the catalog is estimated. When you present a ranking, say which kind of
-number it is. Never describe an estimate as a measurement or call a model "the
-best at coding" when nothing measured it.
+Do not claim a model is "the best at coding" or attribute a score to
+HumanEval, MMLU, LiveBench or any public benchmark. The CLI does not publish
+per-model benchmark provenance, so any such number would be invented.
 
-If `sizeUnknown` is set on a measured entry, the benchmark scored the model
-*family* rather than that exact build — say so.
-
-## Check one specific model
-
-When the user names a model, answer whether it fits rather than offering a list:
+## Check what fits
 
 ```bash
-llm-checker check --json
+llm-checker check
+llm-checker check --max-size 14B
+llm-checker check --runtime ollama
 ```
 
-Compare the model's `estimatedRAM` against the VRAM from `hw-detect`:
+Reports the system summary and compatible models against the detected hardware.
+There is no `--json` here either, and no flag to check one named model — so when
+the user asks about a specific model, use `--max-size` / `--min-size` to bracket
+it and read the report, rather than inventing a per-model command.
 
-- comfortably under budget — it fits, with room for context
-- above roughly 80% of VRAM — it fits but leaves no headroom for a long
-  context window; say that, because the user will hit it
-- over budget — it will not run on the GPU; give the next size down or a
-  smaller quantization instead of implying it might work
-
-## Which runtimes are present
+## Installed Ollama models
 
 ```bash
-llm-checker toolcheck
+llm-checker ollama
+llm-checker installed
 ```
 
-The tool supports several local runtimes and they are not interchangeable:
+`ollama` reports integration status; `installed` ranks the models already
+present. `installed --json` exists but its progress output goes to stdout and
+corrupts the JSON, so read the human output instead of parsing it.
 
-| Runtime | Format | Note |
-|---|---|---|
-| Ollama | its own registry, GGUF | easiest; one command per model |
-| llama.cpp | GGUF | most control; models come from Hugging Face, not a registry |
-| LM Studio | GGUF, MLX | GUI plus an OpenAI-compatible server |
-| vLLM | safetensors | needs a discrete accelerator; not available on macOS |
-| MLX | MLX, safetensors | Apple Silicon only |
-| Transformers | safetensors | widest coverage, slowest to start; needs torch |
+## Runtimes
 
-Give the install command for a runtime the user actually has. A GGUF pick under
-llama.cpp needs a Hugging Face download, not `ollama pull` — offering the wrong
-verb sends them down a dead end.
+The CLI's `--runtime` flag accepts `ollama`, `vllm` and `mlx`. It does **not**
+discover which runtimes are installed on the machine, and `toolcheck` is not a
+discovery command — it is a tool-calling compatibility tester that loads
+installed Ollama models and runs inference against them.
+
+If the user wants to know what is installed, check directly:
+
+```bash
+command -v ollama llama-cli lms
+```
+
+and report only what you actually found.
 
 ## Reporting
 
-Lead with the answer, then the reason. A useful reply names the model, its
-quantization, what it needs against what the machine has, and the one command
-to get it:
+Lead with the answer, then the reason. Name the model, its quantization, what it
+needs against what the machine has, and the command to get it:
 
-> `qwen2.5-coder:7b` — 6.1 GB of your 12 GB, Q6_K.
-> Measured 40.4 pass@1 on BigCodeBench.
+> `qwen2.5-coder:7b` — about 6 GB of your 12 GB, Q6_K.
+> Ranked top for coding on this hardware by fit and suitability.
 > `ollama pull qwen2.5-coder:7b-base-q6_K`
 
-State the VRAM figure as *used of available*, never as a bare number. If a
-recommendation rests on an estimate rather than a benchmark, say so in the same
-breath rather than in a footnote.
+State memory as *needed of available*, never as a bare number. Flag the case
+where a model fits but leaves no headroom for a long context window, because
+the user will hit it.
 
 ## Boundaries
 
-- Read-only. Never run `sync`, `calibrate` or any command that writes to the
-  catalog unless the user explicitly asks for it.
-- Never pull or download a model on the user's behalf. Hand them the command.
-- Never start or stop a runtime server.
-- If `hw-detect` fails or reports no GPU, report that honestly instead of
-  falling back to a generic recommendation.
+- Do not download or pull a model. Hand over the command.
+- Do not start or stop a runtime server.
+- Do not run `sync`, `calibrate`, or anything that rewrites the catalog unless
+  the user explicitly asks.
+- Avoid `toolcheck` unless the user specifically wants tool-calling tested: it
+  loads models and runs inference, which is slow and uses real memory.
+
+These commands are non-destructive but not side-effect free — `llm-checker`
+maintains a catalog and cache under `~/.llm-checker/`. Say "it does not change
+your models or runtimes" rather than "it writes nothing".
