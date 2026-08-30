@@ -1,0 +1,65 @@
+{
+  "name": "llm-checker",
+  "version": "0.2.1",
+  "description": "Work out which local LLM this machine can run, from measured hardware and a real memory budget.",
+  "author": {
+    "name": "tetsuo-ai"
+  },
+  "homepage": "https://agenc.tech",
+  "repository": "https://github.com/tetsuo-ai/agenc-plugins",
+  "license": "MIT",
+  "keywords": [
+    "llm",
+    "local-models",
+    "hardware",
+    "vram",
+    "ollama",
+    "llama.cpp",
+    "model-selection"
+  ],
+  "commands": {
+    "pick-model": {
+      "source": "./commands/pick-model.md",
+      "description": "Recommend an exact local model artifact that fits this machine's memory budget",
+      "argumentHint": "[category or model name]",
+      "allowedTools": [
+        "Bash",
+        "Read"
+      ]
+    },
+    "runtime-check": {
+      "source": "./commands/runtime-check.md",
+      "description": "Show this machine's hardware budget and installed Ollama models",
+      "argumentHint": "",
+      "allowedTools": [
+        "Bash"
+      ]
+    }
+  },
+  "skills": [
+    "./skills/local-model-fit"
+  ],
+  "interface": {
+    "displayName": "LLM Checker",
+    "shortDescription": "Find which local models this machine can actually run.",
+    "longDescription": "Reads the real usable-memory budget with the llm-checker CLI, then ranks exact registry artifacts by hardware fit and reports their estimated memory requirement, quantization, runtime and provenance. The score is deterministic fit and suitability, not a public benchmark result. It never downloads a model, starts a server, or changes runtime configuration.",
+    "developerName": "tetsuo-ai",
+    "category": "developer-tools",
+    "capabilities": [
+      "hardware-detection",
+      "memory-fit-analysis",
+      "artifact-aware-recommendations",
+      "installed-model-ranking"
+    ],
+    "websiteUrl": "https://agenc.tech",
+    "brandColor": "#f0a93c",
+    "logo": "./assets/logo.png",
+    "defaultPrompt": [
+      "Which local model can my machine run?",
+      "What should I run for coding on this GPU?",
+      "Will a 14B model fit in my memory budget?",
+      "What are my hardware limits for local models?"
+    ],
+    "screenshots": []
+  }
+}
