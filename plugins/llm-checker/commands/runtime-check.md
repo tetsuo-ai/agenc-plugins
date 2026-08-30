@@ -1,13 +1,18 @@
 ---
-description: Show which local LLM runtimes are installed and usable
+description: Show this machine's hardware budget and its installed Ollama models
 argument-hint: ""
 ---
 
-Follow the `local-model-fit` skill and its read-only boundary.
+Follow the `local-model-fit` skill and its boundaries.
 
-Run `llm-checker toolcheck` and report, per runtime, whether it is installed,
-whether a server is currently serving, and its version. Note which model formats
-each one can load, since GGUF and safetensors are not interchangeable.
+Run `llm-checker hw-detect --json` and report the GPU or unified memory budget,
+the CPU, and the selected backend. On Apple Silicon report the unified memory
+pool rather than looking for a dedicated VRAM figure.
 
-Where a runtime is missing, give its install command but do not install it.
-Never start or stop a server.
+Then run `llm-checker ollama` for integration status and `llm-checker installed`
+for the models already present, ranked against this hardware. Read the human
+output — `installed --json` prints progress to stdout and does not parse.
+
+The CLI does not discover installed runtimes. If the user wants that, check with
+`command -v ollama llama-cli lms` and report only what you found. Do not use
+`toolcheck` for this: it loads models and runs inference.
