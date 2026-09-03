@@ -45,12 +45,12 @@ try {
     "--marketplace",
     "--json",
   ]);
-  for (const plugin of ["zeroday-hunter", "iot-builder", "ledger", "llm-checker"]) {
+  for (const plugin of ["zeroday-hunter", "iot-builder", "ledger", "llm-checker", "stonks-copilot"]) {
     run(["plugin", "validate", join(ROOT, "plugins", plugin), "--json"]);
   }
   run(["plugin", "marketplace", "add", ROOT, "--name", "agenc-plugins"]);
   run(["plugin", "marketplace", "list", "--json"]);
-  for (const plugin of ["zeroday-hunter", "iot-builder", "ledger", "llm-checker"]) {
+  for (const plugin of ["zeroday-hunter", "iot-builder", "ledger", "llm-checker", "stonks-copilot"]) {
     run([
       "plugin",
       "install",
@@ -62,7 +62,7 @@ try {
     ]);
   }
   const installed = run(["plugin", "list", "--json"]);
-  for (const plugin of ["zeroday-hunter", "iot-builder", "ledger", "llm-checker"]) {
+  for (const plugin of ["zeroday-hunter", "iot-builder", "ledger", "llm-checker", "stonks-copilot"]) {
     if (!installed.includes(`${plugin}@agenc-plugins`)) {
       throw new Error(`installed plugin list does not contain ${plugin}@agenc-plugins`);
     }

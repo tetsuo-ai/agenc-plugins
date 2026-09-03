@@ -1,0 +1,27 @@
+{
+  "publisher": "tetsuo-ai",
+  "signature": "Pj1Tl22letL2ETrjxK7Ga/+bDF/fbBbHaQDj2sHsfcms0d+209f5jP6Qu4AQLhWcUHWpj/E3m7lCyNGi2qZEDg==",
+  "files": {
+    "assets/logo.png": "sha256:456e46f80ca661c01c0ce33055e914c145b03c52d85ce44332118dba4a4a58dd",
+    "commands/stock.md": "sha256:a7e5979dd994b4cd1d11262b1bd028de85ff451c2907099badd936f85eb95929",
+    "commands/thesis.md": "sha256:11a424d612849f6710366ad92b3619981e62f5474aa85a716d5d7833be52025d",
+    "commands/xray.md": "sha256:b32a6e4a08c359277ac17d24b4e3559365e33328b51e5087e8d05511998331f6",
+    "README.md": "sha256:ffdb1ddc80c5b46d83713c4ae13810e4852717e410c5b0a312c00aa56e52c411",
+    "server/bars.mjs": "sha256:c91bfe6cd95890a9da3bef956e91ab49a0514c2ab6c7872091c46d28d830e684",
+    "server/cache.mjs": "sha256:3d5f44d29f86f8cb8b23ae08fdd025c4d0a63c2be88aa93826d87ec56c0d41ce",
+    "server/charts.mjs": "sha256:a7ac1898bd08c6fec1a02d89fc2560232745f4fa6040f0609b3807ee97ddd93f",
+    "server/edgar.mjs": "sha256:da75b82947649c010099534a644e4c5adfb642bb6010dbb66dc5d56ca8bf28ed",
+    "server/fundamentals.mjs": "sha256:812558d4ff356e54bde027f69cd6a6caef0f18f775f89824c5e3b0ac23fae70a",
+    "server/indicators.mjs": "sha256:7937f85337e3d7ec344312c4315caf84bc9aab283c4f9b750b6aad19c1fa6576",
+    "server/main.mjs": "sha256:cc833fe24177f3da8476ae87ed7b84fc3dc9b98aaf36cc4549a02f0a60d4e82d",
+    "server/nport.mjs": "sha256:f2c8d400b2fef1d3457818807c1754af473689eb2d1a3c6f345b3a7ccb5e8065",
+    "server/portfolio.mjs": "sha256:e055bd5807b4ae1aed78259d163125ff41646bdf3198f479511325a28a0e2d96",
+    "server/stooq.mjs": "sha256:388252d78afc24016f6c55b999184e88df62296ad589b28b91bb9214d76b70fc",
+    "server/stores.mjs": "sha256:ca334ad6c5e06c13e5202c8a40197b9c56c96163c5f7798f4d075034e3be74e0",
+    "server/theses.mjs": "sha256:1528eac055e56cbe3620d12648f6d93ac5e542123d7562fc7d3c1d8980d7154a",
+    "server/yahoo.mjs": "sha256:5eb08ad731ffb352b94b3060a1955ae66e25ed54fbd2ab1c5cff946217422a3e",
+    "skills/portfolio-xray/SKILL.md": "sha256:2aeaa902267f71379b1cf7dba16453de62962e5697547601d2cf9b6427ef7de2",
+    "skills/stock-analyzer/SKILL.md": "sha256:af1da5e56b3d6d3e97b4341278ee418db9be7dd4b28dbc4f938128cce7141aa8",
+    "skills/thesis-journal/SKILL.md": "sha256:965cb7c960c443e1533a2ae4173ec0ca6b8f7679e1a464c124008af7b32bf55e"
+  }
+}

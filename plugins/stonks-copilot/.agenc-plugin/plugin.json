@@ -1,0 +1,81 @@
+{
+  "name": "stonks-copilot",
+  "version": "0.2.1",
+  "description": "Agent-native investing copilot: 50/50 technical+fundamental stock analysis, portfolio X-Ray with real fund overlap from SEC N-PORT filings, SVG charts, and a decision journal that alerts when your stated thesis breaks.",
+  "author": {
+    "name": "tetsuo-ai"
+  },
+  "homepage": "https://agenc.tech",
+  "repository": "https://github.com/tetsuo-ai/agenc-plugins",
+  "license": "MIT",
+  "keywords": [
+    "stocks",
+    "portfolio",
+    "etf",
+    "overlap",
+    "fundamentals",
+    "technical-analysis",
+    "sec-edgar",
+    "decision-journal"
+  ],
+  "mcpServers": {
+    "stonks-data": {
+      "command": "node",
+      "args": ["./server/main.mjs"],
+      "transport": "stdio",
+      "env_vars": ["PATH"]
+    }
+  },
+  "commands": {
+    "stock": {
+      "source": "./commands/stock.md",
+      "description": "Analyze a stock 50/50: technicals + SEC fundamentals with a blended scorecard and chart",
+      "argumentHint": "<symbol>",
+      "allowedTools": ["Bash", "Read"]
+    },
+    "xray": {
+      "source": "./commands/xray.md",
+      "description": "Portfolio forensics: effective exposure, fund overlap, concentration and fees with a treemap",
+      "argumentHint": "[paste positions CSV or 'use stored']",
+      "allowedTools": ["Bash", "Read"]
+    },
+    "thesis": {
+      "source": "./commands/thesis.md",
+      "description": "Decision journal: record an investment thesis with cited metrics, list theses, or scan for thesis breaks",
+      "argumentHint": "<add|list|scan> [symbol] [thesis text]",
+      "allowedTools": ["Bash", "Read"]
+    }
+  },
+  "skills": [
+    "./skills/stock-analyzer",
+    "./skills/portfolio-xray",
+    "./skills/thesis-journal"
+  ],
+  "interface": {
+    "displayName": "Stonks Copilot",
+    "shortDescription": "Know what you own, why you bought it, and when that reason broke.",
+    "longDescription": "A retail-investor copilot with three integrated loops. Analyze: 50/50 technicals (computed locally from daily OHLCV) and fundamentals (SEC EDGAR XBRL) blended into one scorecard with signal-level reasons. X-Ray: import broker positions and merge direct holdings with real fund constituents from N-PORT filings to expose overlap, effective exposure, concentration and fee drag — what you actually own, not what you bought. Journal: record theses with quantified cited metrics and get thesis-break alerts when the reason you gave stops being true. Data comes from keyless public endpoints (Stooq, SEC EDGAR) cached locally. Strictly read-only: it never places orders and never asks for broker credentials.",
+    "developerName": "tetsuo-ai",
+    "category": "finance",
+    "capabilities": [
+      "stock-analysis",
+      "technical-indicators",
+      "sec-fundamentals",
+      "portfolio-xray",
+      "etf-overlap",
+      "decision-journal",
+      "thesis-break-alerts",
+      "svg-charts"
+    ],
+    "websiteUrl": "https://agenc.tech",
+    "brandColor": "#22c55e",
+    "logo": "./assets/logo.png",
+    "defaultPrompt": [
+      "Analyze AAPL for me",
+      "How much NVDA do I actually own through my ETFs?",
+      "Set up a thesis for my VOO position",
+      "Scan my investment theses for breaks"
+    ],
+    "screenshots": []
+  }
+}
