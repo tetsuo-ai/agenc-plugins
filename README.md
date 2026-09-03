@@ -1,10 +1,14 @@
 # AgenC Plugins
 
-The first-party plugin marketplace for AgenC. It contains three packages:
+The first-party plugin marketplace for AgenC. It contains five packages:
 
 - **Zero Day Hunter** — a security-research campaign skill.
 - **IoT Builder** — a guarded PlatformIO build/upload workflow.
 - **Ledger** — read-only wallet inspection with Ledger's official `wallet-cli`.
+- **LLM Checker** — hardware-measured local-model recommendations.
+- **Stonks Copilot** — agent-native investing copilot: 50/50 stock analysis,
+  portfolio X-Ray with real N-PORT fund overlap, SVG charts, and a decision
+  journal that flags when your stated thesis breaks.
 
 ## Plugin, skill, and MCP
 
@@ -21,10 +25,14 @@ plugin package
 
 A skill is instructions for the agent. An MCP server is an optional process or
 remote endpoint that contributes tools. A plugin is the signed package that can
-contain either or both. These three packages intentionally ship without MCP
-servers today: their previous MCP declarations were broader than their real
-capabilities. Ledger calls `wallet-cli` through its skill, IoT calls PlatformIO,
-and Zero Day uses its signed scripts and references.
+contain either or both. Zero Day Hunter, IoT Builder, Ledger, and LLM Checker
+intentionally ship without MCP servers: their previous MCP declarations were
+broader than their real capabilities. Ledger calls `wallet-cli` through its
+skill, IoT calls PlatformIO, and Zero Day uses its signed scripts and
+references. Stonks Copilot is the first package whose tool surface genuinely
+warrants an MCP server: it ships a zero-dependency stdio server
+(`server/main.mjs`) whose tools cover market data, portfolio forensics, the
+thesis journal, and chart rendering over keyless public endpoints.
 
 ## Requirements
 

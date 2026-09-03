@@ -16,7 +16,7 @@ import {
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const MARKETPLACE_PATH = join(ROOT, ".agenc-plugin", "marketplace.json");
-const EXPECTED_PLUGINS = ["zeroday-hunter", "iot-builder", "ledger", "llm-checker"];
+const EXPECTED_PLUGINS = ["zeroday-hunter", "iot-builder", "ledger", "llm-checker", "stonks-copilot"];
 const EXPECTED_PLUGIN_VERSION = "0.2.1";
 const EXPECTED_LOGO_PATH = "./assets/logo.png";
 const LOGO_PAYLOAD_PATH = "assets/logo.png";
@@ -254,6 +254,29 @@ const iotSkill = readFileSync(
 for (const command of ["pio device list --json-output", "pio run -e", "--upload-port"]) {
   assert.ok(iotSkill.includes(command), `IoT skill is missing ${command}`);
 }
+
+const stonksManifest = readJson(
+  join(ROOT, "plugins", "stonks-copilot", ".agenc-plugin", "plugin.json"),
+);
+assert.ok(
+  stonksManifest.mcpServers?.["stonks-data"]?.command === "node",
+  "Stonks Copilot must declare its stdio stonks-data MCP server",
+);
+const stonksJournalSkill = readFileSync(
+  join(ROOT, "plugins", "stonks-copilot", "skills", "thesis-journal", "SKILL.md"),
+  "utf8",
+);
+for (const required of ["thesis_create", "thesis_scan", "thesis_list", "metrics_registry"]) {
+  assert.ok(stonksJournalSkill.includes(required), `Stonks Copilot journal skill is missing ${required}`);
+}
+const stonksAnalyzerSkill = readFileSync(
+  join(ROOT, "plugins", "stonks-copilot", "skills", "stock-analyzer", "SKILL.md"),
+  "utf8",
+);
+assert.ok(
+  stonksAnalyzerSkill.includes("chart_price"),
+  "Stonks Copilot analyzer skill is missing chart_price",
+);
 
 const hostedAlias = readFileSync(join(ROOT, "public", "marketplace.json"), "utf8");
 const hostedCanonical = readFileSync(
