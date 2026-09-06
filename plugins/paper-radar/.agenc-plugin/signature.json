@@ -1,0 +1,15 @@
+{
+  "publisher": "tetsuo-ai",
+  "signature": "+Af3tuJHbJWu4cAEXDt/MUdvI3NKcVfaU+xl7V011wPqC7TJ93ear0nhDLn7BiUUxOKUUq+WmTfNqJM5lVO4AQ==",
+  "files": {
+    "assets/logo.png": "sha256:7f57d3ea5065d00fbeac35aec6ecb77a601e17ec7c36ccf2ce9e9fb81423a46b",
+    "commands/paper.md": "sha256:b4c796e61317075f34dea424f1315e57fdd5d52d8e5d629f4cb6d0c90b8c342f",
+    "README.md": "sha256:12fcb03b2d15c12781f5aa559e9c62e5f3861594d2f271aa397fbf60286f596f",
+    "server/extract.mjs": "sha256:63f2886ca40b7b016f8bf9ac24fe8e13a82a76d29174e65d7440eef431116fcf",
+    "server/ledger.mjs": "sha256:05d8560c9055c9d1f53ec7657815ea69b2748657b640caf78fb85fe059d3b351",
+    "server/main.mjs": "sha256:7b7a0c37278645ee4b908406e164f49c01fc01fbe161b00de1f0e737fb2d6420",
+    "server/stores.mjs": "sha256:e0997f86c4bf9944e91831d9234f55f5333f4d582c52a343f3e6794be2ce883d",
+    "skills/paper-ingest/SKILL.md": "sha256:7c2eb86883470778589519c210c483651433269e835be08ea30200c9cf6e1d4d",
+    "skills/paper-radar/SKILL.md": "sha256:6a8d1b41a02384a522de20a4054c27b9f802160cadeda489363b917a6e016d88"
+  }
+}
