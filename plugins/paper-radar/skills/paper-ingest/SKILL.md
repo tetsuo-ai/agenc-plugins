@@ -32,6 +32,8 @@ Plain text and pasted content need no preflight.
 
 ## Protocol
 
+The plugin's MCP tools are deferred entries in the tool catalog: call your tool search (`system.searchTools`) with "paper" or "ingest" to surface them before first use in a session.
+
 1. Run `ingest_extract` with the document text.
 2. Read the candidates:
    - The renewal/expiry date is the one with the highest `relevance`.

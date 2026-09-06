@@ -13,6 +13,8 @@ window is already open.
 
 ## The sweep
 
+The plugin's MCP tools are deferred entries in the tool catalog: call your tool search (`system.searchTools`) with "paper" or "radar" to surface them before first use in a session.
+
 1. Call `radar` (default horizon 30 days).
 2. Lead with `critical` rows, and inside each one lead with the notice
    window: "cancel by Sep 4 or it renews Sep 30 for another year" beats
