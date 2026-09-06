@@ -38,6 +38,9 @@ thesis journal, and chart rendering over keyless public endpoints.
 
 - A current AgenC build using the canonical `.agenc-plugin/` contract.
 - Node.js 22 or newer for repository validation and publishing.
+- Stonks release prerequisites: [publisher-key overlap](https://github.com/tetsuo-ai/agenc-core/pull/2214)
+  and [approved plugin networking](https://github.com/tetsuo-ai/agenc-core/pull/2213).
+  Do not deploy this catalog until compatible Core is available to clients.
 - Ledger plugin: globally installed `@ledgerhq/wallet-cli` (`wallet-cli` 2.1+
   recommended). The plugin never installs or downloads it automatically.
 - IoT plugin: an existing `platformio.ini` and a locally installed `pio`.
