@@ -133,9 +133,38 @@ To validate against a current Core checkout:
 AGENC_BIN='/path/to/agenc-core/runtime/bin/agenc' npm run validate:core
 ```
 
-That test uses a temporary `AGENC_HOME`, validates the catalog and all three
+That test uses a temporary `AGENC_HOME`, validates the catalog and all five
 plugins, registers the local marketplace, installs each package, and checks the
 resulting inventory. It does not modify the operator's AgenC configuration.
+
+Stonks has a focused offline regression suite and an isolated native MCP check:
+
+```bash
+npm run test:stonks
+AGENC_CORE_RUNTIME='/path/to/agenc-core/runtime' npm run validate:stonks-core
+```
+
+The Core check installs the plugin into disposable storage with the built CLI,
+then exercises the source-native MCP manager: initialization, all 14 tools and
+a keyless metrics-registry call. It does not start or restart the operator's
+daemon. This integration check does not replace release-signature verification.
+
+For release compatibility, `npm run validate:stonks-built` uses only compiled
+Core artifacts and checks a public-data call and chart under the native sandbox.
+The release must preserve default-denied networking and respect an explicit
+operator network grant without broadening filesystem permissions. A source-only
+or unrestricted-sandbox smoke test does not satisfy this release check.
+
+Visual checks render the actual logo, Desktop card and chart in a separate
+offscreen Electron process with a temporary profile and HTTP(S) blocked:
+
+```bash
+AGENC_DESKTOP_ROOT='/path/to/agenc-desktop' \
+STONKS_VISUAL_OUTPUT_ROOT='/path/to/review-output' npm run validate:stonks-visuals
+```
+
+The chart fixture is synthetic, not a live market quote. These opt-in checks
+require the indicated existing development dependencies; they install none.
 
 CI also generates a catalog pinned to the commit under test, downloads every
 `git-subdir` source from GitHub, and installs it through current Core with

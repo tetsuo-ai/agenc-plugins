@@ -7,7 +7,7 @@
 const SPARK_CHARS = ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"];
 
 export function sparkline(values, width = 24) {
-  if (values.length < 2) return "";
+  if (values.length < 2 || !values.every(Number.isFinite) || !Number.isInteger(width) || width < 2) return "";
   const sampled = sample(values, width);
   const min = Math.min(...sampled);
   const max = Math.max(...sampled);
@@ -42,17 +42,17 @@ function escapeXml(value) {
  * `overlays` maps a legend label to a full-length (or trailing) series.
  */
 export function priceChartSvg(bars, { symbol, overlays = {}, width = 960, height = 480 } = {}) {
-  if (bars.length < 2) return null;
-  const margin = { top: 24, right: 72, bottom: 48, left: 72 };
+  if (bars.length < 2 || !bars.every((bar) => Number.isFinite(bar.close)) || !Number.isFinite(width) || width < 240 || !Number.isFinite(height) || height < 180) return null;
+  const margin = { top: 52, right: 72, bottom: 48, left: 72 };
   const volumeHeight = Math.round((height - margin.top - margin.bottom) * 0.18);
   const priceHeight = height - margin.top - margin.bottom - volumeHeight - 12;
-  const highs = bars.map((bar) => bar.high);
-  const lows = bars.map((bar) => bar.low);
+  const highs = bars.map((bar) => Number.isFinite(bar.high) ? bar.high : bar.close);
+  const lows = bars.map((bar) => Number.isFinite(bar.low) ? bar.low : bar.close);
   let yMax = Math.max(...highs);
   let yMin = Math.min(...lows);
   for (const series of Object.values(overlays)) {
     for (const value of series) {
-      if (value === undefined || value === null) continue;
+      if (!Number.isFinite(value)) continue;
       if (value > yMax) yMax = value;
       if (value < yMin) yMin = value;
     }
@@ -62,7 +62,7 @@ export function priceChartSvg(bars, { symbol, overlays = {}, width = 960, height
   yMin -= yPad;
   const x = (i) => margin.left + (i / (bars.length - 1)) * (width - margin.left - margin.right);
   const y = (value) => margin.top + (1 - (value - yMin) / (yMax - yMin)) * priceHeight;
-  const maxVolume = Math.max(...bars.map((bar) => bar.volume), 1);
+  const maxVolume = Math.max(...bars.map((bar) => Number.isFinite(bar.volume) && bar.volume > 0 ? bar.volume : 0), 1);
   const volumeY = (volume) =>
     height - margin.bottom - (volume / maxVolume) * volumeHeight;
 
@@ -71,7 +71,7 @@ export function priceChartSvg(bars, { symbol, overlays = {}, width = 960, height
   const last = closes[closes.length - 1];
   const up = last >= first;
   const lineColor = up ? "#22c55e" : "#ef4444";
-  const closePath = closes.map((value, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)},${y(value).toFixed(1)}`).join(" ");
+  const closePath = closes.map((value, i) => `${x(i).toFixed(1)},${y(value).toFixed(1)}`).join(" ");
 
   const gridLines = [];
   for (let step = 0; step <= 4; step += 1) {
@@ -87,8 +87,9 @@ export function priceChartSvg(bars, { symbol, overlays = {}, width = 960, height
   const overlayPaths = Object.entries(overlays)
     .map(([label, series], index) => {
       const color = overlayColors[label] ?? ["#0ea5e9", "#f43f5e", "#84cc16"][index % 3];
-      const defined = series
-        .map((value, i) => (value === undefined || value === null ? null : `${x(i).toFixed(1)},${y(value).toFixed(1)}`))
+      const offset = Math.max(0, bars.length - series.length);
+      const defined = series.slice(-bars.length)
+        .map((value, i) => (!Number.isFinite(value) ? null : `${x(i + offset).toFixed(1)},${y(value).toFixed(1)}`))
         .filter((point) => point !== null);
       if (defined.length < 2) return "";
       return `<polyline fill="none" stroke="${color}" stroke-width="1.5" points="${defined.join(" ")}"/>`;
@@ -97,13 +98,14 @@ export function priceChartSvg(bars, { symbol, overlays = {}, width = 960, height
 
   const volumeBars = bars
     .map((bar, i) => {
+      if (!Number.isFinite(bar.volume) || bar.volume < 0) return "";
       const barWidth = Math.max((width - margin.left - margin.right) / bars.length - 0.5, 0.5);
       return `<rect x="${(x(i) - barWidth / 2).toFixed(1)}" y="${volumeY(bar.volume).toFixed(1)}" width="${barWidth.toFixed(1)}" height="${(height - margin.bottom - volumeY(bar.volume)).toFixed(1)}" fill="${bar.close >= bar.open ? "#bbf7d0" : "#fecaca"}"/>`;
     })
     .join("");
 
   const dateTicks = [0, Math.floor(bars.length / 2), bars.length - 1]
-    .map((i) => `<text x="${x(i).toFixed(1)}" y="${height - margin.bottom + 18}" font-size="11" fill="#64748b" text-anchor="middle">${bars[i].date}</text>`)
+    .map((i) => `<text x="${x(i).toFixed(1)}" y="${height - margin.bottom + 18}" font-size="11" fill="#64748b" text-anchor="middle">${escapeXml(bars[i].date)}</text>`)
     .join("");
 
   const legend = Object.entries(overlays)
@@ -116,7 +118,7 @@ export function priceChartSvg(bars, { symbol, overlays = {}, width = 960, height
   return [
     `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" font-family="ui-monospace, monospace">`,
     `<rect width="${width}" height="${height}" fill="#ffffff"/>`,
-    `<text x="${margin.left}" y="16" font-size="14" font-weight="bold" fill="#0f172a">${escapeXml(symbol)} — daily close${legend ? "" : ""}</text>`,
+    `<text x="${margin.left}" y="20" font-size="14" font-weight="bold" fill="#0f172a">${escapeXml(symbol)} | daily close</text>`,
     legend,
     gridLines.join(""),
     volumeBars,
@@ -134,7 +136,8 @@ export function priceChartSvg(bars, { symbol, overlays = {}, width = 960, height
  */
 export function treemapSvg(items, { title = "Portfolio", width = 960, height = 600 } = {}) {
   const normalized = items
-    .filter((item) => item.weight > 0)
+    .filter((item) => Number.isFinite(item.weight) && item.weight > 0)
+    .map((item) => ({ ...item, label: String(item.label) }))
     .sort((a, b) => b.weight - a.weight);
   const total = normalized.reduce((a, item) => a + item.weight, 0);
   if (total <= 0 || normalized.length === 0) return null;
@@ -150,8 +153,8 @@ export function treemapSvg(items, { title = "Portfolio", width = 960, height = 6
     { x: 0, y: bodyTop, w: width, h: bodyHeight },
   );
   for (const rect of bodyRects) {
-    const value = rect.value ?? 0;
-    const fill = value >= 0 ? mixColor("#14532d", "#22c55e", value) : mixColor("#7f1d1d", "#ef4444", -value);
+    const value = rect.value;
+    const fill = !Number.isFinite(value) ? "#475569" : value >= 0 ? mixColor("#14532d", "#22c55e", value) : mixColor("#7f1d1d", "#ef4444", -value);
     const fontSize = Math.max(Math.min(rect.w / Math.max(rect.label.length * 0.62, 1), rect.h / 3), 9);
     parts.push(
       `<rect x="${rect.x.toFixed(1)}" y="${rect.y.toFixed(1)}" width="${rect.w.toFixed(1)}" height="${rect.h.toFixed(1)}" fill="${fill}" stroke="#0f172a" stroke-width="2" rx="3"/>`,
@@ -159,7 +162,7 @@ export function treemapSvg(items, { title = "Portfolio", width = 960, height = 6
     if (rect.w > 42 && rect.h > 22) {
       parts.push(
         `<text x="${(rect.x + rect.w / 2).toFixed(1)}" y="${(rect.y + rect.h / 2 - fontSize * 0.2).toFixed(1)}" font-size="${fontSize.toFixed(1)}" fill="#f8fafc" text-anchor="middle" font-weight="bold">${escapeXml(rect.label)}</text>`,
-        `<text x="${(rect.x + rect.w / 2).toFixed(1)}" y="${(rect.y + rect.h / 2 + fontSize * 1.1).toFixed(1)}" font-size="${(fontSize * 0.85).toFixed(1)}" fill="#e2e8f0" text-anchor="middle">${(rect.weight * 100).toFixed(1)}%</text>`,
+        `<text x="${(rect.x + rect.w / 2).toFixed(1)}" y="${(rect.y + rect.h / 2 + fontSize * 1.1).toFixed(1)}" font-size="${(fontSize * 0.85).toFixed(1)}" fill="#e2e8f0" text-anchor="middle">${(rect.weight / total * 100).toFixed(1)}%</text>`,
       );
     }
   }

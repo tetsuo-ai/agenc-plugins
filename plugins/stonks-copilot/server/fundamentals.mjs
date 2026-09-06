@@ -12,7 +12,7 @@ const REVENUE_TAGS = [
   "SalesRevenueNet",
 ];
 const NET_INCOME_TAGS = ["NetIncomeLoss", "ProfitLoss"];
-const EPS_TAGS = ["EarningsPerShareDiluted", "EarningsPerShareBasic"];
+const EPS_TAGS = ["EarningsPerShareDiluted"];
 const OCF_TAGS = [
   "NetCashProvidedByUsedInOperatingActivities",
   "NetCashProvidedByUsedInOperatingActivitiesContinuingOperations",
@@ -28,50 +28,51 @@ const DIVIDEND_TAGS = ["CommonStockDividendsPerShareDeclared", "CommonStockDivid
  * Annual series for one fact group: latest `years` fiscal years, preferring
  * 10-K filings and deduplicating by fiscal year.
  */
-function annualSeries(facts, usGaapTags, years = 5) {
+function annualSeries(facts, usGaapTags, years = 5, { instant = false } = {}) {
   if (!facts || typeof facts !== "object") return [];
+  const byEnd = new Map();
+  const latestEndByFilingYear = new Map();
   for (const tag of usGaapTags) {
     const fact = facts["us-gaap"]?.[tag];
     if (fact?.units?.USD === undefined && fact?.units?.["USD/shares"] === undefined) continue;
     const unitKey = fact.units.USD !== undefined ? "USD" : "USD/shares";
     const entries = fact.units[unitKey];
-    const byYear = new Map();
+    const byPeriod = new Map();
     for (const entry of entries) {
       if (entry.form !== "10-K" && entry.form !== "10-K/A") continue;
-      if (typeof entry.fy !== "number" || typeof entry.fp !== "string") continue;
+      if (!Number.isInteger(entry.fy) || !Number.isFinite(entry.val) || !Number.isFinite(Date.parse(entry.end))) continue;
       if (entry.fp !== "FY") continue;
-      const durationYears = (entry.end && entry.start)
-        ? (Date.parse(entry.end) - Date.parse(entry.start)) / (365.25 * 24 * 3600 * 1000)
-        : 1;
-      if (durationYears < 0.8) continue;
-      const existing = byYear.get(entry.fy);
-      const better = existing === undefined
-        || (entry.frame !== undefined && existing.frame === undefined)
-        || (entry.end ?? "") > (existing.end ?? "");
-      if (better) byYear.set(entry.fy, entry);
+      const days = (Date.parse(entry.end) - Date.parse(entry.start)) / 86400000;
+      if (!instant && (!Number.isFinite(days) || days < 300 || days > 400)) continue;
+      latestEndByFilingYear.set(entry.fy, Math.max(latestEndByFilingYear.get(entry.fy) ?? -Infinity, Date.parse(entry.end)));
+      const existing = byPeriod.get(entry.end);
+      // `fy` is the filing's fiscal year, including comparative facts. The
+      // reporting period identifies the observation; the latest filing
+      // supplies restated values without inventing additional fiscal years.
+      const fy = Math.min(existing?.fy ?? entry.fy, entry.fy);
+      if (!existing || (entry.filed ?? "") >= (existing.filed ?? "")) {
+        byPeriod.set(entry.end, { ...entry, fy, tag });
+      } else existing.fy = fy;
     }
-    const series = [...byYear.entries()]
-      .sort((a, b) => b[0] - a[0])
-      .slice(0, years)
-      .map(([fy, entry]) => ({
-        fy,
-        end: entry.end,
-        value: Number(entry.val),
-      }));
-    if (series.length > 0) return series;
+    for (const [end, entry] of byPeriod) if (!byEnd.has(end)) byEnd.set(end, entry);
   }
-  return [];
+  return [...byEnd.values()].sort((a, b) => b.end.localeCompare(a.end)).slice(0, years)
+    .map((entry) => ({
+      fy: entry.fy - Math.round((latestEndByFilingYear.get(entry.fy) - Date.parse(entry.end)) / (365.25 * 86400000)),
+      start: entry.start, end: entry.end, value: entry.val, tag: entry.tag,
+    }));
 }
 
 function latest(facts, tags, { asOfYearsAgo = 0 } = {}) {
-  const series = annualSeries(facts, tags);
+  const series = annualSeries(facts, tags, 5, { instant: true });
   return series[asOfYearsAgo] ?? null;
 }
 
 function growth(series) {
   if (series.length < 2) return null;
   const [current, previous] = series;
-  if (!previous.value) return null;
+  const days = (Date.parse(current.end) - Date.parse(previous.end)) / 86400000;
+  if (!previous.value || days < 300 || days > 400) return null;
   return ((current.value - previous.value) / Math.abs(previous.value)) * 100;
 }
 
@@ -79,7 +80,7 @@ function cagr(series) {
   if (series.length < 2) return null;
   const newest = series[0];
   const oldest = series[series.length - 1];
-  const years = newest.fy - oldest.fy;
+  const years = (Date.parse(newest.end) - Date.parse(oldest.end)) / (365.25 * 86400000);
   if (years <= 0 || oldest.value <= 0 || newest.value <= 0) return null;
   return (Math.pow(newest.value / oldest.value, 1 / years) - 1) * 100;
 }
@@ -88,7 +89,10 @@ function cagr(series) {
  * Build the fundamental snapshot. `sharesOutstanding` (from EDGAR entity
  * data) and `price` (latest close) refine per-share and valuation metrics.
  */
-export function fundamentalSnapshot(facts, { price = null, sharesOutstanding = null } = {}) {
+export function fundamentalSnapshot(facts, { price = null, sharesOutstanding = null, now = Date.now() } = {}) {
+  facts = facts?.facts ?? facts;
+  price = Number.isFinite(price) && price > 0 ? price : null;
+  sharesOutstanding = Number.isFinite(sharesOutstanding) && sharesOutstanding > 0 ? sharesOutstanding : null;
   const revenue = annualSeries(facts, REVENUE_TAGS);
   const netIncome = annualSeries(facts, NET_INCOME_TAGS);
   const eps = annualSeries(facts, EPS_TAGS);
@@ -98,30 +102,32 @@ export function fundamentalSnapshot(facts, { price = null, sharesOutstanding = n
   const debt = latest(facts, DEBT_TAGS);
   const currentAssets = latest(facts, CURRENT_ASSETS_TAGS);
   const currentLiabilities = latest(facts, CURRENT_LIAB_TAGS);
-  const dividendsPerShare = latest(facts, DIVIDEND_TAGS);
+  const dividendsPerShare = annualSeries(facts, DIVIDEND_TAGS)[0] ?? null;
 
   const revenueLatest = revenue[0]?.value ?? null;
   const netIncomeLatest = netIncome[0]?.value ?? null;
-  const netMargin = revenueLatest && netIncomeLatest !== null
+  const netMargin = revenueLatest > 0 && netIncomeLatest !== null && revenue[0]?.end === netIncome[0]?.end
     ? (netIncomeLatest / revenueLatest) * 100
     : null;
-  const netMarginPrior = revenue[1]?.value && netIncome[1]?.value !== null
+  const revenueGapDays = (Date.parse(revenue[0]?.end) - Date.parse(revenue[1]?.end)) / 86400000;
+  const netMarginPrior = revenue[1]?.value > 0 && netIncome[1]?.value != null && revenue[1]?.end === netIncome[1]?.end
+    && revenueGapDays >= 300 && revenueGapDays <= 400
     ? (netIncome[1].value / revenue[1].value) * 100
     : null;
   const revenueGrowth = growth(revenue);
   const revenueCagr = cagr(revenue);
   const epsLatest = eps[0]?.value ?? null;
   const epsGrowth = growth(eps);
-  const fcf = ocf[0]?.value != null && capex[0]?.value != null
+  const fcf = ocf[0]?.value != null && capex[0]?.value != null && ocf[0].end === capex[0].end
     ? ocf[0].value - capex[0].value
-    : ocf[0]?.value ?? null;
-  const currentRatio = currentAssets?.value != null && currentLiabilities?.value != null
+    : null;
+  const currentRatio = currentAssets?.value != null && currentLiabilities?.value > 0 && currentAssets.end === currentLiabilities.end
     ? currentAssets.value / currentLiabilities.value
     : null;
   const dilutedShares = sharesOutstanding ?? null;
   const marketCap = price !== null && dilutedShares !== null ? price * dilutedShares : null;
   const peRatio = price !== null && epsLatest !== null && epsLatest > 0 ? price / epsLatest : null;
-  const psRatio = marketCap !== null && revenueLatest ? marketCap / revenueLatest : null;
+  const psRatio = marketCap !== null && revenueLatest > 0 ? marketCap / revenueLatest : null;
   const dividendYield = price !== null && dividendsPerShare?.value ? (dividendsPerShare.value / price) * 100 : null;
   const fcfYield = marketCap !== null && fcf !== null && marketCap > 0 ? (fcf / marketCap) * 100 : null;
 
@@ -235,6 +241,14 @@ export function fundamentalSnapshot(facts, { price = null, sharesOutstanding = n
 
   return {
     metrics,
+    available: [revenueLatest, netIncomeLatest, epsLatest, ocf[0]?.value, cash?.value].some(Number.isFinite),
+    basis: "annual 10-K financials; valuation ratios use annual earnings, not trailing twelve months",
+    metricPeriods: { revenue: revenue[0]?.end ?? null, netIncome: netIncome[0]?.end ?? null, eps: eps[0]?.end ?? null, cashFlow: ocf[0]?.end ?? null, balanceSheet: cash?.end ?? currentAssets?.end ?? null },
+    warnings: [
+      ...(metrics.periodEnd && now - Date.parse(metrics.periodEnd) > 550 * 86400000 ? ["Latest available annual financial period is more than 550 days old."] : []),
+      ...(ocf.length > 0 && fcf === null ? ["Free cash flow unavailable: matching annual capital expenditures were not reported."] : []),
+      ...(debt ? ["debtUsd is reported long-term debt and may exclude current maturities and short-term borrowings."] : []),
+    ],
     score,
     signals,
     series: {
@@ -255,5 +269,5 @@ export function formatUsd(value) {
 }
 
 function round2(value) {
-  return value === null || value === undefined ? null : Math.round(value * 100) / 100;
+  return Number.isFinite(value) ? Math.round(value * 100) / 100 : null;
 }

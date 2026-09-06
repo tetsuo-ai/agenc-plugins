@@ -7,14 +7,14 @@
 /** @typedef {{date: string, open: number, high: number, low: number, close: number, volume: number}} Bar */
 
 export function sma(values, period) {
-  if (!Number.isFinite(period) || period <= 0 || values.length < period) return null;
+  if (!Number.isInteger(period) || period <= 0 || values.length < period || !values.slice(-period).every(Number.isFinite)) return null;
   let sum = 0;
   for (let i = values.length - period; i < values.length; i += 1) sum += values[i];
   return sum / period;
 }
 
 export function emaSeries(values, period) {
-  if (values.length < period) return [];
+  if (!Number.isInteger(period) || period <= 0 || values.length < period || !values.every(Number.isFinite)) return [];
   const k = 2 / (period + 1);
   const out = [];
   let prev = values.slice(0, period).reduce((a, b) => a + b, 0) / period;
@@ -28,7 +28,7 @@ export function emaSeries(values, period) {
 
 /** Wilder's RSI over the last `period` changes. */
 export function rsi(closes, period = 14) {
-  if (closes.length < period + 1) return null;
+  if (!Number.isInteger(period) || period <= 0 || closes.length < period + 1 || !closes.every(Number.isFinite)) return null;
   let gain = 0;
   let loss = 0;
   for (let i = 1; i <= period; i += 1) {
@@ -49,7 +49,7 @@ export function rsi(closes, period = 14) {
 }
 
 export function macd(closes, fast = 12, slow = 26, signalPeriod = 9) {
-  if (closes.length < slow + signalPeriod) return null;
+  if (![fast, slow, signalPeriod].every((period) => Number.isInteger(period) && period > 0) || fast >= slow || closes.length < slow + signalPeriod - 1 || !closes.every(Number.isFinite)) return null;
   const fastEma = emaSeries(closes, fast);
   const slowEma = emaSeries(closes, slow);
   const macdLine = [];
@@ -75,7 +75,7 @@ export function macd(closes, fast = 12, slow = 26, signalPeriod = 9) {
 
 /** Bollinger %B (0 = lower band, 1 = upper band) over the last 20 closes. */
 export function bollingerPercentB(closes, period = 20, mult = 2) {
-  if (closes.length < period) return null;
+  if (!Number.isInteger(period) || period <= 0 || !Number.isFinite(mult) || mult <= 0 || closes.length < period || !closes.slice(-period).every(Number.isFinite)) return null;
   const window = closes.slice(-period);
   const mean = window.reduce((a, b) => a + b, 0) / period;
   const variance = window.reduce((a, b) => a + (b - mean) ** 2, 0) / period;
@@ -132,6 +132,7 @@ export function levelZones(levels, tolerancePercent = 1.5) {
  * @param {Bar[]} bars
  */
 export function technicalSnapshot(bars) {
+  if (!Array.isArray(bars) || bars.length === 0 || !bars.every((bar) => Number.isFinite(bar.close))) throw new Error("technical analysis requires finite daily closes");
   const closes = bars.map((bar) => bar.close);
   const last = closes[closes.length - 1];
   const signals = [];
@@ -145,8 +146,8 @@ export function technicalSnapshot(bars) {
     add(
       `sma${period}`,
       round2(value),
-      above ? 1 : -1,
-      above ? `price ${round2(last)} is above SMA${period}` : `price ${round2(last)} is below SMA${period}`,
+      last === value ? 0 : above ? 1 : -1,
+      last === value ? `price equals SMA${period}` : above ? `price ${round2(last)} is above SMA${period}` : `price ${round2(last)} is below SMA${period}`,
     );
   }
   const sma50 = sma(closes, 50);
@@ -155,9 +156,9 @@ export function technicalSnapshot(bars) {
     const golden = sma50 > sma200;
     add(
       "sma_cross",
-      golden ? "golden" : "death",
-      golden ? 1 : -1,
-      golden ? "SMA50 above SMA200 (golden cross regime)" : "SMA50 below SMA200 (death cross regime)",
+      sma50 === sma200 ? "equal" : golden ? "golden" : "death",
+      sma50 === sma200 ? 0 : golden ? 1 : -1,
+      sma50 === sma200 ? "SMA50 equals SMA200" : golden ? "SMA50 above SMA200 (golden cross regime)" : "SMA50 below SMA200 (death cross regime)",
     );
   }
 
@@ -200,7 +201,7 @@ export function technicalSnapshot(bars) {
   }
 
   const year = bars.slice(-252);
-  if (year.length > 20) {
+  if (year.length === 252 && year.every((bar) => Number.isFinite(bar.high) && Number.isFinite(bar.low))) {
     const high = Math.max(...year.map((bar) => bar.high));
     const low = Math.min(...year.map((bar) => bar.low));
     const drawdown = (last / high - 1) * 100;
@@ -216,7 +217,7 @@ export function technicalSnapshot(bars) {
     const volumes = bars.slice(-21, -1).map((bar) => bar.volume);
     const avgVolume = volumes.reduce((a, b) => a + b, 0) / volumes.length;
     const lastVolume = bars[bars.length - 1].volume;
-    if (avgVolume > 0) {
+    if (volumes.every((volume) => Number.isFinite(volume) && volume >= 0) && Number.isFinite(lastVolume) && lastVolume >= 0 && avgVolume > 0) {
       const ratio = lastVolume / avgVolume;
       add(
         "volume",
@@ -228,7 +229,7 @@ export function technicalSnapshot(bars) {
   }
 
   const { lows, highs } = pivots(bars);
-  const supports = levelZones(lows).slice(0, 3).map((zone) => ({
+  const supports = levelZones(lows).filter((zone) => zone.level < last).slice(0, 3).map((zone) => ({
     level: round2(zone.level),
     touches: zone.count,
   }));
@@ -245,6 +246,7 @@ export function technicalSnapshot(bars) {
     lastClose: round2(last),
     asOf: bars[bars.length - 1].date,
     barsAnalyzed: bars.length,
+    warnings: bars.length < 252 ? [`Only ${bars.length} daily bars available; indicators requiring longer history are omitted.`] : [],
     score,
     signals,
     supports,
