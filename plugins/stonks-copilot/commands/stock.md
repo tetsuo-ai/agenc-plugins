@@ -1,5 +1,5 @@
 ---
-description: Analyze a stock 50/50 — technicals plus SEC fundamentals, one blended scorecard with a chart
+description: Analyze a stock using technicals and SEC fundamentals, with a chart and data-quality warnings
 argument-hint: "<symbol> [--weight 0-100]"
 ---
 
@@ -11,6 +11,7 @@ and let the default 50/50 apply.
 
 Call `analyze`, then `chart_price` for the same symbol. Report exactly in
 the skill's output format: scores, three reasons, two risks,
-support/resistance levels, the inline sparkline, and the SVG chart path.
+support/resistance levels and the inline sparkline. Put the actual returned
+absolute chart path in Markdown image syntax outside the report and code fences.
 If EDGAR returns nothing for the symbol, say so plainly and give the
 technical-only view.

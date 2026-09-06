@@ -4,18 +4,19 @@
  * route every request through here so repeat analysis stays fast and
  * polite to public endpoints.
  */
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { createHash } from "node:crypto";
+import { makeDataFiles } from "./stores.mjs";
 
 export function makeCache(dataDir) {
-  const dir = join(dataDir, "cache");
-  mkdirSync(dir, { recursive: true });
-  const pathFor = (key) => join(dir, `${key.replace(/[^a-z0-9._-]/giu, "_")}.json`);
+  const files = makeDataFiles(dataDir, "cache");
+  const pathFor = (key) => `${createHash("sha256").update(key).digest("hex")}.json`;
   return {
     get(key, maxAgeMs) {
       try {
-        const parsed = JSON.parse(readFileSync(pathFor(key), "utf8"));
-        if (typeof parsed.storedAt !== "number" || Date.now() - parsed.storedAt > maxAgeMs) {
+        const parsed = JSON.parse(files.read(pathFor(key), 32 * 1024 * 1024) ?? "null");
+        if (parsed === null || !Number.isFinite(maxAgeMs) || maxAgeMs < 0 || !Number.isFinite(parsed.storedAt)
+            || parsed.storedAt > Date.now() || Date.now() - parsed.storedAt > maxAgeMs
+            || !Object.hasOwn(parsed, "value")) {
           return null;
         }
         return parsed.value;
@@ -25,7 +26,7 @@ export function makeCache(dataDir) {
     },
     set(key, value) {
       try {
-        writeFileSync(pathFor(key), JSON.stringify({ storedAt: Date.now(), value }));
+        files.write(pathFor(key), JSON.stringify({ storedAt: Date.now(), value }), 32 * 1024 * 1024);
       } catch {
         // cache writes are best-effort
       }

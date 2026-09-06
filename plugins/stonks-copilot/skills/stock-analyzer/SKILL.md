@@ -5,7 +5,7 @@ when_to_use: The user names a ticker and wants an opinion, a checkup, a second o
 argument-hint: <symbol>
 ---
 
-# Stock analyzer — 50/50 scorecard
+# Stock analyzer: evidence-based scorecard
 
 You analyze stocks with equal respect for price behavior and business
 reality. One side without the other is a half answer. The
@@ -15,38 +15,47 @@ reality. One side without the other is a half answer. The
 
 Call the stonks-copilot MCP tools (discover exact scoped names in your
 tool list): `analyze`, `indicators`, `fundamentals`, `ohlcv`,
-`chart_price`. All data is public and keyless: Stooq daily bars and SEC
-EDGAR filings, cached locally.
+`chart_price`. Data is public and keyless: Yahoo daily bars, a Stooq fallback
+and SEC EDGAR filings, cached locally. Do not run shell commands to bypass
+tool errors, transport permissions or provider access restrictions.
 
 ## Method
 
 1. Run `analyze` for the symbol. It returns the technical score, the
-   fundamental score (null when EDGAR has no filings for the symbol —
+   fundamental score (null when EDGAR has no usable filings for the symbol;
    say so plainly instead of guessing), the 50/50 blend, and per-signal
    reasons.
-2. Read both signal lists. Name the three strongest technical arguments
-   and the three strongest fundamental arguments, pro and con. Quote the
-   numbers.
+2. Read both signal lists and all data warnings. Name up to three supported
+   technical arguments and up to three supported fundamental arguments,
+   pro and con. Quote returned numbers, source dates, currency and period
+   basis. Annual 10-K figures are not TTM or live estimates. Do not fill a
+   three-item quota with invented claims when fewer signals are available.
 3. Check supports/resistances from `indicators` before saying anything
    about entry points.
-4. Offer `chart_price` and give the user the SVG path so desktop can
-   render it; include the unicode sparkline inline for the terminal.
+4. Offer `chart_price`. After the report, render the exact returned absolute
+   path as `![Price chart](<absolute path>)` outside code fences and equations
+   so Desktop can show it. A tool result alone does not create a media card.
+   Include the unicode sparkline for terminals. Never fabricate a path.
 5. Never invent data the tools did not return. If a metric is null
    (non-US filer, no dividends, negative EPS), state the gap.
 
 ## Output format
 
 ```
-<SYMBOL> — as of <date>, last close <price> <sparkline>
-Technical  <score>/100  — <one-line regime summary>
-Fundamental <score>/100 — <one-line business summary>
-Blend (50/50) <score>/100 — <verdict line>
+<SYMBOL>: as of <date>, last close <price> <currency> <sparkline>
+Technical <score>/100: <one-line regime summary>
+Fundamental <score>/100 or unavailable: <one-line business summary>
+Blend (50/50) <score>/100, only if both sides are available: <summary>
 
 Why: three bullets, each citing a tool number.
 Risks: two bullets, each citing a tool number.
 Levels: support <s1, s2> / resistance <r1, r2>.
-Chart: <path>
+Sources and gaps: <dates, period basis, missing or stale information>.
 ```
+
+Use that structure as ordinary prose, not a fenced code block. Put the chart
+Markdown after the report. A score is a heuristic, not a probability of profit
+or a recommendation to trade.
 
 ## Boundaries
 

@@ -150,11 +150,12 @@ test("portfolio: xray aggregates fund constituents into effective exposure", () 
 test("nport: parses holdings blocks and normalizes weights", () => {
   const xml = [
     "<edgarSubmission><formData>",
-    "<name>Test S&amp;P Fund</name>",
+    "<genInfo><seriesName>Test S&amp;P Fund</seriesName><seriesId>S000000001</seriesId><repPdDate>2026-06-30</repPdDate></genInfo>",
+    "<fundInfo><netAssets>200000</netAssets></fundInfo>",
     "<invstOrSecs>",
-    "<invstOrSec><name>AAPL - Apple Inc.</name><cusip>037833100</cusip><balance>100000</balance></invstOrSec>",
-    "<invstOrSec><name>MSFT - Microsoft Corp</name><cusip>594918104</cusip><balance>50000</balance></invstOrSec>",
-    "<invstOrSec><name>Cash</name><balance>50000</balance></invstOrSec>",
+    '<invstOrSec><name>Apple Inc.</name><cusip>037833100</cusip><identifiers><ticker value="AAPL"/></identifiers><balance>500</balance><valUSD>100000</valUSD></invstOrSec>',
+    '<invstOrSec><name>Microsoft Corp</name><cusip>594918104</cusip><identifiers><ticker value="MSFT"/></identifiers><balance>100</balance><valUSD>50000</valUSD></invstOrSec>',
+    "<invstOrSec><name>Cash</name><valUSD>50000</valUSD></invstOrSec>",
     "</invstOrSecs></formData></edgarSubmission>",
   ].join("");
   const weighted = holdingsWithWeights(parseNportXml(xml));

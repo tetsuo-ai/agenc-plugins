@@ -1,5 +1,5 @@
 ---
-description: Portfolio forensics — effective exposure, fund overlap, concentration, fees, treemap
+description: Portfolio forensics: effective exposure, fund overlap, concentration, fees and treemap
 argument-hint: "[pasted positions CSV]"
 ---
 
@@ -14,4 +14,6 @@ ask for a positions export instead of guessing.
 Then run `xray` and `chart_treemap`, and report in the skill's output
 format. Lead with the single most surprising aggregation (a name the
 user probably does not realize they are stacked on). Disclose unresolved
-funds and the quarterly staleness of N-PORT constituents.
+funds, unpriced positions, partial coverage and the dates of N-PORT constituents.
+Put the actual returned absolute treemap path in Markdown image syntax outside
+code fences so Desktop can show it inline.

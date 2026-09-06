@@ -5,11 +5,11 @@
  * Zero-dependency stdio MCP server (JSON-RPC 2.0, newline-delimited): the
  * AgenC plugin sandbox launches it with cwd confined to the plugin root
  * and AGENC_PLUGIN_DATA pointing at its private data directory. Every tool
- * is read-only against public endpoints (Stooq, SEC EDGAR) or local JSON
+ * uses public endpoints (Yahoo, Stooq, SEC EDGAR) or private local JSON
  * stores; nothing here places orders, holds credentials, or mutates files
  * outside its data directory.
  */
-import { mkdirSync } from "node:fs";
+import { once } from "node:events";
 import { join } from "node:path";
 import { technicalSnapshot } from "./indicators.mjs";
 import { priceChartSvg, treemapSvg, sparkline } from "./charts.mjs";
@@ -17,7 +17,7 @@ import { parsePositionsText, xrayPortfolio } from "./portfolio.mjs";
 import { makeCache } from "./cache.mjs";
 import { makeMarketData } from "./bars.mjs";
 import { makeEdgar } from "./edgar.mjs";
-import { makeStores } from "./stores.mjs";
+import { makeDataFiles, makeStores } from "./stores.mjs";
 import {
   SUPPORTED_METRICS,
   evaluateThesis,
@@ -28,7 +28,7 @@ const PROTOCOL_VERSION = "2025-06-18";
 const SERVER_INFO = { name: "stonks-copilot", version: "0.2.1" };
 
 const dataDir = resolveDataDir();
-mkdirSync(join(dataDir, "charts"), { recursive: true });
+const chartFiles = makeDataFiles(dataDir, "charts");
 const cache = makeCache(dataDir);
 const marketData = makeMarketData({ cache });
 const edgar = makeEdgar({ cache });
@@ -49,7 +49,7 @@ function resolveDataDir() {
 const tools = [
   {
     name: "ohlcv",
-    description: "Daily OHLCV bars for a US-listed symbol from Stooq (public, keyless). Use for raw price history.",
+    description: "Daily OHLCV bars for a US-listed symbol from Yahoo, with Stooq fallback (public, keyless). Returns the raw price history and source metadata.",
     inputSchema: {
       type: "object",
       properties: {
@@ -60,7 +60,7 @@ const tools = [
     },
     handler: async ({ symbol, months }) => {
       const bars = await marketData.dailyBars(symbol, { months: clampMonths(months) });
-      return text(`${bars.length} daily bars for ${symbol.toUpperCase()} (${bars[0].date} → ${bars[bars.length - 1].date}). Last close: ${bars[bars.length - 1].close}. Full series in structuredContent.`);
+      return structured({ symbol: symbol.toUpperCase(), priceData: priceMetadata(bars), bars });
     },
   },
   {
@@ -76,7 +76,7 @@ const tools = [
     },
     handler: async ({ symbol, months }) => {
       const bars = await marketData.dailyBars(symbol, { months: clampMonths(months) });
-      return structured(technicalSnapshot(bars));
+      return structured({ ...technicalSnapshot(bars), priceData: priceMetadata(bars) });
     },
   },
   {
@@ -95,9 +95,9 @@ const tools = [
       try {
         snapshot = await edgar.fundamentalsSnapshot(symbol, { price: price ?? null });
       } catch (error) {
-        return text(`EDGAR lookup failed for ${symbol}: ${error instanceof Error ? error.message : String(error)}`);
+        return toolError(`EDGAR lookup failed for ${symbol}: ${error instanceof Error ? error.message : String(error)}`);
       }
-      if (snapshot === null) return text(`No EDGAR data for ${symbol}. It may be a non-US ticker or not an SEC filer.`);
+      if (snapshot === null) return toolError(`No EDGAR data for ${symbol}. It may be a non-US ticker or not an SEC filer.`);
       return structured(snapshot);
     },
   },
@@ -131,6 +131,7 @@ const tools = [
         symbol: symbol.toUpperCase(),
         asOf: technical.asOf,
         lastClose: technical.lastClose,
+        priceData: priceMetadata(bars),
         sparkline: sparkline(bars.slice(-60).map((bar) => bar.close)),
         technicalScore: technical.score,
         fundamentalScore: fundamental?.score ?? null,
@@ -155,10 +156,10 @@ const tools = [
       },
       required: ["text"],
     },
-    handler: async ({ text, source }) => {
-      const parsed = parsePositionsText(String(text));
+    handler: async ({ text: inputText, source }) => {
+      const parsed = parsePositionsText(inputText);
       if (parsed.positions.length === 0) {
-        return text(`No positions recognized.\n${parsed.warnings.join("\n")}`);
+        return toolError(`No positions recognized.\n${parsed.warnings.join("\n")}`);
       }
       stores.saveHoldings({ importedAt: new Date().toISOString(), source: source ?? "paste", positions: parsed.positions });
       return structured({ imported: parsed.positions.length, positions: parsed.positions, warnings: parsed.warnings });
@@ -174,13 +175,22 @@ const tools = [
         return text("No portfolio stored yet. Import one with portfolio_import.");
       }
       const enriched = [];
+      const warnings = [];
       for (const position of holdings.positions) {
-        let lastPrice = position.lastPrice;
+        let lastPrice = position.lastPrice ?? null;
+        let priceAsOf = null;
+        let priceSource = lastPrice === null ? null : "import";
+        let priceWarning = null;
         try {
           const bars = await marketData.dailyBars(position.symbol, { months: 2 });
-          lastPrice = bars[bars.length - 1].close;
+          const last = bars[bars.length - 1];
+          lastPrice = last.close;
+          priceAsOf = last.date;
+          priceSource = last.source ?? "market-data";
         } catch {
-          // keep imported price or null
+          priceWarning = lastPrice === null ? "Current price unavailable; position is excluded from the priced total."
+            : "Current price unavailable; using imported price with unknown market date.";
+          warnings.push(`${position.symbol}: ${priceWarning}`);
         }
         const value = lastPrice !== null ? lastPrice * position.quantity : null;
         const cost = position.costBasis !== null && position.costBasis !== undefined
@@ -189,6 +199,9 @@ const tools = [
         enriched.push({
           ...position,
           lastPrice,
+          priceAsOf,
+          priceSource,
+          priceWarning,
           value: round2(value),
           costTotal: round2(cost),
           pl: value !== null && cost !== null ? round2(value - cost) : null,
@@ -199,7 +212,8 @@ const tools = [
         importedAt: holdings.importedAt,
         source: holdings.source,
         totalValue: round2(total),
-        positions: enriched.map((p) => ({ ...p, weight: total > 0 ? round4(p.value / total) : null })),
+        warnings,
+        positions: enriched.map((p) => ({ ...p, weight: total > 0 && p.value !== null ? round4(p.value / total) : null })),
       });
     },
   },
@@ -216,9 +230,9 @@ const tools = [
       try {
         holdings = await edgar.fundHoldings(fund);
       } catch (error) {
-        return text(`N-PORT lookup failed for ${fund}: ${error instanceof Error ? error.message : String(error)}`);
+        return toolError(`N-PORT lookup failed for ${fund}: ${error instanceof Error ? error.message : String(error)}`);
       }
-      if (holdings === null) return text(`No N-PORT holdings found for ${fund}.`);
+      if (holdings === null) return toolError(`No N-PORT holdings found for ${fund}.`);
       return structured(holdings);
     },
   },
@@ -237,6 +251,7 @@ const tools = [
         return text("No portfolio stored yet. Import one with portfolio_import.");
       }
       const priceCache = new Map();
+      const priceWarnings = [];
       const priceOf = async (symbol) => {
         if (priceCache.has(symbol)) return priceCache.get(symbol);
         let price = null;
@@ -245,6 +260,7 @@ const tools = [
           price = bars[bars.length - 1].close;
         } catch {
           price = null;
+          priceWarnings.push(`${symbol}: Current price unavailable; excluded from valued exposure.`);
         }
         priceCache.set(symbol, price);
         return price;
@@ -255,28 +271,57 @@ const tools = [
         positions.push({ ...position, lastPrice: price });
       }
       const fundCache = new Map();
+      const fundWarnings = [];
+      const fundReports = [];
       if (includeFunds !== false) {
         const funds = new Set(positions.filter((p) => p.kind === "fund").map((p) => p.symbol));
         for (const fund of funds) {
           try {
             const holdingsFor = await edgar.fundHoldings(fund);
-            const simplified = holdingsFor === null
+            const supportedBasis = holdingsFor !== null && Number.isFinite(holdingsFor.netAssetsUsd)
+              && holdingsFor.netAssetsUsd > 0 && holdingsFor.weightBasis === "reported net assets"
+              && holdingsFor.omittedHoldings === 0;
+            const simplified = !supportedBasis
               ? null
-              : holdingsFor.holdings
-                  .filter((holding) => holding.symbol !== null)
-                  .map((holding) => ({ symbol: holding.symbol, weight: holding.weight }));
+              : holdingsFor.holdings.map((holding) => ({ symbol: holding.symbol, name: holding.name, cusip: holding.cusip, weight: holding.weight, derivative: holding.derivative }));
+            for (const warning of holdingsFor?.warnings ?? []) fundWarnings.push(`${fund}: ${warning}`);
+            if (holdingsFor === null) fundWarnings.push(`${fund}: No matching N-PORT holdings available; fund exposure remains unresolved.`);
+            else if (!supportedBasis) fundWarnings.push(`${fund}: Fund exposure remains unresolved because reported net assets or complete dollar valuations are unavailable.`);
+            fundReports.push({
+              symbol: fund,
+              asOf: holdingsFor?.asOf ?? null,
+              netAssetsUsd: holdingsFor?.netAssetsUsd ?? null,
+              weightBasis: holdingsFor?.weightBasis ?? null,
+              omittedHoldings: holdingsFor?.omittedHoldings ?? null,
+              sourceUrl: holdingsFor?.sourceUrl ?? null,
+              searchScope: holdingsFor?.searchScope ?? null,
+              supportedBasis,
+            });
             fundCache.set(fund, simplified);
-          } catch {
+          } catch (error) {
+            fundWarnings.push(`${fund}: N-PORT lookup failed; fund exposure remains unresolved (${error instanceof Error ? error.message : String(error)}).`);
+            fundReports.push({ symbol: fund, supportedBasis: false, netAssetsUsd: null, weightBasis: null });
             fundCache.set(fund, null);
           }
         }
+      } else if (positions.some((p) => p.kind === "fund")) {
+        fundWarnings.push("Fund look-through was disabled; constituent exposure remains unresolved.");
       }
       const result = xrayPortfolio(positions, {
         constituentsOf: (symbol) => fundCache.get(symbol) ?? null,
         priceOf: (symbol) => priceCache.get(symbol) ?? null,
       });
-      if (result.error !== undefined) return text(result.error);
-      return structured(result);
+      const warnings = [...(result.warnings ?? []), ...priceWarnings, ...fundWarnings];
+      if (result.error !== undefined) return { ...structured({ ...result, coverage: "partial", warnings, fundReports }), isError: true };
+      for (const fund of result.unresolvedFunds) {
+        warnings.push(`${fund}: Fund exposure is incomplete or unsupported; do not treat the constituent weights as exact economic exposure.`);
+      }
+      return structured({
+        ...result,
+        coverage: result.unpricedSymbols.length > 0 || result.unresolvedWeight > 0 ? "partial" : "complete_for_disclosed_holdings",
+        fundReports: fundReports.map((report) => ({ ...report, unresolved: result.unresolvedFunds.includes(report.symbol) })),
+        warnings,
+      });
     },
   },
   {
@@ -298,10 +343,8 @@ const tools = [
         overlays: { sma50: smaAligned(closes, 50), sma200: smaAligned(closes, 200) },
       });
       if (svg === null) return text("Not enough bars to draw a chart.");
-      const file = join(dataDir, "charts", `${symbol.toLowerCase()}-price.svg`);
-      const { writeFileSync } = await import("node:fs");
-      writeFileSync(file, svg);
-      return structured({ path: file, sparkline: sparkline(closes.slice(-60)), bars: bars.length });
+      const file = chartFiles.write(`${symbol.toLowerCase()}-price.svg`, svg);
+      return structured({ path: file, sparkline: sparkline(closes.slice(-60)), bars: bars.length, priceData: priceMetadata(bars) });
     },
   },
   {
@@ -314,14 +357,22 @@ const tools = [
         return text("No portfolio stored yet. Import one with portfolio_import.");
       }
       const items = [];
+      const prices = [];
+      const warnings = [];
       for (const position of holdings.positions) {
         let price = position.lastPrice ?? null;
+        let priceAsOf = null;
+        let priceSource = price === null ? null : "import";
         try {
           const bars = await marketData.dailyBars(position.symbol, { months: 2 });
-          price = bars[bars.length - 1].close;
+          const last = bars[bars.length - 1];
+          price = last.close;
+          priceAsOf = last.date;
+          priceSource = last.source ?? "market-data";
         } catch {
-          // fall back to imported price
+          warnings.push(`${position.symbol}: ${price === null ? "No price available; omitted from chart." : "Using imported price with unknown market date."}`);
         }
+        prices.push({ symbol: position.symbol, priceAsOf, priceSource });
         if (price === null) continue;
         const value = price * position.quantity;
         const cost = position.costBasis != null ? position.costBasis * position.quantity : null;
@@ -333,10 +384,8 @@ const tools = [
       }
       const svg = treemapSvg(items, { title: `Portfolio — ${holdings.positions.length} positions` });
       if (svg === null) return text("No priced positions to draw a treemap.");
-      const file = join(dataDir, "charts", "portfolio-treemap.svg");
-      const { writeFileSync } = await import("node:fs");
-      writeFileSync(file, svg);
-      return structured({ path: file, items: items.length });
+      const file = chartFiles.write("portfolio-treemap.svg", svg);
+      return structured({ path: file, items: items.length, prices, warnings });
     },
   },
   {
@@ -367,7 +416,7 @@ const tools = [
     },
     handler: async (args) => {
       const created = newThesis(args);
-      if (created.error !== undefined) return text(`Invalid thesis: ${created.error}`);
+      if (created.error !== undefined) return toolError(`Invalid thesis: ${created.error}`);
       const theses = stores.loadTheses();
       theses.push(created.thesis);
       stores.saveTheses(theses);
@@ -419,18 +468,22 @@ const tools = [
           fundCache.set(thesis.symbol, fundamental);
         }
         const evaluation = evaluateThesis(thesis, { technical, fundamental });
+        evaluation.priceAsOf = technical?.asOf ?? null;
+        evaluation.dataWarnings = fundamental?.warnings ?? [];
         thesis.lastScan = evaluation.scannedAt;
-        thesis.status = evaluation.status === "broken" ? "broken" : thesis.status;
+        thesis.status = evaluation.status;
         results.push(evaluation);
       }
       stores.saveTheses(theses);
       const broken = results.filter((result) => result.status === "broken");
+      const partial = results.filter((result) => result.status === "partial");
       return structured({
         scanned: results.length,
         broken: broken.length,
+        partial: partial.length,
         summary: broken.length === 0
-          ? "All cited metrics still hold."
-          : `${broken.length} thesis(ies) broken: ${broken.map((b) => b.symbol).join(", ")}`,
+          ? partial.length === 0 ? "All cited metrics still hold." : `${partial.length} thesis(ies) could not be fully evaluated; some cited metrics are unavailable or invalid.`
+          : `${broken.length} thesis(ies) broken: ${broken.map((b) => b.symbol).join(", ")}${partial.length > 0 ? `; ${partial.length} additional thesis(ies) could not be fully evaluated.` : ""}`,
         results,
       });
     },
@@ -453,6 +506,17 @@ function smaAligned(values, period) {
     if (i >= period - 1) out[i] = sum / period;
   }
   return out;
+}
+
+function priceMetadata(bars) {
+  const latest = bars.at(-1);
+  return {
+    asOf: latest?.date ?? null,
+    source: latest?.source ?? null,
+    currency: latest?.currency ?? null,
+    priceBasis: latest?.priceBasis ?? null,
+    fetchedAt: latest?.fetchedAt ?? null,
+  };
 }
 
 function clampMonths(months) {
@@ -483,6 +547,10 @@ function text(value) {
   return { content: [{ type: "text", text: String(value) }] };
 }
 
+function toolError(value) {
+  return { ...text(value), isError: true };
+}
+
 function structured(value) {
   return {
     structuredContent: value,
@@ -490,12 +558,70 @@ function structured(value) {
   };
 }
 
+// These limits are both advertised to clients and enforced before any handler runs.
+for (const tool of tools) {
+  tool.inputSchema.additionalProperties = false;
+  for (const [name, schema] of Object.entries(tool.inputSchema.properties)) {
+    if (name === "symbol" || name === "fund") {
+      Object.assign(schema, { pattern: "^[A-Za-z][A-Za-z0-9.-]{0,11}$", maxLength: 12 });
+    }
+    if (name === "months") Object.assign(schema, { type: "integer", minimum: 1, maximum: 120 });
+    if (name === "technicalWeight") Object.assign(schema, { minimum: 0, maximum: 100 });
+    if (name === "price") Object.assign(schema, { exclusiveMinimum: 0 });
+    if (name === "text") schema.maxLength = 256 * 1024;
+    if (name === "source" || name === "horizon") schema.maxLength = 256;
+    if (name === "thesis" || name === "exitConditions") schema.maxLength = 10000;
+    if (name === "citedMetrics") {
+      schema.maxItems = 32;
+      schema.items.additionalProperties = false;
+    }
+  }
+}
+
 const toolByName = new Map(tools.map((tool) => [tool.name, tool]));
+const isObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
+
+function validateArguments(value, schema, path = "arguments") {
+  const matches = schema.type === "object" ? isObject(value)
+    : schema.type === "array" ? Array.isArray(value)
+      : schema.type === "integer" ? Number.isInteger(value)
+        : schema.type === "number" ? Number.isFinite(value) : typeof value === schema.type;
+  if (!matches) return `${path} must be ${schema.type}`;
+  if (schema.enum !== undefined && !schema.enum.includes(value)) return `${path} must be one of ${schema.enum.join(", ")}`;
+  if (schema.type === "object") {
+    for (const key of schema.required ?? []) if (!Object.hasOwn(value, key)) return `${path}.${key} is required`;
+    for (const [key, item] of Object.entries(value)) {
+      if (!Object.hasOwn(schema.properties, key)) return `${path} contains an unknown property`;
+      const error = validateArguments(item, schema.properties[key], `${path}.${key}`);
+      if (error !== null) return error;
+    }
+  }
+  if (schema.type === "array") {
+    if (schema.maxItems !== undefined && value.length > schema.maxItems) return `${path} exceeds ${schema.maxItems} items`;
+    for (let i = 0; i < value.length; i += 1) {
+      const error = validateArguments(value[i], schema.items, `${path}[${i}]`);
+      if (error !== null) return error;
+    }
+  }
+  if (schema.type === "string") {
+    if (schema.maxLength !== undefined && value.length > schema.maxLength) return `${path} exceeds ${schema.maxLength} characters`;
+    if (schema.pattern !== undefined && !new RegExp(schema.pattern, "u").test(value)) return `${path} must be a ticker of 1-12 letters, digits, dots or hyphens`;
+  }
+  if ((schema.type === "number" || schema.type === "integer") && ((schema.minimum !== undefined && value < schema.minimum)
+      || (schema.maximum !== undefined && value > schema.maximum)
+      || (schema.exclusiveMinimum !== undefined && value <= schema.exclusiveMinimum))) return `${path} is outside the supported range`;
+  return null;
+}
 
 async function handleMessage(message) {
-  if (message === null || typeof message !== "object") return null;
+  if (!isObject(message) || message.jsonrpc !== "2.0" || typeof message.method !== "string"
+      || (Object.hasOwn(message, "id") && message.id !== null && typeof message.id !== "string" && !Number.isFinite(message.id))) {
+    return reply(null, null, { code: -32600, message: "invalid JSON-RPC request" });
+  }
   const { id, method, params } = message;
-  const isNotification = id === undefined;
+  // Only requests may execute tools; notifications never produce responses or mutations.
+  if (id === undefined) return null;
+  if (params !== undefined && !isObject(params)) return reply(id, null, { code: -32602, message: "params must be an object" });
   try {
     if (method === "initialize") {
       return reply(id, {
@@ -505,7 +631,7 @@ async function handleMessage(message) {
       });
     }
     if (method === "notifications/initialized" || method === "notifications/cancelled") {
-      return null;
+      return reply(id, null, { code: -32600, message: "notification method cannot be a request" });
     }
     if (method === "ping") return reply(id, {});
     if (method === "tools/list") {
@@ -521,18 +647,17 @@ async function handleMessage(message) {
       const name = params?.name;
       const tool = toolByName.get(name);
       if (tool === undefined) {
-        return isNotification ? null : reply(id, null, { code: -32602, message: `unknown tool: ${name}` });
+        return reply(id, null, { code: -32602, message: "unknown tool" });
       }
-      const result = await tool.handler(params?.arguments ?? {});
-      return isNotification ? null : reply(id, result);
+      const args = params.arguments === undefined ? {} : params.arguments;
+      const validationError = validateArguments(args, tool.inputSchema);
+      if (validationError !== null) return reply(id, null, { code: -32602, message: validationError });
+      const result = await tool.handler(args);
+      return reply(id, result);
     }
-    return isNotification ? null : reply(id, null, { code: -32601, message: `method not found: ${method}` });
+    return reply(id, null, { code: -32601, message: "method not found" });
   } catch (error) {
-    if (isNotification) return null;
-    return reply(id, null, {
-      code: -32000,
-      message: `tool error: ${error instanceof Error ? error.message : String(error)}`,
-    });
+    return reply(id, toolError(`tool error: ${error instanceof Error ? error.message : String(error)}`));
   }
 }
 
@@ -544,28 +669,54 @@ function reply(id, result, error) {
 }
 
 async function main() {
+  const MAX_FRAME_BYTES = 1024 * 1024;
+  const MAX_RESPONSE_BYTES = 16 * 1024 * 1024;
   process.stdin.setEncoding("utf8");
   let buffer = "";
+  let bufferBytes = 0;
+  let discarding = false;
+  async function send(response) {
+    let serialized = JSON.stringify(response);
+    if (Buffer.byteLength(serialized) > MAX_RESPONSE_BYTES) serialized = JSON.stringify(reply(response.id, toolError("result exceeds the response size limit")));
+    if (!process.stdout.write(`${serialized}\n`)) await once(process.stdout, "drain");
+  }
   for await (const chunk of process.stdin) {
-    buffer += chunk;
-    let newline;
-    while ((newline = buffer.indexOf("\n")) >= 0) {
-      const line = buffer.slice(0, newline).trim();
-      buffer = buffer.slice(newline + 1);
+    let start = 0;
+    while (start < chunk.length) {
+      const newline = chunk.indexOf("\n", start);
+      const fragment = chunk.slice(start, newline < 0 ? chunk.length : newline);
+      start = newline < 0 ? chunk.length : newline + 1;
+      if (!discarding) {
+        bufferBytes += Buffer.byteLength(fragment);
+        if (bufferBytes > MAX_FRAME_BYTES) {
+          discarding = true;
+          buffer = "";
+          await send(reply(null, null, { code: -32700, message: "JSON-RPC frame exceeds 1 MiB limit" }));
+        } else buffer += fragment;
+      }
+      if (newline < 0) continue;
+      const line = buffer.trim();
+      buffer = "";
+      bufferBytes = 0;
+      if (discarding) {
+        discarding = false;
+        continue;
+      }
       if (line.length === 0) continue;
       let message;
       try {
         message = JSON.parse(line);
       } catch {
-        process.stderr.write(`stonks-copilot: unparseable line: ${line.slice(0, 120)}\n`);
+        await send(reply(null, null, { code: -32700, message: "invalid JSON" }));
         continue;
       }
       const response = await handleMessage(message);
       if (response !== null) {
-        process.stdout.write(`${JSON.stringify(response)}\n`);
+        await send(response);
       }
     }
   }
+  if (!discarding && buffer.trim() !== "") await send(reply(null, null, { code: -32700, message: "unterminated JSON-RPC frame" }));
 }
 
 main().catch((error) => {
