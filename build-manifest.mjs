@@ -9,7 +9,7 @@ import {
 } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { publisherPublicKeyBase64 } from "./plugin-signing.mjs";
+import { PUBLISHER_PUBLIC_KEY_FILES, publisherPublicKeyBase64, readPublisherPublicKeys } from "./plugin-signing.mjs";
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const OUTPUT = join(ROOT, "public");
@@ -55,10 +55,12 @@ const hostedManifest = {
 
 const publicKeyPem = readFileSync(join(ROOT, "agenc-plugins.pub"), "utf8");
 createPublicKey(publicKeyPem);
+const publicKeys = readPublisherPublicKeys(ROOT);
 const publisherKeyring = {
   publishers: {
     "tetsuo-ai": {
       publicKey: publisherPublicKeyBase64(publicKeyPem),
+      publicKeys: publicKeys.map(publisherPublicKeyBase64),
     },
   },
 };
@@ -69,6 +71,9 @@ const manifestText = `${JSON.stringify(hostedManifest, null, 2)}\n`;
 writeFileSync(join(OUTPUT, "marketplace.json"), manifestText);
 writeFileSync(join(OUTPUT, ".agenc-plugin", "marketplace.json"), manifestText);
 writeFileSync(join(OUTPUT, "agenc-plugins.pub"), publicKeyPem.trimEnd() + "\n");
+for (const [index, file] of PUBLISHER_PUBLIC_KEY_FILES.entries()) {
+  writeFileSync(join(OUTPUT, file), publicKeys[index].trimEnd() + "\n");
+}
 writeFileSync(
   join(OUTPUT, "plugin-publishers.json"),
   `${JSON.stringify(publisherKeyring, null, 2)}\n`,

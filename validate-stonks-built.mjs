@@ -19,7 +19,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpath
 import { tmpdir } from "node:os";
 import { delimiter, dirname, isAbsolute, join, relative, sep } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { verifyPluginSignatureFile } from "./plugin-signing.mjs";
+import { readPublisherPublicKeys, verifyPluginSignatureFile } from "./plugin-signing.mjs";
 
 const script = fileURLToPath(import.meta.url);
 const repository = dirname(script);
@@ -202,7 +202,7 @@ async function parent() {
         writeFileSync(destination, blob.stdout, { mode: 0o600 });
       }
     }
-    const signature = verifyPluginSignatureFile(source, readFileSync(join(repository, "agenc-plugins.pub"), "utf8"));
+    const signature = verifyPluginSignatureFile(source, readPublisherPublicKeys(repository));
     const manifest = JSON.parse(readFileSync(join(source, ".agenc-plugin", "plugin.json"), "utf8"));
     const cli = join(runtime, "bin", "agenc");
     const version = run(process.execPath, [cli, "--version"], { cwd: workspace, env: environment });

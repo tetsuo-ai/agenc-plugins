@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { createHash, createPublicKey } from "node:crypto";
+import { createHash } from "node:crypto";
 import {
   existsSync,
   lstatSync,
@@ -11,6 +11,7 @@ import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   publisherPublicKeyBase64,
+  readPublisherPublicKeys,
   verifyPluginSignatureFile,
 } from "./plugin-signing.mjs";
 
@@ -180,8 +181,12 @@ assert.ok(!existsSync(join(ROOT, "marketplace.json")), "retired root marketplace
 assert.ok(existsSync(join(ROOT, "LICENSE")), "MIT license file is missing");
 
 const publicKeyPem = readFileSync(join(ROOT, "agenc-plugins.pub"), "utf8");
-const publicKey = createPublicKey(publicKeyPem);
 const publicKeyBase64 = publisherPublicKeyBase64(publicKeyPem);
+const publicKeys = readPublisherPublicKeys(ROOT);
+const rolloverFingerprint = createHash("sha256")
+  .update(Buffer.from(publisherPublicKeyBase64(publicKeys[1]), "base64"))
+  .digest("hex");
+assert.equal(rolloverFingerprint, "d3cd019ab546d8512619fabc80cb4b363c66d1a70bfa25a35bbef5aacf3836c3");
 
 for (const entry of marketplace.plugins) {
   assert.equal(entry.policy?.installation, "AVAILABLE");
@@ -215,7 +220,7 @@ for (const entry of marketplace.plugins) {
       assert.ok(!content.includes(forbidden), `${entry.name}: forbidden stale pattern ${forbidden}`);
     }
   });
-  const signature = verifyPluginSignatureFile(pluginRoot, publicKey);
+  const signature = verifyPluginSignatureFile(pluginRoot, publicKeys);
   console.log(
     `verified ${entry.name} (${signature.files} signed payload files; ${logo.width}x${logo.height} RGBA logo, ${logo.bytes} bytes)`,
   );
@@ -294,6 +299,7 @@ for (const [index, plugin] of hosted.plugins.entries()) {
 }
 const publishedKeyring = readJson(join(ROOT, "public", "plugin-publishers.json"));
 assert.equal(publishedKeyring.publishers?.["tetsuo-ai"]?.publicKey, publicKeyBase64);
+assert.deepEqual(publishedKeyring.publishers?.["tetsuo-ai"]?.publicKeys, publicKeys.map(publisherPublicKeyBase64));
 assert.equal(
   readFileSync(join(ROOT, "public", "agenc-plugins.pub"), "utf8"),
   publicKeyPem.trimEnd() + "\n",
@@ -311,5 +317,6 @@ assert.ok(
   readFileSync(join(ROOT, "README.md"), "utf8").includes(EXPECTED_PUBLISHER_FINGERPRINT),
   "README does not publish the expected publisher-key fingerprint",
 );
+assert.ok(readFileSync(join(ROOT, "README.md"), "utf8").includes(rolloverFingerprint));
 console.log(`publisher key sha256:${fingerprint}`);
 console.log("marketplace validation passed");

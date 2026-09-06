@@ -1,5 +1,5 @@
 /**
- * Sign every plugin listed in .agenc-plugin/marketplace.json.
+ * Sign every plugin, or one explicitly selected plugin, from the catalog.
  *
  * Usage:
  *   node sign-plugins.mjs --key ~/.agenc/keys/agenc-plugins.pem --publisher tetsuo-ai
@@ -17,17 +17,31 @@ import {
   collectPluginPayloadDigests,
   PLUGIN_SIGNATURE_PATH,
   pluginSignaturePayload,
+  readPublisherPublicKeys,
 } from "./plugin-signing.mjs";
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
+const options = new Map();
+for (let index = 2; index < process.argv.length; index += 2) {
+  const flag = process.argv[index];
+  if (!["--key", "--publisher", "--plugin"].includes(flag)) {
+    throw new Error(`unknown signer option: ${flag}`);
+  }
+  if (options.has(flag)) throw new Error(`duplicate signer option: ${flag}`);
+  const value = process.argv[index + 1];
+  if (value === undefined || value.startsWith("--") || value === "") {
+    throw new Error(`missing value for ${flag}`);
+  }
+  options.set(flag, value);
+}
 
 function argument(name, fallback) {
-  const index = process.argv.indexOf(`--${name}`);
-  if (index === -1 || index === process.argv.length - 1) {
+  const value = options.get(`--${name}`);
+  if (value === undefined) {
     if (fallback !== undefined) return fallback;
     throw new Error(`missing --${name}`);
   }
-  return process.argv[index + 1];
+  return value;
 }
 
 function localPluginRoot(source) {
@@ -50,23 +64,27 @@ const privateKey = createPrivateKey(readFileSync(keyPath));
 const derivedPublicKey = Buffer.from(
   createPublicKey(privateKey).export({ format: "der", type: "spki" }),
 );
-const publishedPublicKey = Buffer.from(
-  createPublicKey(readFileSync(join(ROOT, "agenc-plugins.pub"))).export({
+const publishedPublicKeys = readPublisherPublicKeys(ROOT).map((pem) => Buffer.from(
+  createPublicKey(pem).export({
     format: "der",
     type: "spki",
   }),
-);
-if (
-  derivedPublicKey.length !== publishedPublicKey.length ||
-  !timingSafeEqual(derivedPublicKey, publishedPublicKey)
-) {
-  throw new Error("private signing key does not match agenc-plugins.pub");
+));
+if (!publishedPublicKeys.some((publicKey) =>
+  derivedPublicKey.length === publicKey.length && timingSafeEqual(derivedPublicKey, publicKey)
+)) {
+  throw new Error("private signing key does not match a trusted publisher public key");
 }
 
 const marketplace = JSON.parse(
   readFileSync(join(ROOT, ".agenc-plugin", "marketplace.json"), "utf8"),
 );
-for (const plugin of marketplace.plugins) {
+const selectedName = options.get("--plugin");
+const selectedPlugins = selectedName === undefined
+  ? marketplace.plugins
+  : marketplace.plugins.filter((plugin) => plugin.name === selectedName);
+if (selectedPlugins.length === 0) throw new Error(`unknown catalog plugin: ${selectedName}`);
+for (const plugin of selectedPlugins) {
   const pluginRoot = localPluginRoot(plugin.source);
   const files = collectPluginPayloadDigests(pluginRoot);
   const signature = sign(

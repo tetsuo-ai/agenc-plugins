@@ -64,11 +64,25 @@ jq -r '.publishers["tetsuo-ai"].publicKey' /tmp/agenc-plugin-publishers.json \
   | base64 -d | sha256sum
 ```
 
-Expected SHA-256:
+Legacy SHA-256 (retained for already-published plugins):
 
 ```text
 8174e96296289bd8eed26b832296309015216afe544a7f15097356b10aa1b932
 ```
+
+September 2026 signing key, `agenc-plugins-2026-09.pub`:
+
+```text
+d3cd019ab546d8512619fabc80cb4b363c66d1a70bfa25a35bbef5aacf3836c3
+```
+
+The keyring keeps the legacy `publicKey` and adds both keys in `publicKeys`.
+Rollover-capable Core verifies either key; older Core ignores the new list and
+continues verifying the four unchanged legacy plugins. Stonks now requires the
+new key. Upgrade Core before installing it, and independently verify both
+fingerprints before updating an explicit local publisher entry. An explicit
+old-only pin is never silently overridden by the new built-in root. Publishing
+the hosted keyring does not automatically update client trust.
 
 Merge the `tetsuo-ai` entry into `$AGENC_HOME/plugin-publishers.json` (normally
 `~/.agenc/plugin-publishers.json`) without replacing other trusted publishers.
@@ -179,19 +193,26 @@ outside the repository; `*.pem` and `*.key` are ignored as an additional guard.
 ```bash
 node sign-plugins.mjs \
   --key ~/.agenc/keys/agenc-plugins.pem \
-  --publisher tetsuo-ai
+  --publisher tetsuo-ai \
+  --plugin stonks-copilot
 npm test
 ```
 
-The signer refuses a private key that does not match the checked-in public key.
+The signer refuses a private key that does not match either checked-in public
+key. Select a single plugin with `--plugin`; omit it only when deliberately
+re-signing the whole catalog. The September rollover signs Stonks only, leaving
+the four existing signatures and legacy public key unchanged.
 Each signature covers the canonical plugin manifest plus the exact set of all
 other payload files. CI verifies the declared file map, publisher, and Ed25519
 signature; a missing public key is a hard failure.
 
 Generate a new Ed25519 key only when bootstrapping a new publisher or carrying
-out an explicit key rotation. A rotation also requires distributing the new
-trusted keyring and fingerprint through an independent trusted channel; simply
-replacing `agenc-plugins.pub` would break existing clients.
+out an explicit key rotation. Keep the key directory private (0700), the private
+PEM owner-only (0600), and an operator-controlled backup outside Git. Never add
+the private key to CI artifacts, chat, logs, or the hosted catalog. A rotation
+also requires distributing the new trusted keyring and fingerprint through an
+independent trusted channel; replacing `agenc-plugins.pub` would break existing
+clients. Keep the legacy key throughout the compatibility window.
 
 ## Publish
 
