@@ -27,6 +27,7 @@ scp -o BatchMode=yes \
   public/marketplace.json \
   public/plugin-publishers.json \
   public/agenc-plugins.pub \
+  public/agenc-plugins-2026-09.pub \
   "agenc-mainnet:$remote_stage/"
 scp -o BatchMode=yes \
   public/.agenc-plugin/marketplace.json \
@@ -39,6 +40,7 @@ ssh -o BatchMode=yes agenc-mainnet "
   mv '$remote_stage/.agenc-plugin/marketplace.json' /var/www/agenc-tech/plugins/.agenc-plugin/marketplace.json
   mv '$remote_stage/plugin-publishers.json' /var/www/agenc-tech/plugins/plugin-publishers.json
   mv '$remote_stage/agenc-plugins.pub' /var/www/agenc-tech/plugins/agenc-plugins.pub
+  mv '$remote_stage/agenc-plugins-2026-09.pub' /var/www/agenc-tech/plugins/agenc-plugins-2026-09.pub
   rmdir '$remote_stage/.agenc-plugin'
   rmdir '$remote_stage'
 "

@@ -15,6 +15,10 @@ import { join, relative, resolve, sep } from "node:path";
 export const PLUGIN_MANIFEST_PATH = ".agenc-plugin/plugin.json";
 export const PLUGIN_SIGNATURE_PATH = ".agenc-plugin/signature.json";
 export const PLUGIN_INSTALL_METADATA_PATH = ".agenc-plugin/agenc-install.json";
+export const PUBLISHER_PUBLIC_KEY_FILES = [
+  "agenc-plugins.pub",
+  "agenc-plugins-2026-09.pub",
+];
 
 const MAX_PAYLOAD_BYTES = 200 * 1024 * 1024;
 const MAX_PAYLOAD_FILES = 4096;
@@ -108,7 +112,19 @@ export function pluginSignaturePayload(
 
 export function publisherPublicKeyBase64(pem) {
   const key = createPublicKey(pem);
+  if (key.asymmetricKeyType !== "ed25519") {
+    throw new Error("plugin publisher key must be Ed25519");
+  }
   return Buffer.from(key.export({ format: "der", type: "spki" })).toString("base64");
+}
+
+/** Public-only overlap: keep historical signatures verifiable during rollover. */
+export function readPublisherPublicKeys(repositoryRoot) {
+  return PUBLISHER_PUBLIC_KEY_FILES.map((file) => {
+    const pem = readFileSync(join(repositoryRoot, file), "utf8");
+    publisherPublicKeyBase64(pem);
+    return pem;
+  });
 }
 
 export function verifyPluginSignatureFile(
@@ -134,12 +150,22 @@ export function verifyPluginSignatureFile(
   if (JSON.stringify(signatureFile.files) !== JSON.stringify(actualFiles)) {
     throw new Error(`${pluginRoot}: signed file map does not match the plugin payload`);
   }
-  const verified = verifySignature(
+  const keys = (Array.isArray(publicKey) ? publicKey : [publicKey]).map((value) => {
+    const key = value?.type === "public" ? value : createPublicKey(value);
+    if (key.asymmetricKeyType !== "ed25519") {
+      throw new Error("plugin publisher key must be Ed25519");
+    }
+    return key;
+  });
+  if (keys.length === 0 || keys.length > 16) {
+    throw new Error("plugin publisher requires between 1 and 16 trusted keys");
+  }
+  const verified = keys.some((key) => verifySignature(
     null,
     pluginSignaturePayload(pluginRoot, actualFiles),
-    publicKey,
+    key,
     Buffer.from(signatureFile.signature, "base64"),
-  );
+  ));
   if (!verified) throw new Error(`${pluginRoot}: Ed25519 signature does not verify`);
   return { publisher: signatureFile.publisher, files: Object.keys(actualFiles).length };
 }

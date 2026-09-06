@@ -1,0 +1,77 @@
+{
+  "name": "stonks-copilot",
+  "version": "0.2.1",
+  "description": "Research stocks with technical indicators and SEC fundamentals, inspect portfolio exposure, and check investment theses against cited metrics. Includes local charts and explicit data-quality warnings.",
+  "author": {
+    "name": "tetsuo-ai"
+  },
+  "homepage": "https://agenc.tech",
+  "repository": "https://github.com/tetsuo-ai/agenc-plugins",
+  "license": "MIT",
+  "keywords": [
+    "stocks",
+    "portfolio",
+    "etf",
+    "overlap",
+    "fundamentals",
+    "technical-analysis",
+    "sec-edgar",
+    "decision-journal"
+  ],
+  "mcpServers": {
+    "stonks-data": {
+      "command": "node",
+      "args": ["./server/main.mjs"],
+      "transport": "stdio"
+    }
+  },
+  "commands": {
+    "stock": {
+      "source": "./commands/stock.md",
+      "description": "Analyze a stock 50/50: technicals + SEC fundamentals with a blended scorecard and chart",
+      "argumentHint": "<symbol>"
+    },
+    "xray": {
+      "source": "./commands/xray.md",
+      "description": "Portfolio forensics: effective exposure, fund overlap, concentration and fees with a treemap",
+      "argumentHint": "[paste positions CSV or 'use stored']"
+    },
+    "thesis": {
+      "source": "./commands/thesis.md",
+      "description": "Decision journal: record an investment thesis with cited metrics, list theses, or scan for thesis breaks",
+      "argumentHint": "<add|list|scan> [symbol] [thesis text]"
+    }
+  },
+  "skills": [
+    "./skills/stock-analyzer",
+    "./skills/portfolio-xray",
+    "./skills/thesis-journal"
+  ],
+  "interface": {
+    "displayName": "Stonks Copilot",
+    "shortDescription": "Know what you own, why you bought it, and when that reason broke.",
+    "longDescription": "Three research workflows in one local plugin. Analyze stocks using daily price indicators and SEC filing fundamentals, with a 50/50 score only when both sides are available. Inspect portfolio exposure and fund overlap using verified N-PORT holdings, with unresolved positions and missing prices clearly identified. Record investment theses and check their cited metrics when you request a scan. Public data comes from Yahoo Finance, Stooq and SEC EDGAR and is cached locally. Charts and journal entries stay in the plugin data directory. No orders, broker credentials or automatic background monitoring. Informational research, not investment advice.",
+    "developerName": "tetsuo-ai",
+    "category": "finance",
+    "capabilities": [
+      "stock-analysis",
+      "technical-indicators",
+      "sec-fundamentals",
+      "portfolio-xray",
+      "etf-overlap",
+      "decision-journal",
+      "thesis-break-alerts",
+      "svg-charts"
+    ],
+    "websiteUrl": "https://agenc.tech",
+    "brandColor": "#22c55e",
+    "logo": "./assets/logo.png",
+    "defaultPrompt": [
+      "Analyze AAPL for me",
+      "How much NVDA do I actually own through my ETFs?",
+      "Set up a thesis for my VOO position",
+      "Scan my investment theses for breaks"
+    ],
+    "screenshots": []
+  }
+}
