@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { createHash, createPublicKey } from "node:crypto";
+import { createHash } from "node:crypto";
 import {
   existsSync,
   lstatSync,
@@ -11,12 +11,13 @@ import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   publisherPublicKeyBase64,
+  readPublisherPublicKeys,
   verifyPluginSignatureFile,
 } from "./plugin-signing.mjs";
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const MARKETPLACE_PATH = join(ROOT, ".agenc-plugin", "marketplace.json");
-const EXPECTED_PLUGINS = ["zeroday-hunter", "iot-builder", "ledger", "llm-checker"];
+const EXPECTED_PLUGINS = ["zeroday-hunter", "iot-builder", "ledger", "llm-checker", "stonks-copilot"];
 const EXPECTED_PLUGIN_VERSION = "0.2.1";
 const EXPECTED_LOGO_PATH = "./assets/logo.png";
 const LOGO_PAYLOAD_PATH = "assets/logo.png";
@@ -180,8 +181,12 @@ assert.ok(!existsSync(join(ROOT, "marketplace.json")), "retired root marketplace
 assert.ok(existsSync(join(ROOT, "LICENSE")), "MIT license file is missing");
 
 const publicKeyPem = readFileSync(join(ROOT, "agenc-plugins.pub"), "utf8");
-const publicKey = createPublicKey(publicKeyPem);
 const publicKeyBase64 = publisherPublicKeyBase64(publicKeyPem);
+const publicKeys = readPublisherPublicKeys(ROOT);
+const rolloverFingerprint = createHash("sha256")
+  .update(Buffer.from(publisherPublicKeyBase64(publicKeys[1]), "base64"))
+  .digest("hex");
+assert.equal(rolloverFingerprint, "d3cd019ab546d8512619fabc80cb4b363c66d1a70bfa25a35bbef5aacf3836c3");
 
 for (const entry of marketplace.plugins) {
   assert.equal(entry.policy?.installation, "AVAILABLE");
@@ -215,7 +220,7 @@ for (const entry of marketplace.plugins) {
       assert.ok(!content.includes(forbidden), `${entry.name}: forbidden stale pattern ${forbidden}`);
     }
   });
-  const signature = verifyPluginSignatureFile(pluginRoot, publicKey);
+  const signature = verifyPluginSignatureFile(pluginRoot, publicKeys);
   console.log(
     `verified ${entry.name} (${signature.files} signed payload files; ${logo.width}x${logo.height} RGBA logo, ${logo.bytes} bytes)`,
   );
@@ -255,6 +260,29 @@ for (const command of ["pio device list --json-output", "pio run -e", "--upload-
   assert.ok(iotSkill.includes(command), `IoT skill is missing ${command}`);
 }
 
+const stonksManifest = readJson(
+  join(ROOT, "plugins", "stonks-copilot", ".agenc-plugin", "plugin.json"),
+);
+assert.ok(
+  stonksManifest.mcpServers?.["stonks-data"]?.command === "node",
+  "Stonks Copilot must declare its stdio stonks-data MCP server",
+);
+const stonksJournalSkill = readFileSync(
+  join(ROOT, "plugins", "stonks-copilot", "skills", "thesis-journal", "SKILL.md"),
+  "utf8",
+);
+for (const required of ["thesis_create", "thesis_scan", "thesis_list", "metrics_registry"]) {
+  assert.ok(stonksJournalSkill.includes(required), `Stonks Copilot journal skill is missing ${required}`);
+}
+const stonksAnalyzerSkill = readFileSync(
+  join(ROOT, "plugins", "stonks-copilot", "skills", "stock-analyzer", "SKILL.md"),
+  "utf8",
+);
+assert.ok(
+  stonksAnalyzerSkill.includes("chart_price"),
+  "Stonks Copilot analyzer skill is missing chart_price",
+);
+
 const hostedAlias = readFileSync(join(ROOT, "public", "marketplace.json"), "utf8");
 const hostedCanonical = readFileSync(
   join(ROOT, "public", ".agenc-plugin", "marketplace.json"),
@@ -271,6 +299,7 @@ for (const [index, plugin] of hosted.plugins.entries()) {
 }
 const publishedKeyring = readJson(join(ROOT, "public", "plugin-publishers.json"));
 assert.equal(publishedKeyring.publishers?.["tetsuo-ai"]?.publicKey, publicKeyBase64);
+assert.deepEqual(publishedKeyring.publishers?.["tetsuo-ai"]?.publicKeys, publicKeys.map(publisherPublicKeyBase64));
 assert.equal(
   readFileSync(join(ROOT, "public", "agenc-plugins.pub"), "utf8"),
   publicKeyPem.trimEnd() + "\n",
@@ -288,5 +317,6 @@ assert.ok(
   readFileSync(join(ROOT, "README.md"), "utf8").includes(EXPECTED_PUBLISHER_FINGERPRINT),
   "README does not publish the expected publisher-key fingerprint",
 );
+assert.ok(readFileSync(join(ROOT, "README.md"), "utf8").includes(rolloverFingerprint));
 console.log(`publisher key sha256:${fingerprint}`);
 console.log("marketplace validation passed");
