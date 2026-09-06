@@ -37,10 +37,11 @@ thesis journal, and chart rendering over keyless public endpoints.
 ## Requirements
 
 - A current AgenC build using the canonical `.agenc-plugin/` contract.
-- Node.js 22 or newer for repository validation and publishing.
-- Stonks release prerequisites: [publisher-key overlap](https://github.com/tetsuo-ai/agenc-core/pull/2214)
+- Node.js 22 or newer for repository validation and catalog builds.
+- Stonks client requirements: [publisher-key overlap](https://github.com/tetsuo-ai/agenc-core/pull/2214)
   and [approved plugin networking](https://github.com/tetsuo-ai/agenc-core/pull/2213).
-  Do not deploy this catalog until compatible Core is available to clients.
+  These determine whether an installed client can verify and run Stonks;
+  publishing the catalog does not update that client's runtime or trust.
 - Ledger plugin: globally installed `@ledgerhq/wallet-cli` (`wallet-cli` 2.1+
   recommended). The plugin never installs or downloads it automatically.
 - IoT plugin: an existing `platformio.ini` and a locally installed `pio`.
@@ -136,6 +137,15 @@ Generated files under `public/` are intentionally ignored. A hosted build
 rewrites local plugin paths to `git-subdir` sources pinned to the full Git commit
 SHA, and emits both `/marketplace.json` and
 `/.agenc-plugin/marketplace.json` with identical bytes.
+
+Plugin distribution uses the existing static server at `agenc.tech/plugins`.
+Deploy only the generated catalog and public publisher keys; clients download
+the signed plugin files, including their logos, from the pinned GitHub commit.
+This repository is private to npm (`"private": true`): catalog deployment does
+not require an npm publication, a Core/Desktop binary release, or an Apple
+distribution certificate. Never upload the private signing key. Validate the
+catalog against compatible Core before deployment, preserve the legacy plugins
+and signing key, and keep a rollback copy of the previous hosted artifacts.
 
 ## Validate
 
