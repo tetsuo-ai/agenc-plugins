@@ -17,7 +17,7 @@ import {
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const MARKETPLACE_PATH = join(ROOT, ".agenc-plugin", "marketplace.json");
-const EXPECTED_PLUGINS = ["zeroday-hunter", "iot-builder", "ledger", "llm-checker", "stonks-copilot"];
+const EXPECTED_PLUGINS = ["zeroday-hunter", "iot-builder", "ledger", "llm-checker", "stonks-copilot", "inbox"];
 const EXPECTED_PLUGIN_VERSION = "0.2.1";
 const EXPECTED_LOGO_PATH = "./assets/logo.png";
 const LOGO_PAYLOAD_PATH = "assets/logo.png";
@@ -282,6 +282,28 @@ assert.ok(
   stonksAnalyzerSkill.includes("chart_price"),
   "Stonks Copilot analyzer skill is missing chart_price",
 );
+
+const inboxManifest = readJson(
+  join(ROOT, "plugins", "inbox", ".agenc-plugin", "plugin.json"),
+);
+assert.ok(
+  inboxManifest.mcpServers?.["inbox-gmail"]?.command === "node",
+  "Inbox must declare its stdio inbox-gmail MCP server",
+);
+const inboxDigestSkill = readFileSync(
+  join(ROOT, "plugins", "inbox", "skills", "inbox-digest", "SKILL.md"),
+  "utf8",
+);
+for (const required of ["auth_status", "auth_begin", "auth_store_credentials", "system.searchTools"]) {
+  assert.ok(inboxDigestSkill.includes(required), `Inbox digest skill is missing ${required}`);
+}
+const inboxLoopsSkill = readFileSync(
+  join(ROOT, "plugins", "inbox", "skills", "inbox-loops", "SKILL.md"),
+  "utf8",
+);
+for (const required of ["loops_scan", "reply debt", "waiting-on"]) {
+  assert.ok(inboxLoopsSkill.includes(required), `Inbox loops skill is missing ${required}`);
+}
 
 const hostedAlias = readFileSync(join(ROOT, "public", "marketplace.json"), "utf8");
 const hostedCanonical = readFileSync(

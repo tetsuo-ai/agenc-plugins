@@ -1,0 +1,22 @@
+{
+  "publisher": "tetsuo-ai",
+  "signature": "vw/1zc8+2jIV2qPXhlvc+6RANlzoMYCSgJCdUaEVUDsQ8I1WstziEoqBIz5m1oXXz+QrpzWrSp0su4MC4OioDg==",
+  "files": {
+    "assets/logo.png": "sha256:3243f0c9c416283de5c5ed12b5eb22d44953b70d99a5b1a24c981dc15dec5ed9",
+    "commands/inbox.md": "sha256:cf8fa489573eb953addd21972133a572f5143c9251c0da30b275138545715ac0",
+    "README.md": "sha256:5fb92f61a6696bbe869f171259b8321b531a20debefff2d591c7fed9a65534b5",
+    "server/bridge.mjs": "sha256:db2d0ca11999dfa1f076054d9ecad805b1f523357f66ca9565b580259a583eb6",
+    "server/cleanup.mjs": "sha256:0dc50febac9559260f4340fa350489f76259861bcb8dd5ef0cfcafd73f2711c6",
+    "server/dates.mjs": "sha256:f6d2d0953420f8d0af40f0a7c746e3632c46600093782c8d8eaa1b344814479b",
+    "server/gmail.mjs": "sha256:d7e19efab33ee7e49084a364ad03aa368f2208826ba0e49d478e4f9f22b16f7e",
+    "server/graph.mjs": "sha256:715a2e072b8567ad5f89ec797210929197c6968c03d061545e37f11285ed8670",
+    "server/loops.mjs": "sha256:4b48bdb9f0126fd9dce0f31ea25830d7d0fb0a8d6072afec6a6212c016f18180",
+    "server/main.mjs": "sha256:eb359a960aa22ea74abf47ab963135096dab5fe9e88b2e504bff71af65442db7",
+    "server/mime.mjs": "sha256:c7e8097e36841ebbb5829d706e5483be872d869ed8b49402cec9e625c7c1a914",
+    "server/oauth.mjs": "sha256:dc7bf510e8c4f11865991311603dc33e2a81b1259690f5a28c736bceb8b965e6",
+    "server/vault.mjs": "sha256:d9c01b949c5b67f49def04f8f0112ba6f67b522ea9522f368e73e22d87ee019c",
+    "skills/inbox-cleanup/SKILL.md": "sha256:3dc79a19fae58c03f70cc0de769ab82f9ffd6c3323baffcd142b03ad47cf2510",
+    "skills/inbox-digest/SKILL.md": "sha256:efd4b149692f2ea9e71e025ceb8c9212928c0b62940a8ed92347225ed80ff879",
+    "skills/inbox-loops/SKILL.md": "sha256:e76090502ce43e50afa248eedd4823d06fff317187eec8becb72e7dfe5f4f567"
+  }
+}
