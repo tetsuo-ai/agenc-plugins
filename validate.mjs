@@ -17,7 +17,7 @@ import {
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const MARKETPLACE_PATH = join(ROOT, ".agenc-plugin", "marketplace.json");
-const EXPECTED_PLUGINS = ["zeroday-hunter", "iot-builder", "ledger", "llm-checker", "stonks-copilot"];
+const EXPECTED_PLUGINS = ["zeroday-hunter", "iot-builder", "ledger", "llm-checker", "stonks-copilot", "pluma"];
 const EXPECTED_PLUGIN_VERSION = "0.2.1";
 const EXPECTED_LOGO_PATH = "./assets/logo.png";
 const LOGO_PAYLOAD_PATH = "assets/logo.png";
@@ -282,6 +282,26 @@ assert.ok(
   stonksAnalyzerSkill.includes("chart_price"),
   "Stonks Copilot analyzer skill is missing chart_price",
 );
+
+const plumaManifest = readJson(
+  join(ROOT, "plugins", "pluma", ".agenc-plugin", "plugin.json"),
+);
+assert.ok(
+  plumaManifest.mcpServers?.["pluma-lint"]?.command === "node",
+  "Pluma must declare its stdio pluma-lint MCP server",
+);
+assert.equal(
+  plumaManifest.outputStyles?.length,
+  10,
+  "Pluma must ship its ten output styles",
+);
+const plumaSkill = readFileSync(
+  join(ROOT, "plugins", "pluma", "skills", "escritura", "SKILL.md"),
+  "utf8",
+);
+for (const required of ["style_lint", "styles_list", "pass", "system.searchTools"]) {
+  assert.ok(plumaSkill.includes(required), `Pluma skill is missing ${required}`);
+}
 
 const hostedAlias = readFileSync(join(ROOT, "public", "marketplace.json"), "utf8");
 const hostedCanonical = readFileSync(
