@@ -1,6 +1,6 @@
 # AgenC Plugins
 
-The first-party plugin marketplace for AgenC. It contains five packages:
+The first-party plugin marketplace for AgenC. It contains six packages:
 
 - **Zero Day Hunter** — a security-research campaign skill.
 - **IoT Builder** — a guarded PlatformIO build/upload workflow.
@@ -9,6 +9,10 @@ The first-party plugin marketplace for AgenC. It contains five packages:
 - **Stonks Copilot** — agent-native investing copilot: 50/50 stock analysis,
   portfolio X-Ray with real N-PORT fund overlap, SVG charts, and a decision
   journal that flags when your stated thesis breaks.
+- **Olimpo** — the IMO corpus with guided solving: historic olympiad problems
+  with hint ladders and full solutions, progressive disclosure, deterministic
+  answer checks and study plans. Built so small local models teach olympiad
+  math well: the corpus carries the truth, the model carries the reasoning.
 
 ## Plugin, skill, and MCP
 

@@ -17,7 +17,7 @@ import {
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const MARKETPLACE_PATH = join(ROOT, ".agenc-plugin", "marketplace.json");
-const EXPECTED_PLUGINS = ["zeroday-hunter", "iot-builder", "ledger", "llm-checker", "stonks-copilot"];
+const EXPECTED_PLUGINS = ["zeroday-hunter", "iot-builder", "ledger", "llm-checker", "stonks-copilot", "olimpo"];
 const EXPECTED_PLUGIN_VERSION = "0.2.1";
 const EXPECTED_LOGO_PATH = "./assets/logo.png";
 const LOGO_PAYLOAD_PATH = "assets/logo.png";
@@ -282,6 +282,31 @@ assert.ok(
   stonksAnalyzerSkill.includes("chart_price"),
   "Stonks Copilot analyzer skill is missing chart_price",
 );
+
+const olimpoManifest = readJson(
+  join(ROOT, "plugins", "olimpo", ".agenc-plugin", "plugin.json"),
+);
+assert.ok(
+  olimpoManifest.mcpServers?.["olimpo-corpus"]?.command === "node",
+  "Olimpo must declare its stdio olimpo-corpus MCP server",
+);
+const olimpoCorpus = readJson(join(ROOT, "plugins", "olimpo", "corpus", "problems-1.json"));
+assert.ok(olimpoCorpus.length >= 12, "Olimpo must ship at least 12 curated problems");
+assert.ok(
+  olimpoCorpus.every((problem) => typeof problem.statement === "string" && problem.statement.length >= 20),
+  "Olimpo problems must carry real statements",
+);
+assert.ok(
+  olimpoCorpus.every((problem) => problem.solutionType === "full" || problem.solutionType === "sketch"),
+  "Olimpo solutions must be honestly typed",
+);
+const olimpoSkill = readFileSync(
+  join(ROOT, "plugins", "olimpo", "skills", "olimpiada", "SKILL.md"),
+  "utf8",
+);
+for (const required of ["problem_get", "answer_check", "solutionType", "system.searchTools"]) {
+  assert.ok(olimpoSkill.includes(required), `Olimpo skill is missing ${required}`);
+}
 
 const hostedAlias = readFileSync(join(ROOT, "public", "marketplace.json"), "utf8");
 const hostedCanonical = readFileSync(
