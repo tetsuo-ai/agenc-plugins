@@ -30,9 +30,19 @@ const CORPUS_DIR = join(ROOT, "corpus");
 
 test("corpus: ships well-formed classics with full structure", () => {
   const problems = loadCorpus(CORPUS_DIR);
-  assert.ok(problems.length >= 270, `full compendium corpus (${problems.length})`);
-  const sourced = problems.filter((p) => p.tags.includes("compendium"));
-  assert.ok(sourced.length >= 250, `sourced bulk present (${sourced.length})`);
+  assert.ok(problems.length >= 390, `every IMO problem 1959-2025 (${problems.length})`);
+  const sourced = problems.filter((p) => p.tags.some((t) => ["compendium", "aops-mirror", "official"].includes(t)));
+  assert.ok(sourced.length >= 380, `sourced bulk present (${sourced.length})`);
+  // Completeness: every year except 1980 (no IMO) has all six problems.
+  const missing = [];
+  for (const problem of problems) void problem;
+  const years = [...new Set(problems.map((p2) => p2.year))];
+  for (const y of years) {
+    for (let n = 1; n <= 6; n += 1) {
+      if (!problems.some((p2) => p2.id === `${y}-${n}`)) missing.push(`${y}-${n}`);
+    }
+  }
+  assert.deepEqual(missing, [], "every problem 1..6 of every year present");
   const byId = Object.fromEntries(problems.map((p) => [p.id, p]));
   assert.ok(byId["1988-6"] !== undefined, "the legendary 1988-6 ships");
   assert.equal(byId["1988-6"].difficulty, "legendary");
