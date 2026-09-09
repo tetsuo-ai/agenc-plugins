@@ -299,11 +299,11 @@ assert.ok(
   "Sourced problems must carry an honest extraction note",
 );
 assert.ok(
-  olimpoCorpus.every((problem) => typeof problem.statement === "string" && problem.statement.length >= 20),
+  olimpoCurated.every((problem) => typeof problem.statement === "string" && problem.statement.length >= 20),
   "Olimpo problems must carry real statements",
 );
 assert.ok(
-  olimpoCorpus.every((problem) => problem.solutionType === "full" || problem.solutionType === "sketch"),
+  olimpoCurated.every((problem) => problem.solutionType === "full" || problem.solutionType === "sketch"),
   "Olimpo solutions must be honestly typed",
 );
 const olimpoSkill = readFileSync(
