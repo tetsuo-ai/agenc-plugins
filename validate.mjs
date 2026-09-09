@@ -293,7 +293,7 @@ assert.ok(
 const olimpoCurated = readJson(join(ROOT, "plugins", "olimpo", "corpus", "problems-1.json"));
 assert.ok(olimpoCurated.length >= 12, "Olimpo must ship at least 12 curated problems");
 const olimpoSourced = readJson(join(ROOT, "plugins", "olimpo", "corpus", "problems-sourced.json"));
-assert.ok(olimpoSourced.length >= 250, "Olimpo must ship the bulk compendium corpus (250+)");
+assert.ok(olimpoSourced.length >= 380, "Olimpo must ship the complete sourced corpus (380+, 1959-2025)");
 assert.ok(
   olimpoSourced.every((problem) => typeof problem.sourceNote === "string" && problem.sourceNote.length > 20),
   "Sourced problems must carry an honest extraction note",
