@@ -1,0 +1,67 @@
+{
+  "name": "olimpo",
+  "version": "0.2.1",
+  "description": "The IMO corpus with guided solving: historic olympiad problems with statement, hint ladder, key idea and full solutions — retrieved on demand, disclosed progressively. Built to make small local models (Qwen 27B/30B class) genuinely good at olympiad math: the corpus carries the ground truth, the model carries the reasoning, and numeric answers are checked deterministically.",
+  "author": {
+    "name": "tetsuo-ai"
+  },
+  "homepage": "https://agenc.tech",
+  "repository": "https://github.com/tetsuo-ai/agenc-plugins",
+  "license": "MIT",
+  "keywords": [
+    "math",
+    "olympiad",
+    "imo",
+    "problem-solving",
+    "tutoring",
+    "local-models",
+    "progressive-disclosure",
+    "offline"
+  ],
+  "mcpServers": {
+    "olimpo-corpus": {
+      "command": "node",
+      "args": ["./server/main.mjs"],
+      "transport": "stdio",
+      "env_vars": ["PATH"]
+    }
+  },
+  "commands": {
+    "olimpo": {
+      "source": "./commands/olimpo.md",
+      "description": "IMO practice and explanation with hint ladder, deterministic answer checks and full classic solutions",
+      "argumentHint": "<practica|explica|busca> [tema|id|técnica]",
+      "allowedTools": ["Bash", "Read"]
+    }
+  },
+  "skills": [
+    "./skills/olimpiada"
+  ],
+  "interface": {
+    "displayName": "Olimpo",
+    "shortDescription": "Olympiad math your small model can actually teach.",
+    "longDescription": "A curated corpus of historic IMO problems (the 1959 opener, the legendary 1988-6 Vieta jumping, Erdős–Ginzburg–Ziv, Sophie Germain, EGZ…) with statement, hint ladder, key idea and full solutions — honestly labeled full vs sketch. The architecture is the point: retrieval over recall for small local models (the corpus carries the ground truth, the model explains it), progressive disclosure (statement → hint1 → hints → keyIdea → solution; solutions never leak early), deterministic answer checking for numeric problems (no trusting model arithmetic), a local progress ledger, deterministic study plans, and an ingest tool so the corpus grows with your own problems. Technique-based lessons come free: search by tag (vieta-jumping, invariants, sophie-germain) and the family assembles itself. Fully offline.",
+    "developerName": "tetsuo-ai",
+    "category": "education",
+    "capabilities": [
+      "imo-corpus",
+      "progressive-disclosure",
+      "hint-ladder",
+      "deterministic-answer-check",
+      "study-plans",
+      "progress-ledger",
+      "corpus-ingest",
+      "offline"
+    ],
+    "websiteUrl": "https://agenc.tech",
+    "brandColor": "#06b6d4",
+    "logo": "./assets/logo.png",
+    "defaultPrompt": [
+      "Explicame el problema más famoso de la IMO",
+      "Práctica de teoría de números",
+      "Dame un hint para el que estoy viendo",
+      "Qué problemas usan Vieta jumping"
+    ],
+    "screenshots": []
+  }
+}
