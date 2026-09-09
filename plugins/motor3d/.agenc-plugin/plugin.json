@@ -1,0 +1,68 @@
+{
+  "name": "motor3d",
+  "version": "0.2.1",
+  "description": "Browser 3D and game development with verified scaffolds and a deterministic verifier: correct modern three.js/canvas2d/WebGPU patterns retrieved instead of recalled, an API-era table that kills the classic hallucinations (THREE.Geometry, outputEncoding, core OrbitControls), performance heuristics (per-frame allocations, missing resize/dispose/DPR), and a self-checking HTML harness with error overlay and FPS counter. Built for small local models.",
+  "author": {
+    "name": "tetsuo-ai"
+  },
+  "homepage": "https://agenc.tech",
+  "repository": "https://github.com/tetsuo-ai/agenc-plugins",
+  "license": "MIT",
+  "keywords": [
+    "threejs",
+    "webgl",
+    "webgpu",
+    "canvas",
+    "games",
+    "3d",
+    "browser",
+    "local-models",
+    "offline"
+  ],
+  "mcpServers": {
+    "motor3d": {
+      "command": "node",
+      "args": ["./server/main.mjs"],
+      "transport": "stdio",
+      "env_vars": ["PATH"]
+    }
+  },
+  "commands": {
+    "motor3d": {
+      "source": "./commands/motor3d.md",
+      "description": "Browser 3D and games with verified scaffolds, API-era lint and a self-checking harness",
+      "argumentHint": "<pedido 3d o juego>",
+      "allowedTools": ["Bash", "Read"]
+    }
+  },
+  "skills": [
+    "./skills/motor3d"
+  ],
+  "interface": {
+    "displayName": "Motor3D",
+    "shortDescription": "3D in the browser your small model can actually ship.",
+    "longDescription": "Small models write bad three.js for recall reasons, not comprehension: they hallucinate removed APIs, allocate inside the render loop, forget resize/dispose/DPR. Motor3D moves the truth out of the model. Seven verified scaffolds (modern scene with dispose, orbital controls with inertia and touch, InstancedMesh for thousands of objects, correct raycast picking, GLTF loading with progress and errors, production canvas2d game loop with fixed timestep and interpolation, WebGPU init) are retrieved, never rewritten from memory. A deterministic verifier runs an API-era table (THREE.Geometry removed r125, outputEncoding→outputColorSpace r152, useLegacyLights removed r165, OrbitControls/GLTFLoader are addons — each with the modern fix) plus performance heuristics: per-frame allocations, missing resize/dispose/pixel-ratio, DPR-blind canvas2d, unclamped deltas, cached WebGPU per-frame textures, touch-action, audio gesture, instancing advice. And harness_build wraps any snippet in a self-checking HTML: red error overlay and FPS counter, so failures are visible instead of a black canvas. Fully offline, zero dependencies, identical on local models.",
+    "developerName": "tetsuo-ai",
+    "category": "developer-tools",
+    "capabilities": [
+      "verified-scaffolds",
+      "api-era-linting",
+      "performance-heuristics",
+      "self-checking-harness",
+      "threejs",
+      "canvas2d",
+      "webgpu",
+      "offline"
+    ],
+    "websiteUrl": "https://agenc.tech",
+    "brandColor": "#14b8a6",
+    "logo": "./assets/logo.png",
+    "defaultPrompt": [
+      "Haceme una escena 3D con three.js",
+      "Un juego de canvas con física estable",
+      "Mi escena three va lenta",
+      "Arrancar con WebGPU"
+    ],
+    "screenshots": []
+  }
+}

@@ -17,7 +17,7 @@ import {
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const MARKETPLACE_PATH = join(ROOT, ".agenc-plugin", "marketplace.json");
-const EXPECTED_PLUGINS = ["zeroday-hunter", "iot-builder", "ledger", "llm-checker", "stonks-copilot"];
+const EXPECTED_PLUGINS = ["zeroday-hunter", "iot-builder", "ledger", "llm-checker", "stonks-copilot", "motor3d"];
 const EXPECTED_PLUGIN_VERSION = "0.2.1";
 const EXPECTED_LOGO_PATH = "./assets/logo.png";
 const LOGO_PAYLOAD_PATH = "assets/logo.png";
@@ -282,6 +282,24 @@ assert.ok(
   stonksAnalyzerSkill.includes("chart_price"),
   "Stonks Copilot analyzer skill is missing chart_price",
 );
+
+const motor3dManifest = readJson(
+  join(ROOT, "plugins", "motor3d", ".agenc-plugin", "plugin.json"),
+);
+assert.ok(
+  motor3dManifest.mcpServers?.motor3d?.command === "node",
+  "Motor3D must declare its stdio MCP server",
+);
+const motor3dSkill = readFileSync(
+  join(ROOT, "plugins", "motor3d", "skills", "motor3d", "SKILL.md"),
+  "utf8",
+);
+for (const required of ["scaffold_get", "lint3d", "harness_build", "system.searchTools"]) {
+  assert.ok(motor3dSkill.includes(required), `Motor3D skill is missing ${required}`);
+}
+const motor3dScaffolds = readdirSync(join(ROOT, "plugins", "motor3d", "scaffolds"))
+  .filter((f) => f.endsWith(".js"));
+assert.ok(motor3dScaffolds.length >= 7, "Motor3D must ship its seven verified scaffolds");
 
 const hostedAlias = readFileSync(join(ROOT, "public", "marketplace.json"), "utf8");
 const hostedCanonical = readFileSync(

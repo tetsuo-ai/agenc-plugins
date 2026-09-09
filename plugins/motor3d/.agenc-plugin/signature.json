@@ -1,0 +1,19 @@
+{
+  "publisher": "tetsuo-ai",
+  "signature": "lIfgsUnpqd/DtSu7uH1dfbFL20UFfWm042J2Igot0G2j6gLa6a3iIngHdoNqNOV/WNsmOG8DI4lDT/5KJUKtDA==",
+  "files": {
+    "assets/logo.png": "sha256:0aa27792e4c19c2ba56df4e72f29b08f2532e6fb6cf05e254364e36caf0867a4",
+    "commands/motor3d.md": "sha256:b76ace050faac5c9a442cd10d90bcaf0bb706e62e26e38720c6d25802c27b5b3",
+    "README.md": "sha256:4624cce2d242b2ea6a38947e00c3654ecbc90ef8dcf0bbd34d756157fb018835",
+    "scaffolds/canvas2d-game-loop.js": "sha256:b28e7c34bc95020b9f72ca1078875df2a24d1a6c43b457f21dfa047506467f7c",
+    "scaffolds/three-asset-loading.js": "sha256:a092c824d6242df1d220f64123db13b4210fe7bdeeea5da80812ed6f751993c2",
+    "scaffolds/three-basic-scene.js": "sha256:04ada44b9d2a17f5aed3cd1ac7d0760c4f93fc3c7ce340d336b1d56f4de6ddec",
+    "scaffolds/three-instancing.js": "sha256:a510c34dcf418f1f001d2a09ae02035073ed8284e140d0fd09db2a73b76ae06d",
+    "scaffolds/three-orbit-controls.js": "sha256:679779468142a1b6b5650cc3c3d240da047b2e2f61cc57f94a534d3cee1f12f2",
+    "scaffolds/three-raycast-picking.js": "sha256:b76f9ed257ce389893648a2ab2ba58da80964c3bf376a0b9a146838731d5645d",
+    "scaffolds/webgpu-init.js": "sha256:eb1983ee3c29938320631ef3b953f72ce4de8abca39f4add9551060a33689c27",
+    "server/lint3d.mjs": "sha256:aabb6eff4a09e05be29dd1aa745631fd4e5505cab7750ee9fc46b01a84b22c0c",
+    "server/main.mjs": "sha256:e370b7f911a47b3ef8c0ffbd500dcd4d0695c46c679972e4147d11c1a3276b33",
+    "skills/motor3d/SKILL.md": "sha256:e74b31ec37088954c6b4f2d238f44018c24026b7c113588f574adab62e7e624e"
+  }
+}
