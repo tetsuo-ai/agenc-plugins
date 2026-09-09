@@ -1,6 +1,6 @@
 # AgenC Plugins
 
-The first-party plugin marketplace for AgenC. It contains five packages:
+The first-party plugin marketplace for AgenC. It contains six packages:
 
 - **Zero Day Hunter** — a security-research campaign skill.
 - **IoT Builder** — a guarded PlatformIO build/upload workflow.
@@ -9,6 +9,10 @@ The first-party plugin marketplace for AgenC. It contains five packages:
 - **Stonks Copilot** — agent-native investing copilot: 50/50 stock analysis,
   portfolio X-Ray with real N-PORT fund overlap, SVG charts, and a decision
   journal that flags when your stated thesis breaks.
+- **Forja** — code writing styles with a deterministic verifier: clean,
+  defensive, functional and solid disciplines plus the minimal-diff surgery
+  protocol, checked by a structural code linter (including measured
+  consistency with the file being edited).
 
 ## Plugin, skill, and MCP
 

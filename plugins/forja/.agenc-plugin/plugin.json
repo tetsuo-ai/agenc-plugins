@@ -1,0 +1,72 @@
+{
+  "name": "forja",
+  "version": "0.2.1",
+  "description": "Code writing styles with a deterministic verifier: writing disciplines (clean, defensive, functional, solid) and the minimal-diff surgery protocol for editing existing code as AgenC output styles — plus a structural code linter that verifies every draft (function bands, nesting, naming, duplicates, consistency with the host file) before delivery. The model writes; the linter judges.",
+  "author": {
+    "name": "tetsuo-ai"
+  },
+  "homepage": "https://agenc.tech",
+  "repository": "https://github.com/tetsuo-ai/agenc-plugins",
+  "license": "MIT",
+  "keywords": [
+    "code-quality",
+    "clean-code",
+    "writing-styles",
+    "design-disciplines",
+    "minimal-diff",
+    "code-linting",
+    "output-styles",
+    "offline"
+  ],
+  "mcpServers": {
+    "forja-lint": {
+      "command": "node",
+      "args": ["./server/main.mjs"],
+      "transport": "stdio",
+      "env_vars": ["PATH"]
+    }
+  },
+  "commands": {
+    "codigo": {
+      "source": "./commands/codigo.md",
+      "description": "Write code with a chosen discipline, verified by a deterministic structural linter",
+      "argumentHint": "<limpio|defensivo|funcional|solid|minimal-diff> <pedido o archivo>",
+      "allowedTools": ["Bash", "Read"]
+    }
+  },
+  "skills": [
+    "./skills/calidad"
+  ],
+  "outputStyles": [
+    "./outputStyles/limpio.md",
+    "./outputStyles/defensivo.md",
+    "./outputStyles/funcional.md",
+    "./outputStyles/solid.md",
+    "./outputStyles/minimal-diff.md"
+  ],
+  "interface": {
+    "displayName": "Forja",
+    "shortDescription": "Code disciplines — and a linter that proves them.",
+    "longDescription": "A code-writing-styles library and its verifier. Five disciplines ship as AgenC output styles: limpio (small single-purpose functions, early returns, intention-revealing names), defensivo (guard clauses at boundaries, fail-fast, no swallowed errors), funcional (pure functions, const discipline, transforms over mutation), solid (one responsibility per class, injected dependencies, composition over inheritance) — and minimal-diff, the surgery protocol for editing existing code: the smallest coherent change, matching the host file's own conventions. The differentiator is the deterministic structural verifier: every draft (JS/TS and Python, heuristics stated as heuristics) is checked for function-length bands, nesting depth, parameter counts, duplicate blocks, naming consistency, debug leftovers, dead imports, style-specific discipline — and, for edits, measurable consistency with the original file (indentation style and width, quote style, naming convention, semicolons). Violations carry concrete fixes; drafts must clear 85/100. Fully offline, zero dependencies, identical on local models.",
+    "developerName": "tetsuo-ai",
+    "category": "developer-tools",
+    "capabilities": [
+      "code-style-library",
+      "output-styles",
+      "deterministic-code-linting",
+      "minimal-diff-consistency",
+      "structural-heuristics",
+      "offline"
+    ],
+    "websiteUrl": "https://agenc.tech",
+    "brandColor": "#f97316",
+    "logo": "./assets/logo.png",
+    "defaultPrompt": [
+      "Escribí esta función limpia",
+      "Editá este archivo con cambio mínimo",
+      "Hacé este parser defensivo",
+      "Revisá si este código es limpio"
+    ],
+    "screenshots": []
+  }
+}

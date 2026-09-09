@@ -1,0 +1,17 @@
+{
+  "publisher": "tetsuo-ai",
+  "signature": "JKgxwDJ4st96SZ/XxCGPjdoFyYrTmNWVLMUDEswlkEQ8Nb80kXJxiTC5R/jYpUoQhdeOAwpHDySRjmVq78CpAw==",
+  "files": {
+    "assets/logo.png": "sha256:aa534bf065170a88fe45daa17f0a9e5683f2c4caed3160f10b280f7ab8a407ca",
+    "commands/codigo.md": "sha256:afa3e8c2de918ab1b6b4ac15c013af33168a740f6c85e5186cf6dfa7087236a1",
+    "outputStyles/defensivo.md": "sha256:03808d7d1b58f89698e37b17a279e34fa3bcd2784744f6c9190b2058a50d2922",
+    "outputStyles/funcional.md": "sha256:ecf258c3ece2232927e07bde85f2a0d472feb50734174d1f994f563059aa0e08",
+    "outputStyles/limpio.md": "sha256:5234f3b333cd479a8969001fc52fd4dd3376766836646230fa83a39319e23c69",
+    "outputStyles/minimal-diff.md": "sha256:808dceae9d1f45b7396732e9f7cbf155acb0064ceb3a973c0edc8f2b2303b815",
+    "outputStyles/solid.md": "sha256:2563dae34379257b787f1aa359d2debfd478220190d33b4c36d7b37c6f63fc53",
+    "README.md": "sha256:cdae8366a46b015098574f58a0cb387cd25a9266d4b186c18dbbdba51523a89e",
+    "server/main.mjs": "sha256:1dcea5dca4b533aa8bc13bddbe27d88070e1144884aea5f75759f4a692f33d6b",
+    "server/verify.mjs": "sha256:ad3a6decbd2a396636233cc72521d8ae6c5c19d0f941c00fd9d490085aef8ae0",
+    "skills/calidad/SKILL.md": "sha256:f740cb068d4b948ae8bda4cabedd58df8c38d3fba06f2984ffb792a7261914e6"
+  }
+}

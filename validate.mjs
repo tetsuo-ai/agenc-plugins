@@ -17,7 +17,7 @@ import {
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const MARKETPLACE_PATH = join(ROOT, ".agenc-plugin", "marketplace.json");
-const EXPECTED_PLUGINS = ["zeroday-hunter", "iot-builder", "ledger", "llm-checker", "stonks-copilot"];
+const EXPECTED_PLUGINS = ["zeroday-hunter", "iot-builder", "ledger", "llm-checker", "stonks-copilot", "forja"];
 const EXPECTED_PLUGIN_VERSION = "0.2.1";
 const EXPECTED_LOGO_PATH = "./assets/logo.png";
 const LOGO_PAYLOAD_PATH = "assets/logo.png";
@@ -282,6 +282,26 @@ assert.ok(
   stonksAnalyzerSkill.includes("chart_price"),
   "Stonks Copilot analyzer skill is missing chart_price",
 );
+
+const forjaManifest = readJson(
+  join(ROOT, "plugins", "forja", ".agenc-plugin", "plugin.json"),
+);
+assert.ok(
+  forjaManifest.mcpServers?.["forja-lint"]?.command === "node",
+  "Forja must declare its stdio forja-lint MCP server",
+);
+assert.equal(
+  forjaManifest.outputStyles?.length,
+  5,
+  "Forja must ship its five code output styles",
+);
+const forjaSkill = readFileSync(
+  join(ROOT, "plugins", "forja", "skills", "calidad", "SKILL.md"),
+  "utf8",
+);
+for (const required of ["code_lint", "code_styles_list", "minimal-diff", "system.searchTools"]) {
+  assert.ok(forjaSkill.includes(required), `Forja skill is missing ${required}`);
+}
 
 const hostedAlias = readFileSync(join(ROOT, "public", "marketplace.json"), "utf8");
 const hostedCanonical = readFileSync(
