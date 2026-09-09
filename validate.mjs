@@ -290,8 +290,14 @@ assert.ok(
   olimpoManifest.mcpServers?.["olimpo-corpus"]?.command === "node",
   "Olimpo must declare its stdio olimpo-corpus MCP server",
 );
-const olimpoCorpus = readJson(join(ROOT, "plugins", "olimpo", "corpus", "problems-1.json"));
-assert.ok(olimpoCorpus.length >= 12, "Olimpo must ship at least 12 curated problems");
+const olimpoCurated = readJson(join(ROOT, "plugins", "olimpo", "corpus", "problems-1.json"));
+assert.ok(olimpoCurated.length >= 12, "Olimpo must ship at least 12 curated problems");
+const olimpoSourced = readJson(join(ROOT, "plugins", "olimpo", "corpus", "problems-sourced.json"));
+assert.ok(olimpoSourced.length >= 250, "Olimpo must ship the bulk compendium corpus (250+)");
+assert.ok(
+  olimpoSourced.every((problem) => typeof problem.sourceNote === "string" && problem.sourceNote.length > 20),
+  "Sourced problems must carry an honest extraction note",
+);
 assert.ok(
   olimpoCorpus.every((problem) => typeof problem.statement === "string" && problem.statement.length >= 20),
   "Olimpo problems must carry real statements",

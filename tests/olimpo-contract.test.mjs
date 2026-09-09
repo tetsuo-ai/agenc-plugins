@@ -30,7 +30,9 @@ const CORPUS_DIR = join(ROOT, "corpus");
 
 test("corpus: ships well-formed classics with full structure", () => {
   const problems = loadCorpus(CORPUS_DIR);
-  assert.ok(problems.length >= 12, `at least 12 classics (${problems.length})`);
+  assert.ok(problems.length >= 270, `full compendium corpus (${problems.length})`);
+  const sourced = problems.filter((p) => p.tags.includes("compendium"));
+  assert.ok(sourced.length >= 250, `sourced bulk present (${sourced.length})`);
   const byId = Object.fromEntries(problems.map((p) => [p.id, p]));
   assert.ok(byId["1988-6"] !== undefined, "the legendary 1988-6 ships");
   assert.equal(byId["1988-6"].difficulty, "legendary");
@@ -114,12 +116,12 @@ test("ingest + progress: validated growth and local ledger", () => {
   const dir = mkdtempSync(join(tmpdir(), "olimpo-store-"));
   const ingest = makeIngestStore(dir);
   const result = ingest.ingest([
-    { id: "2001-1", statement: "Problema ingerido de prueba con enunciado largo.", solution: "sol", hints: ["h"] },
+    { id: "2050-1", statement: "Problema ingerido de prueba con enunciado largo.", solution: "sol", hints: ["h"] },
     { id: "bad", statement: "demasiado corto" },
   ]);
-  assert.deepEqual(result.added, ["2001-1"]);
+  assert.deepEqual(result.added, ["2050-1"]);
   assert.equal(result.rejected.length, 1);
-  const dup = ingest.ingest([{ id: "2001-1", statement: "Otro enunciado largo de prueba para validar." }]);
+  const dup = ingest.ingest([{ id: "2050-1", statement: "Otro enunciado largo de prueba para validar." }]);
   assert.equal(dup.rejected[0].reason, "duplicate");
 
   const progress = makeProgressStore(dir);
@@ -208,10 +210,10 @@ test("mcp server: corpus + disclosure + checks — as a real child process", asy
     assert.equal(ledger.entries.length, 1);
 
     const ingested = await tool("ingest", {
-      items: [{ id: "2001-1", statement: "Problema ingerido por el contrato con enunciado largo.", solution: "s" }],
+      items: [{ id: "2050-1", statement: "Problema ingerido por el contrato con enunciado largo.", solution: "s" }],
     });
-    assert.deepEqual(ingested.added, ["2001-1"]);
-    const found = await tool("problem_get", { id: "2001-1" });
+    assert.deepEqual(ingested.added, ["2050-1"]);
+    const found = await tool("problem_get", { id: "2050-1" });
     assert.ok(found.statement.includes("contrato"));
 
     const unknown = await tool("problem_get", { id: "9999-9" });
