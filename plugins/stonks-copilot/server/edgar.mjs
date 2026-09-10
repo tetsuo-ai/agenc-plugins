@@ -1,6 +1,6 @@
 /**
  * SEC EDGAR client: ticker→CIK resolution, XBRL company facts for
- * fundamentals, and N-PORT fund holdings — all public, keyless endpoints
+ * fundamentals, and N-PORT fund holdings - all public, keyless endpoints
  * behind the shared TTL cache. SEC asks for a descriptive User-Agent;
  * keep the default honest rather than spoofing a browser.
  */

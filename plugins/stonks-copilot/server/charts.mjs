@@ -1,7 +1,7 @@
 /**
  * Zero-dependency chart rendering: standalone SVG artifacts (price chart
  * with moving averages, portfolio treemap) plus inline unicode sparklines
- * for terminal output. Pure functions — no I/O.
+ * for terminal output. Pure functions - no I/O.
  */
 
 const SPARK_CHARS = ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"];

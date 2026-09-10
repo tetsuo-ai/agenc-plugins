@@ -1,6 +1,6 @@
 {
   "publisher": "tetsuo-ai",
-  "signature": "16t2fmOaWILwJG7FbpscgYd5pWXSndwnh8e5vbWzu4U00A6yz3l2LjdmzLwpa+22cPaQQTeueHww4W67hEIJBQ==",
+  "signature": "7VbuxrudvjW48KcwI3nZC4WYVSz4d8UMtM4yLcwmQl3CWAZ+jLMBtgRIOA4LOrF9aTVx6UEXFBggVvfe/jmvDg==",
   "files": {
     "assets/logo.png": "sha256:de1f4ce07b8ac5c8b019ae1db719cabd42d54ba42ae488cf535e178e944163b3",
     "commands/pick-model.md": "sha256:fd9adbdfd10ea3f02cd4e2621113357d54c3be02eb09afc55e82b6e289080db6",

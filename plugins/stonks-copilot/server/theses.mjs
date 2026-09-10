@@ -2,8 +2,8 @@
  * Investment decision journal. A thesis records why a position was taken
  * plus quantified predicates ("cited metrics") extracted from the user's
  * own words. Surveillance re-evaluates those predicates against current
- * data: a thesis-break is when the reason you gave no longer holds —
- * independent of what the price is doing. Pure — persistence lives in
+ * data: a thesis-break is when the reason you gave no longer holds -
+ * independent of what the price is doing. Pure - persistence lives in
  * stores.mjs.
  */
 
@@ -92,7 +92,7 @@ export function evaluateThesis(thesis, current) {
       expectation: formatPredicate(predicate),
       actual,
       detail: holds
-        ? `${predicate.metric} is ${actual} — expectation ${formatPredicate(predicate)} still holds`
+        ? `${predicate.metric} is ${actual} - expectation ${formatPredicate(predicate)} still holds`
         : `${predicate.metric} is ${actual}, expectation ${formatPredicate(predicate)} no longer holds`,
     };
   });

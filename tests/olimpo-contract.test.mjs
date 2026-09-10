@@ -3,9 +3,31 @@ import assert from "node:assert/strict";
 import { mkdtempSync, rmSync, writeFileSync, readFileSync, symlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { loadCorpus, normalizeProblem, problemAtLevel, searchProblems, studyPlan, checkAnswer, makeIngestStore, makeProgressStore } from "../plugins/olimpo/server/corpus.mjs";
+import { LEGACY_TAG_ALIASES, loadCorpus, normalizeProblem, problemAtLevel, searchProblems, studyPlan, checkAnswer, makeIngestStore, makeProgressStore } from "../plugins/olimpo/server/corpus.mjs";
 import { withMcp } from "./support/mcp.mjs";
 const corpus=loadCorpus(new URL("../plugins/olimpo/corpus/",import.meta.url).pathname);
+test("Olympus: English tags preserve legacy search inputs", () => {
+  for (const [legacy, english] of Object.entries(LEGACY_TAG_ALIASES)) {
+    const current = searchProblems(corpus, { query: english });
+    assert.ok(current.length > 0, english);
+    assert.deepEqual(searchProblems(corpus, { query: legacy }), current, legacy);
+    assert.ok(corpus.every(problem => !problem.tags.includes(legacy)), legacy);
+  }
+  const imported = normalizeProblem({ id: "user-legacy-tag", statement: "A sufficiently long private exercise.", tags: ["factorizacion"] });
+  assert.equal(searchProblems([imported], { query: "factorizacion" }).length, 1);
+});
+test("Olympus: all sixteen exercises expose English authored text", () => {
+  for (const problem of corpus) {
+    assert.equal(problem.provenance.kind, "original");
+    assert.equal(problem.provenance.check, problem.id);
+    for (const text of [problem.title, problem.statement, problem.keyIdea, ...problem.hints, problem.solution, problem.sourceNote]) {
+      assert.equal(typeof text, "string", problem.id);
+      assert.doesNotMatch(text, /[¿¡]|\b(?:Sea|Sean|Supongamos|Demuestra|Calcula|Ejercicio|explicación|revisión)\b/u, problem.id);
+      assert.ok(!text.includes(String.fromCodePoint(0x2014)), problem.id);
+    }
+  }
+  assert.equal(normalizeProblem({ id: "user-untitled", statement: "A sufficiently long private exercise." }).title, "Exercise user-untitled");
+});
 test("olimpo: original IDs and unreviewed user provenance",()=>{
   assert.equal(corpus.length,16);
   const original=corpus.find(p=>p.id==="olimpo-nt-004");
@@ -48,7 +70,7 @@ test("olimpo: unsafe stores fail closed and original exercises cannot be overwri
 test("olimpo: all nine MCP tools work through real stdio",async()=>{
   await withMcp("olimpo",async({call,tool,child})=>{
     const init=await call("initialize",{protocolVersion:"2025-06-18"});
-    assert.equal(init.result.serverInfo.version,"0.2.2");
+    assert.equal(init.result.serverInfo.version,"0.2.3");
     assert.equal((await call("tools/list")).result.tools.length,9);
     assert.equal((await tool("problems_list",{limit:100})).count,16);
     assert.ok((await tool("problem_search",{query:"vieta"})).problems.some(p=>p.id==="olimpo-nt-004"));

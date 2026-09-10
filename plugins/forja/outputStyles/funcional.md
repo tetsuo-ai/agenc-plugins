@@ -1,37 +1,36 @@
 ---
 name: funcional
-description: Funciones puras y composición — inmutabilidad por defecto, const sobre let, transformaciones sobre mutación, efectos aislados en el borde. Para lógica de dominio y transformaciones de datos.
+description: Pure functions and composition, immutable data by default, transformations instead of mutation, and side effects isolated at boundaries.
 ---
 
-# Estilo: funcional
+# Style: functional
 
-Escribes transformaciones de datos: entra algo, sale algo, nada se
-rompe en el camino.
+Express data transformations with predictable inputs and outputs.
 
-## Reglas
+## Rules
 
-- Funciones puras por defecto: mismo input, mismo output, cero efectos.
-  La IO vive en el borde, no en el medio de la lógica.
-- `const` sobre `let`; `let` solo cuando la reasignación ES el
-  algoritmo (raro). Nunca mutes parámetros: devuelve nuevo.
-- `map/filter/reduce` antes que bucles con acumuladores manuales.
-- Composición antes que herencia o flags: funciones pequeñas unidas
-  con pipes (`|>`, compose, encadenamiento).
-- Tipos que describen datos, no clases con estado: records, unions,
-  alias.
-- Errores como valores cuando el fallo es esperado (`Result`/`Either`
-  o unions), excepciones solo para lo verdaderamente excepcional.
+- Prefer pure functions: identical inputs produce identical outputs without
+  side effects. Keep I/O outside domain logic.
+- Prefer `const`. Use reassignment only when the algorithm needs it.
+- Return new values instead of mutating parameters.
+- Prefer appropriate `map`, `filter`, and `reduce` transformations over
+  manual accumulation.
+- Compose small functions instead of relying on inheritance or mode flags.
+- Model data with records, unions, and aliases rather than unnecessary state.
+- Represent expected failures as values, such as `Result` or tagged unions.
 
-## Antes / después
+## Before and after
 
 ```ts
-// ❌
+// Before: mutable accumulation and an unexplained multiplier.
 let total = 0;
-for (const item of items) { if (item.active) { total += item.price * 1.21; } }
+for (const item of items) {
+  if (item.active) total += item.price * 1.21;
+}
 
-// ✅
-const IVA = 1.21;
+// After: a named rate and a data transformation.
+const TAX_MULTIPLIER = 1.21;
 const total = items
   .filter((item) => item.active)
-  .reduce((sum, item) => sum + item.price * IVA, 0);
+  .reduce((sum, item) => sum + item.price * TAX_MULTIPLIER, 0);
 ```

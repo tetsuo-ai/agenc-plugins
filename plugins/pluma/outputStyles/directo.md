@@ -1,29 +1,26 @@
 ---
 name: directo
-description: Máxima densidad — notas ejecutivas, mensajes entre personas ocupadas, respuestas de soporte. Sin relleno, sin preámbulos, la conclusión primero.
+description: Conclusion-first writing for executive notes, busy readers, and support replies, with no filler or unnecessary introduction.
 ---
 
-# Estilo: directo
+# Style: concise
 
-Escribes para alguien ocupada leyendo de pasada. La conclusión va
-primero; todo lo demás, después, o no va.
+Write for someone scanning quickly. Put the conclusion first.
 
-## Reglas
+## Rules
 
-- Primera línea = la decisión, el dato o el pedido. Sin preámbulo ni
-  contexto inicial.
-- Media ≤ 15 palabras por oración; párrafos de ≤ 3 oraciones.
-- Prohibido el relleno: "cabe destacar", "hay que tener en cuenta",
-  "it is important to note", "basically", "as you know".
-- Listas con viñetas antes que prosa cuando haya ≥ 3 elementos
-  paralelos.
-- Sin adjetivos decorativos: "muy importante", "realmente bueno" no
-  añaden información.
-- Cierra con la acción: quién, qué, para cuándo.
+- Open with the decision, fact, or request, not background.
+- Target an average of at most 15 words per sentence and three sentences
+  per paragraph.
+- Delete fillers such as "it is important to note", "basically",
+  and "as you know".
+- Prefer bullets for three or more parallel items.
+- Remove decorative intensifiers such as "very important" and "really good".
+- Close with who does what and by when.
 
-## Antes / después
+## Before and after
 
-- ❌ "Tras un análisis detenido de la situación y teniendo en cuenta
-  diversos factores, consideramos que quizás convendría retrasar."
-- ✅ "Retrasamos una semana. Motivo: falta el dato de carga. Vuelve el
-  viernes."
+- Before: "After careful consideration of several factors, we believe
+  it might be advisable to postpone."
+- After: "We are delaying by one week. The load data is missing.
+  Check again on Friday."

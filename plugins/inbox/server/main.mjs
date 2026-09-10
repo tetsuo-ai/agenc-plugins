@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * inbox MCP server — the Gmail copilot.
+ * inbox MCP server - the Gmail copilot.
  *
  * Zero-dependency stdio MCP server (JSON-RPC 2.0, newline-delimited).
  * Read-only against Gmail: OAuth2
@@ -31,7 +31,7 @@ import { makeVault } from "./vault.mjs";
 import { documentRows, eventRows } from "./bridge.mjs";
 
 const PROTOCOL_VERSION = "2025-06-18";
-const SERVER_INFO = { name: "inbox", version: "0.2.2" };
+const SERVER_INFO = { name: "inbox", version: "0.2.3" };
 
 const dataDir = resolveDataDir();
 mkdirSync(dataDir, { recursive: true, mode: 0o700 });
@@ -198,7 +198,7 @@ const tools = [
   },
   {
     name: "digest",
-    description: "The daily sweep: unread inbox messages ranked by RELATIONSHIP (local trust graph) and deterministic action signals — dates, questions, keywords es/en, attachments. Bulk senders suppressed unless security/transactional. Returns why each row surfaced.",
+    description: "The daily sweep: unread inbox messages ranked by RELATIONSHIP (local trust graph) and deterministic action signals - dates, questions, keywords es/en, attachments. Bulk senders suppressed unless security/transactional. Returns why each row surfaced.",
     inputSchema: {
       type: "object",
       properties: {
@@ -281,7 +281,7 @@ const tools = [
   },
   {
     name: "loops_scan",
-    description: "The social commitments layer over recent mail: (1) waiting-on — threads where you asked last and got silence, with aging; (2) reply debt — known humans awaiting your answer; (3) commitment candidates — your outbound promises paired with dates, as evidence for the user to confirm.",
+    description: "The social commitments layer over recent mail: (1) waiting-on - threads where you asked last and got silence, with aging; (2) reply debt - known humans awaiting your answer; (3) commitment candidates - your outbound promises paired with dates, as evidence for the user to confirm.",
     inputSchema: {
       type: "object",
       properties: { days: { type: "number", description: "Default 21" } },
@@ -317,7 +317,7 @@ const tools = [
   },
   {
     name: "graph_stats",
-    description: "Your local sender-trust graph: tier counts, top contacts by exchange volume. Built from your own history — computed locally; tool results are shared with the host chat model.",
+    description: "Your local sender-trust graph: tier counts, top contacts by exchange volume. Built from your own history - computed locally; tool results are shared with the host chat model.",
     inputSchema: {
       type: "object",
       properties: { days: { type: "number", description: "Default 60" } },
@@ -334,7 +334,7 @@ const tools = [
   },
   {
     name: "cleanup_scan",
-    description: "Newsletter/notification archaeology: per-sender volume with List-Unsubscribe evidence, ranked into a kill-list. The plugin never unsubscribes itself — it reports with evidence.",
+    description: "Newsletter/notification archaeology: per-sender volume with List-Unsubscribe evidence, ranked into a kill-list. The plugin never unsubscribes itself - it reports with evidence.",
     inputSchema: {
       type: "object",
       properties: {
@@ -375,7 +375,7 @@ const tools = [
   },
   {
     name: "vault_fetch",
-    description: "Download one attachment into the local vault (content-hashed, indexed by sender/date/name). Explicit only — nothing downloads behind your back.",
+    description: "Download one attachment into the local vault (content-hashed, indexed by sender/date/name). Explicit only - nothing downloads behind your back.",
     inputSchema: {
       type: "object",
       properties: {
@@ -411,7 +411,7 @@ const tools = [
   },
   {
     name: "vault_search",
-    description: "Search the local attachment vault: name/from terms, sender filter, date floor. 'The PDF María sent in March' is one call.",
+    description: "Search the local attachment vault: name/from terms, sender filter, date floor. 'The PDF Alex sent in March' is one call.",
     inputSchema: {
       type: "object",
       properties: {

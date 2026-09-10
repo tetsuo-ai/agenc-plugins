@@ -1,7 +1,7 @@
 /**
  * Local sender-trust graph and the deterministic digest. The graph scores
  * by RELATIONSHIP, not content: bidirectional exchange volume, replies in
- * both directions, recency — plus bulk/notification detection from
+ * both directions, recency - plus bulk/notification detection from
  * List-Unsubscribe and sender-local patterns. No cloud ML, no feature
  * phone-home: your mailbox statistics stay in the plugin data directory.
  * Pure functions over analyzed-message records.

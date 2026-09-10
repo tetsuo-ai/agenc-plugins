@@ -2,7 +2,7 @@
 id: F-000
 status: CONFIRMED        # CONFIRMED | HYPOTHESIS
 bug_class: ""
-primitive_rung: 0        # 0-7, see exploit-primitives.md — the rung actually demonstrated
+primitive_rung: 0        # 0-7, see exploit-primitives.md - the rung actually demonstrated
 campaign: ""
 baseline_commit: ""
 ---
@@ -16,7 +16,7 @@ baseline_commit: ""
 `file:line` → `file:line`, with the essential path.
 
 ## Attacker control
-Per walkthrough step — what the attacker controls and how each branch is satisfied.
+Per walkthrough step - what the attacker controls and how each branch is satisfied.
 
 ## Evidence
 - Verifier: `<exact command>` → exit 0, signal `<deterministic signal>`

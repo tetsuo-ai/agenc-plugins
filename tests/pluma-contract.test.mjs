@@ -1,5 +1,5 @@
 /**
- * Pluma contract tests: the deterministic prose linter against Spanish
+ * Quill contract tests: the deterministic prose linter against Spanish
  * and English fixtures per style, plus the MCP server as a real child
  * process (catalog, lint round-trips, error semantics). Fully offline.
  */
@@ -37,7 +37,7 @@ test("lint: formal register catches exclamation, emoji, slang and fillers", () =
   assert.ok(good.pass, `good formal should pass (got ${good.score}: ${JSON.stringify(good.violations)})`);
 });
 
-test("lint: directo enforces sentence economy and kills fillers", () => {
+test("lint: concise enforces sentence economy and kills fillers", () => {
   const verbose = "Básicamente, cabe destacar que, tras un análisis muy detallado y teniendo en cuenta diversos factores de naturaleza operativa, consideramos que la migración se podría retrasar.";
   const result = lintText(verbose, "directo");
   const found = rules(result);
@@ -50,7 +50,7 @@ test("lint: directo enforces sentence economy and kills fillers", () => {
   assert.equal(ok.violations.filter((v) => v.severity === "error").length, 0, JSON.stringify(ok.violations));
 });
 
-test("lint: persuasivo demands a CTA and punishes hedges; tecnico punishes opinion and vague quantity", () => {
+test("lint: persuasive demands a CTA and punishes hedges; technical punishes opinion and vague quantity", () => {
   const noCta = lintText("Nuestra plataforma automatiza recordatorios de pago. Reduce la morosidad.", "persuasivo");
   assert.ok(rules(noCta).includes("cta-missing"));
 
@@ -69,7 +69,7 @@ test("lint: persuasivo demands a CTA and punishes hedges; tecnico punishes opini
   assert.equal(techOk.violations.filter((v) => v.severity === "error").length, 0, JSON.stringify(techOk.violations));
 });
 
-test("lint: carta-formal enforces protocol structure and length band", () => {
+test("lint: formal-letter enforces protocol structure and length band", () => {
   const bad = lintText("Les escribo porque quiero cancelar el seguro. Gracias.", "carta-formal");
   const found = rules(bad);
   assert.ok(found.includes("salutation-missing"));
@@ -78,23 +78,23 @@ test("lint: carta-formal enforces protocol structure and length band", () => {
 
   const letter = [
     "Madrid, 7 de septiembre de 2026",
-    "Departamento de Atención al Cliente — Seguros Ejemplo, S.A.",
+    "Departamento de Atención al Cliente ; Seguros Ejemplo, S.A.",
     "Asunto: solicitud de no renovación de póliza 123-456",
     "Estimados señores:",
     "Les escribo para comunicar mi decisión de no renovar la póliza 123-456 a su vencimiento del 30 de noviembre de 2026.",
     "Solicito la confirmación escrita de esta baja y del cese de cargos asociados, conforme a las condiciones contratadas.",
     "Atentamente,",
-    "Paula García — titular",
+    "Paula García ; titular",
   ].join("\n\n");
   const good = lintText(letter, "carta-formal");
   assert.equal(good.violations.filter((v) => v.severity === "error").length, 0, JSON.stringify(good.violations));
   assert.ok(good.score >= 60, `score ${good.score}`);
 });
 
-test("lint: propuesta requires the six sections, numbers and next steps", () => {
+test("lint: proposal requires the six sections, numbers and next steps", () => {
   const bad = lintText("Os proponemos modernizar vuestro proceso de facturación con automatizaciones.", "propuesta");
   const found = rules(bad);
-  for (const section of ["contexto", "objetivo", "alcance", "inversión", "plazos"]) {
+  for (const section of ["context", "objective", "scope", "investment", "timeline"]) {
     assert.ok(found.includes(`missing-section:${section}`), `${section} missing (${found})`);
   }
   assert.ok(found.includes("no-numbers"));
@@ -119,7 +119,7 @@ test("lint: propuesta requires the six sections, numbers and next steps", () => 
   assert.ok(good.pass, `score ${good.score}: ${JSON.stringify(good.violations)}`);
 });
 
-test("lint: email-profesional checks the subject; cover-letter kills clichés and wants numbers", () => {
+test("lint: professional-email checks the subject; cover-letter kills clichés and wants numbers", () => {
   const vagueSubject = lintText("Hola, Ana:\nAdjunto el presupuesto para revisión.\nUn saludo", "email-profesional", { subject: "Duda" });
   assert.ok(rules(vagueSubject).includes("subject-vague"));
   const noSubject = lintText("Hola, Ana:\nAdjunto el presupuesto para revisión.\nUn saludo", "email-profesional");
@@ -136,12 +136,12 @@ test("lint: email-profesional checks the subject; cover-letter kills clichés an
   assert.ok(found.includes("few-measured-achievements"));
 });
 
-test("lint: english drafts — contractions and fillers in formal; ceremonial flagged in cercano", () => {
+test("lint: english drafts: contractions and fillers in formal; ceremonial flagged in warm", () => {
   const bad = lintText("I'm writing to inform you that we don't think the rollout maybe worked. It should be noted that errors basically happened.", "formal");
   const found = rules(bad);
   assert.ok(found.includes("contraction-en"));
   assert.ok(found.includes("filler"), `fillers caught (${found})`);
-  // Stiff ceremony belongs to the cercano rulebook, not the formal one.
+  // Stiff ceremony belongs to the warm rulebook, not the formal one.
   const stiff = lintText("I am writing to inform you that the rollout proceeded as planned. Best regards", "cercano");
   assert.ok(rules(stiff).includes("ceremonial"));
   const good = lintText(
@@ -163,12 +163,12 @@ test("stats: syllables, readability and passive counting behave", () => {
 test("lint: unknown style is an actionable error, forms carry their tone", () => {
   const bad = lintText("texto", "no-existe");
   assert.match(bad.error, /unknown style 'no-existe'/u);
-  // carta-formal inherits formal's exclamation rule via tone composition.
+  // formal-letter inherits formal's exclamation rule via tone composition.
   const shouty = lintText("Estimados señores:\n¡Tengo una urgencia!\nAtentamente,\nPaula", "carta-formal");
   assert.ok(rules(shouty).includes("exclamation"), "form carries its tone");
 });
 
-test("mcp server: catalog and lint round-trips — as a real child process", async () => {
+test("mcp server: catalog and lint round-trips: as a real child process", async () => {
   const dataDir = mkdtempSync(join(tmpdir(), "pluma-mcp-"));
   const child = spawn(process.execPath, [SERVER], {
     env: { ...process.env, AGENC_PLUGIN_DATA: dataDir },
@@ -206,16 +206,22 @@ test("mcp server: catalog and lint round-trips — as a real child process", asy
   try {
     const init = await call("initialize", { protocolVersion: "2025-06-18", clientInfo: { name: "t", version: "0" } });
     assert.equal(init.result.serverInfo.name, "pluma");
+    assert.equal(init.result.serverInfo.title, "Quill");
     const catalog = await call("tools/list");
     assert.deepEqual(catalog.result.tools.map((t) => t.name).sort(), ["style_lint", "styles_list"]);
 
+    const lintSchema = catalog.result.tools.find((entry) => entry.name === "style_lint").inputSchema;
+    assert.ok(lintSchema.properties.style.enum.includes("concise"));
+    assert.ok(lintSchema.properties.style.enum.includes("directo"), "legacy requests remain schema-valid");
+
     const list = await tool("styles_list", {});
     assert.equal(list.styles.length, Object.keys(STYLE_RULESETS).length);
-    const carta = list.styles.find((s) => s.key === "carta-formal");
-    assert.equal(carta.family, "form");
-    assert.equal(carta.carriesTone, "formal");
-    assert.ok(carta.lintRules.includes("salutationPresent"));
-    assert.ok(carta.description.length > 20, "descriptions read from the style files");
+    const letterStyle = list.styles.find((s) => s.key === "formal-letter");
+    assert.equal(letterStyle.family, "form");
+    assert.equal(letterStyle.outputStyleName, "carta-formal");
+    assert.equal(letterStyle.carriesTone, "formal");
+    assert.ok(letterStyle.lintRules.includes("salutationPresent"));
+    assert.ok(letterStyle.description.length > 20, "descriptions read from the style files");
 
     const linted = await tool("style_lint", {
       text: "¡Hola! Te paso el informe rapidito 😊, cabe destacar que está bien.",

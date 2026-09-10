@@ -1,6 +1,6 @@
 # Corpus provenance
 
-Prepared 2026-09-10 for tetsuo-ai's Olimpo 0.2.2.
+Prepared 2026-09-10 for tetsuo-ai's Olympus 0.2.2.
 
 Only `problems-original.json` is included: 16 exercises, with IDs
 `olimpo-al-001` through `004`, `olimpo-ge-001` through `004`,

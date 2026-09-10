@@ -1,7 +1,7 @@
 {
   "name": "pluma",
-  "version": "0.2.2",
-  "description": "Writing styles with a deterministic verifier: a library of voices (formal, warm, concise, persuasive, technical) and document forms (formal letter, professional email, speech, proposal, cover letter) as AgenC output styles — plus a prose linter that verifies every draft against its style's ruleset before delivery. The model writes; the linter judges.",
+  "version": "0.2.3",
+  "description": "Ten writing voices and document forms with an offline prose linter. Choose a style, draft, check its register and structure, then revise using concrete heuristic feedback.",
   "author": {
     "name": "tetsuo-ai"
   },
@@ -22,17 +22,24 @@
   "mcpServers": {
     "pluma-lint": {
       "command": "node",
-      "args": ["./server/main.mjs"],
+      "args": [
+        "./server/main.mjs"
+      ],
       "transport": "stdio",
-      "env_vars": ["PATH"]
+      "env_vars": [
+        "PATH"
+      ]
     }
   },
   "commands": {
-    "escribe": {
+    "write": {
       "source": "./commands/escribe.md",
       "description": "Write with a chosen voice or full form, verified by a deterministic prose linter",
-      "argumentHint": "<estilo> <pedido o texto>",
-      "allowedTools": ["Bash", "Read"]
+      "argumentHint": "<style> <request or text>",
+      "allowedTools": [
+        "Bash",
+        "Read"
+      ]
     }
   },
   "skills": [
@@ -51,9 +58,9 @@
     "./outputStyles/cover-letter.md"
   ],
   "interface": {
-    "displayName": "Pluma",
-    "shortDescription": "Every voice you need — with practical style checks.",
-    "longDescription": "A writing-styles library and its verifier. Ten curated styles ship as AgenC output styles — five voices (formal, cercano/warm, directo/concise, persuasivo, técnico) and five full forms (formal letter, professional email, speech, proposal, cover letter) — each defining structure, register and before/after examples, selectable session-wide with /output-style. The differentiator is the deterministic prose linter: every draft is verified against its style's ruleset — fillers, slang, hedges, vague quantities, contractions, exclamations and emoji, first-person opinion, passive-heavy prose, salutation/closing and required sections, length bands, readability (Fernández Huerta/Flesch family) — returning violations with excerpts and concrete fixes and a 0-100 score the draft must clear before delivery. Fully offline, zero dependencies, works the same on small local models: the style files carry the craft, the linter provides heuristic feedback, not a quality or factual guarantee.",
+    "displayName": "Quill",
+    "shortDescription": "Every voice you need, with practical style checks.",
+    "longDescription": "A writing-style library and an offline verifier. Ten English-named output styles cover formal, warm, concise, persuasive, and technical voices, plus formal letters, professional emails, speeches, proposals, and cover letters. Each style defines structure, register, and examples. The deterministic prose linter checks English and Spanish input for register, clarity, structure, length, and approximate readability. Findings include excerpts and concrete suggestions. Passing requires at least 85/100 and no error findings. These checks are heuristic feedback, not a factual-accuracy or quality guarantee. Legacy installation and style identifiers remain compatible.",
     "developerName": "tetsuo-ai",
     "category": "productivity",
     "capabilities": [
@@ -69,10 +76,10 @@
     "brandColor": "#8b5cf6",
     "logo": "./assets/logo.png",
     "defaultPrompt": [
-      "Escribe una carta formal pidiendo la baja del seguro",
-      "Hazme este email más directo",
-      "Redacta un discurso de brindis de 2 minutos",
-      "Convierte esto en una propuesta comercial"
+      "Write a formal letter requesting cancellation of my insurance policy",
+      "Make this email more concise",
+      "Draft a two-minute toast",
+      "Turn this into a business proposal"
     ],
     "screenshots": []
   }

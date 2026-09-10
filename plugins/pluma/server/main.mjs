@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * pluma MCP server — writing styles with a deterministic verifier.
+ * Quill MCP server: writing styles with a deterministic verifier.
  *
  * Zero-dependency stdio MCP server (JSON-RPC 2.0, newline-delimited),
  * fully offline. The style LIBRARY ships as AgenC output styles (see
@@ -13,23 +13,23 @@
 import { readFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { STYLE_RULESETS, lintText } from "./lint.mjs";
+import { STYLE_RULESETS, STYLE_ALIASES, STYLE_FILES, lintText } from "./lint.mjs";
 
 const PROTOCOL_VERSION = "2025-06-18";
-const SERVER_INFO = { name: "pluma", version: "0.2.2" };
+const SERVER_INFO = { name: "pluma", title: "Quill", version: "0.2.3" };
 const STYLES_DIR = join(dirname(fileURLToPath(import.meta.url)), "..", "outputStyles");
 
 const tools = [
   {
     name: "styles_list",
-    description: "The pluma style library: tones (voice) and forms (document structure), each with its deterministic lint ruleset. Select one as a session-wide AgenC output style with /output-style, or apply it per-document through style_lint.",
+    description: "The Quill style library: tones (voice) and forms (document structure), each with its deterministic lint ruleset. Select one as a session-wide AgenC output style with /output-style, or apply it per-document through style_lint.",
     inputSchema: { type: "object", properties: {} },
     handler: async () => {
       const styles = [];
       for (const [key, ruleset] of Object.entries(STYLE_RULESETS)) {
         let description = null;
         try {
-          const raw = await readFile(join(STYLES_DIR, `${key}.md`), "utf8");
+          const raw = await readFile(join(STYLES_DIR, `${STYLE_FILES[key]}.md`), "utf8");
           const match = raw.match(/^---\n([\s\S]*?)\n---/u);
           description = match?.[1]?.match(/description:\s*(.+)/u)?.[1]?.trim() ?? null;
         } catch {
@@ -37,6 +37,7 @@ const tools = [
         }
         styles.push({
           key,
+          outputStyleName: STYLE_FILES[key],
           family: ruleset.family,
           ...(ruleset.tone !== undefined ? { carriesTone: ruleset.tone } : {}),
           ...(description !== null ? { description } : {}),
@@ -45,7 +46,7 @@ const tools = [
       }
       return structured({
         styles,
-        hint: "Session-wide voice: /output-style <name>. Per-document: draft, then style_lint, then fix the violations it reports.",
+        hint: "For a session-wide voice, open /output-style and select the matching installed plugin style using outputStyleName. Exact style IDs include an installation namespace. Per-document: draft, then style_lint, then fix the violations it reports.",
       });
     },
   },
@@ -56,8 +57,8 @@ const tools = [
       type: "object",
       properties: {
         text: { type: "string", description: "The draft to verify" },
-        style: { type: "string", enum: Object.keys(STYLE_RULESETS) },
-        subject: { type: "string", description: "Email subject line, for email-profesional's subject checks" },
+        style: { type: "string", enum: [...Object.keys(STYLE_RULESETS), ...Object.keys(STYLE_ALIASES)], description: "English style name; legacy input aliases remain accepted" },
+        subject: { type: "string", description: "Email subject line for professional-email subject checks" },
       },
       required: ["text", "style"],
     },
@@ -148,7 +149,7 @@ async function main() {
       try {
         message = JSON.parse(line);
       } catch {
-        process.stderr.write("pluma: invalid JSON-RPC input\n");
+        process.stderr.write("Quill: invalid JSON-RPC input\n");
         continue;
       }
       const response = await handleMessage(message);
@@ -160,6 +161,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  process.stderr.write(`pluma fatal: ${error instanceof Error ? error.stack : String(error)}\n`);
+  process.stderr.write(`Quill fatal: ${error instanceof Error ? error.stack : String(error)}\n`);
   process.exitCode = 1;
 });

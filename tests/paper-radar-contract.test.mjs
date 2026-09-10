@@ -317,12 +317,17 @@ test("mcp server: full offline journey — extract → upsert → radar → canc
     assert.equal(cost.annualTotal, 380 + 49.99 * 12);
 
     const draft = await tool("cancel_draft", { id, senderName: "Paul Garcia", accountRef: "POL-12345" });
-    assert.match(draft.draft, /Asunto: Preaviso de cancelación/u);
+    assert.match(draft.draft, /Subject: Cancellation notice/u);
+    assert.equal(draft.language, "en");
+    assert.equal(draft.sourceLanguage, "es");
+    assert.doesNotMatch(draft.draft, /Asunto:|Preaviso de cancelación/u);
     assert.match(draft.draft, /POL-12345/u);
     assert.match(draft.draft, new RegExp(anchor, "u"), "draft cites the renewal date");
 
     const draftEn = await tool("cancel_draft", { id: gym.id, senderName: "Paul Garcia" });
     assert.match(draftEn.draft, /Subject: Cancellation notice/u);
+    assert.equal(draftEn.language, "en");
+    assert.equal(draftEn.sourceLanguage, "en");
 
     const ics = await tool("ics_export", {});
     assert.ok(existsSync(ics.path));

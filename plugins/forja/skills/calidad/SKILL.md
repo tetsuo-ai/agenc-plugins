@@ -1,52 +1,44 @@
 ---
 name: calidad
-description: Code writing with styles and a deterministic verifier. Picks the discipline (clean, defensive, functional, solid) or the minimal-diff surgery protocol for editing existing code, drafts, verifies the draft with structural lint (function bands, nesting, naming, consistency with the host file), fixes every violation, and delivers. Use when writing new code, editing existing files, or when asked for cleaner/better code.
-when_to_use: The user asks to write code, refactor, "hacelo limpio", edit an existing file, review whether code is clean, or apply a design discipline.
-argument-hint: <estilo> [código o pedido]
+description: Choose a code-writing discipline or minimal-diff for existing files, draft, verify structural quality and consistency, then revise before delivery. Use for new code, edits, refactoring, or code-quality reviews.
+when_to_use: The user asks to write code, refactor, edit an existing file, review code quality, or apply a design discipline.
+argument-hint: <style> [code or request]
 ---
 
-# Calidad — la disciplina elegida, verificada
+# Code quality with a verified discipline
 
-forja es pluma para código: una biblioteca de disciplinas de escritura
-(output styles) y un verificador estructural determinista que el
-borrador debe superar antes de entregarse. El modelo escribe; el linter
-juzga.
+Forge combines code-writing output styles with a deterministic structural
+verifier. The model writes; the linter provides heuristic feedback.
 
-## Protocolo
+## Workflow
 
-1. **Elige la disciplina con el usuario** — `code_styles_list` si hay
-   duda. Código NUEVO: limpio (default), defensivo (fronteras con el
-   exterior), funcional (lógica de dominio), solid (estado y dominios
-   ricos). Código EXISTENTE: **minimal-diff, siempre** — la disciplina
-   del archivo es la del archivo.
-2. **Borrador** — escribe siguiendo el output style. Para ediciones:
-   lee el archivo, respeta sus convenciones, cambio mínimo completo.
-3. **Verifica** — `code_lint` con el borrador, estilo y lenguaje
-   (`js` cubre TS, `py` Python). Para ediciones pasa `original`: el
-   contenido actual del archivo — la consistencia (indentación,
-   comillas, naming, punto y coma) se MIDE contra él.
-4. **Corrige y repite** — aplica los fixes y relintea hasta
-   `pass: true` (score ≥ 85). Máximo dos iteraciones; lo que siga en
-   rojo es una decisión del usuario (una función larga que ES el
-   algoritmo, un catch que el dominio justifica): muéstrala, no la
-   resuelvas por él.
-5. **Entrega** — el código más una línea: estilo, score, qué
-   corregiste. Sugiere `/output-style <nombre>` si seguirá escribiendo
-   código en esa disciplina.
+1. Choose a discipline, using `code_styles_list` if needed. For new code,
+   default to clean. Use defensive for external boundaries, functional for
+   domain transformations, and solid for stateful domains. For existing
+   files, default to **minimal-diff** and preserve the file's own discipline.
+2. Draft using the output style. Before editing, read the file, learn its
+   conventions, and make the smallest complete change.
+3. Call `code_lint` with draft, style, and language. `js` covers JS/TS;
+   `py` covers Python. For edits, pass the current file as `original` so
+   indentation, quotes, naming, and semicolons can be compared.
+4. Revise and recheck until `pass: true`, requiring a score of at least 85
+   and no errors. Stop after two revision passes. Explain unresolved
+   findings, such as a necessarily long algorithm, for the user's decision.
+5. Deliver the code and one line with style, score, and changes. For a
+   session-wide discipline, open `/output-style` and select the installed
+   plugin style matching the catalog's `outputStyleName`. Do not construct
+   an exact style ID; it includes an installation namespace.
 
-## Sobre el verificador
+## About the verifier
 
-Es heurístico y lo dice: sin AST, con regex y aritmética. Un `info` no
-bloquea; un `error` sí. Los falsos positivos se explican al usuario en
-una línea, no se silencian — y si una regla molesta sistemáticamente,
-es feedback para el plugin, no para pelearla cada vez.
+The analysis uses heuristics, not an AST. Explain false positives rather
+than silently suppressing them. Informational findings alone do not block
+delivery; errors do. Run the project's compiler, formatter, and tests.
 
-## Límites
+## Boundaries
 
-- Nunca reformatees código que no te pidieron para "pasar el linter":
-  en ediciones, el diff mínimo es la regla y el linter lo sabe
-  (matchea contra el original).
-- Los números mágicos y nombres crípticos que vienen del código AJENO
-  se respetan en ediciones; se corrigen en código nuevo tuyo.
-- Los tools son entradas deferidas: busca con tu tool search
-  (`system.searchTools`) "forja" antes del primer uso.
+- Do not reformat unrelated code merely to satisfy the linter.
+- Preserve existing names and conventions outside the requested change.
+  Improve code you introduce without broadening the task.
+- Discover deferred tools with `system.searchTools` using the compatible
+  installation ID `forja` before first use.

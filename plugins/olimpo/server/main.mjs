@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Olimpo MCP server — original exercises with progressive disclosure.
+ * Olympus MCP server - original exercises with progressive disclosure.
  *
  * Zero-dependency stdio MCP server (JSON-RPC 2.0, newline-delimited),
  * fully offline. Retrieves the bundled exercises and worked solutions
@@ -23,7 +23,7 @@ import {
 } from "./corpus.mjs";
 
 const PROTOCOL_VERSION = "2025-06-18";
-const SERVER_INFO = { name: "olimpo", version: "0.2.2" };
+const SERVER_INFO = { name: "olimpo", version: "0.2.3" };
 
 const dataDir = resolveDataDir();
 mkdirSync(dataDir, { recursive: true, mode: 0o700 });
@@ -87,7 +87,7 @@ const tools = [
   },
   {
     name: "problem_get",
-    description: "One problem with PROGRESSIVE DISCLOSURE — the small-model discipline: level 'statement' (default) gives just the problem; 'hint1' gives the first hint; 'hints' all hints; 'keyIdea' the strategy; 'solution' the full solution (with solutionType 'full' or 'sketch' — say which it is when presenting). Never jump to 'solution' unless the user asked or failed after the hints.",
+    description: "One problem with PROGRESSIVE DISCLOSURE - the small-model discipline: level 'statement' (default) gives just the problem; 'hint1' gives the first hint; 'hints' all hints; 'keyIdea' the strategy; 'solution' the full solution (with solutionType 'full' or 'sketch' - say which it is when presenting). Never jump to 'solution' unless the user asked or failed after the hints.",
     inputSchema: {
       type: "object",
       properties: {

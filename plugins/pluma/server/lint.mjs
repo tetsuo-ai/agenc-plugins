@@ -1,40 +1,53 @@
 /**
- * Deterministic prose linter — the pluma engine room. Every style has a
+ * Deterministic prose linter for Quill. Every style has a
  * ruleset; every rule is plain regex/arithmetic over the text in Spanish
  * and English: fillers, contractions, passive voice, hedges, vague
  * quantifiers, exclamations/emoji, sentence-length bands, readability
  * (Fernández Huerta for es, Flesch for en), and structure checks per
  * form (salutation/closing, required sections, word-count bands). The
- * model writes; this verifies. Pure — no I/O.
+ * model writes; this verifies. Pure computation with no I/O.
  */
 
 export const STYLE_RULESETS = {
   formal: { family: "tone", rules: ["noExclamations", "noEmoji", "noContractionsEn", "noSlang", "noFillers", "courtesyPresent"] },
-  cercano: { family: "tone", rules: ["noCeremonial", "noCorporateEmpty", "greetingPresent", "noExcessExclamations"] },
-  directo: { family: "tone", rules: ["noFillers", "shortSentences", "tightParagraphs", "noDecorativeAdjectives"] },
-  persuasivo: { family: "tone", rules: ["ctaPresent", "noHedges", "activeVerbs", "noFillers"] },
-  tecnico: { family: "tone", rules: ["noFirstPersonOpinion", "noVagueQuantifiers", "monospaceForCode"] },
-  "carta-formal": {
+  warm: { family: "tone", rules: ["noCeremonial", "noCorporateEmpty", "greetingPresent", "noExcessExclamations"] },
+  concise: { family: "tone", rules: ["noFillers", "shortSentences", "tightParagraphs", "noDecorativeAdjectives"] },
+  persuasive: { family: "tone", rules: ["ctaPresent", "noHedges", "activeVerbs", "noFillers"] },
+  technical: { family: "tone", rules: ["noFirstPersonOpinion", "noVagueQuantifiers", "monospaceForCode"] },
+  "formal-letter": {
     family: "form", tone: "formal",
     rules: ["salutationPresent", "closingPresent", "minParagraphs:3", "wordBand:150:300", "noExclamations", "noEmoji", "noFillers"],
   },
-  "email-profesional": {
-    family: "form", tone: "cercano",
+  "professional-email": {
+    family: "form", tone: "warm",
     rules: ["subjectActionable", "salutationPresent", "closingPresent", "wordBand:80:200"],
   },
-  discurso: {
-    family: "form", tone: "cercano",
+  speech: {
+    family: "form", tone: "warm",
     rules: ["openingHook", "anaphoraOrTricolon", "closingPresent", "wordBand:80:4000"],
   },
-  propuesta: {
-    family: "form", tone: "persuasivo",
-    rules: ["sectionsPropuesta", "numbersPresent", "nextStepPresent"],
+  proposal: {
+    family: "form", tone: "persuasive",
+    rules: ["sectionsProposal", "numbersPresent", "nextStepPresent"],
   },
   "cover-letter": {
     family: "form", tone: "formal",
     rules: ["salutationPresent", "closingPresent", "wordBand:150:350", "noClichePhrases", "achievementsWithNumbers"],
   },
 };
+
+// Accepted input IDs and on-disk filenames retain compatibility with earlier releases.
+export const STYLE_ALIASES = Object.freeze({
+  cercano: "warm", directo: "concise", persuasivo: "persuasive",
+  tecnico: "technical", "carta-formal": "formal-letter",
+  "email-profesional": "professional-email", discurso: "speech", propuesta: "proposal",
+});
+export const STYLE_FILES = Object.freeze({
+  formal: "formal", warm: "cercano", concise: "directo", persuasive: "persuasivo",
+  technical: "tecnico", "formal-letter": "carta-formal",
+  "professional-email": "email-profesional", speech: "discurso",
+  proposal: "propuesta", "cover-letter": "cover-letter",
+});
 
 const FILLERS = [
   "cabe destacar que", "hay que tener en cuenta que", "como es sabido", "en mi opinión personal",
@@ -56,13 +69,13 @@ const CTA = /(?:respond[eai]|responde|contest[ae]|escríbenos|escribinos|escríb
 const OPINION_FIRST_PERSON = /\b(?:creo que|me parece|opino que|diría que|supongo que|i think|i believe|i feel like|i guess|i suppose)\b/giu;
 const PASSIVE_ES = /\b(?:es|son|era|eran|fue|fueron|será|serán|ha sido|han sido|se\s+ha|se\s+había)\s+[\wáéíóúüñ]+(?:ado|ido|to|so|cho)\b/giu;
 const PASSIVE_EN = /\b(?:is|are|was|were|be|been|being)\s+\w+(?:ed|en)\b/giu;
-const SECTIONS_PROPUESTA = [
-  { key: "contexto", re: /(?:^|\n)#{0,4}\s*(?:contexto|antecedentes|situaci[oó]n actual)\b/iu },
-  { key: "objetivo", re: /(?:^|\n)#{0,4}\s*(?:objetivo|resultados? esperados?)\b/iu },
-  { key: "alcance", re: /(?:^|\n)#{0,4}\s*(?:alcance|fases?|plan de trabajo)\b/iu },
-  { key: "inversión", re: /(?:^|\n)#{0,4}\s*(?:inversi[oó]n|precio|coste|costo|tarifa|presupuesto)\b/iu },
-  { key: "plazos", re: /(?:^|\n)#{0,4}\s*(?:plazos?|calendario|tiempos?|duraci[oó]n)\b/iu },
-  { key: "siguientes pasos", re: /(?:^|\n)#{0,4}\s*(?:siguientes pasos|pr[oó]ximos pasos|next steps)\b/iu },
+const PROPOSAL_SECTIONS = [
+  { key: "context", re: /(?:^|\n)#{0,4}\s*(?:context|background|current situation|contexto|antecedentes|situaci[oó]n actual)\b/iu },
+  { key: "objective", re: /(?:^|\n)#{0,4}\s*(?:objective|expected outcomes?|objetivo|resultados? esperados?)\b/iu },
+  { key: "scope", re: /(?:^|\n)#{0,4}\s*(?:scope|phases?|work plan|alcance|fases?|plan de trabajo)\b/iu },
+  { key: "investment", re: /(?:^|\n)#{0,4}\s*(?:investment|price|cost|budget|inversi[oó]n|precio|coste|costo|tarifa|presupuesto)\b/iu },
+  { key: "timeline", re: /(?:^|\n)#{0,4}\s*(?:timeline|schedule|duration|plazos?|calendario|tiempos?|duraci[oó]n)\b/iu },
+  { key: "next-steps", re: /(?:^|\n)#{0,4}\s*(?:siguientes pasos|pr[oó]ximos pasos|next steps)\b/iu },
 ];
 
 /**
@@ -71,6 +84,7 @@ const SECTIONS_PROPUESTA = [
  * info, not violations.
  */
 export function lintText(text, styleKey, { subject } = {}) {
+  styleKey = Object.hasOwn(STYLE_ALIASES, styleKey) ? STYLE_ALIASES[styleKey] : styleKey;
   const ruleset = Object.hasOwn(STYLE_RULESETS, styleKey) ? STYLE_RULESETS[styleKey] : undefined;
   if (ruleset === undefined) {
     return { error: `unknown style '${styleKey}'; known: ${Object.keys(STYLE_RULESETS).join(", ")}` };
@@ -99,7 +113,7 @@ export function lintText(text, styleKey, { subject } = {}) {
   }
   if (active.has("noCeremonial")) {
     for (const hit of findAny(raw, CEREMONIAL)) {
-      violation("warn", "ceremonial", hit.excerpt, "Write like a person: 'Te cuento que…' / plain phrasing");
+      violation("warn", "ceremonial", hit.excerpt, "Use plain, personable phrasing, such as 'Here is the update'");
     }
   }
   if (active.has("noCorporateEmpty")) {
@@ -160,13 +174,13 @@ export function lintText(text, styleKey, { subject } = {}) {
     violation("warn", "courtesy-missing", "no salutation or closing detected", "Add a measured salutation or closing if the channel expects it");
   }
   if (active.has("greetingPresent") && !SALUTATIONS.test(raw)) {
-    violation("warn", "greeting-missing", "no greeting detected", "Open with a short greeting: 'Hola, [nombre] —'");
+    violation("warn", "greeting-missing", "no greeting detected", "Open with a short greeting: 'Hello, [name],'");
   }
   if (active.has("salutationPresent") && !SALUTATIONS.test(raw)) {
-    violation("error", "salutation-missing", "no salutation found", "Add: 'Estimado/a …:' / 'Dear …,'");
+    violation("error", "salutation-missing", "no salutation found", "Add an appropriate greeting, such as 'Dear [name],'");
   }
   if (active.has("closingPresent") && !CLOSINGS.test(raw)) {
-    violation("error", "closing-missing", "no closing found", "Add: 'Atentamente' / 'Un saludo' / 'Sincerely'");
+    violation("error", "closing-missing", "no closing found", "Add a courteous closing, such as 'Sincerely' or 'Kind regards'");
   }
   if (active.has("subjectActionable")) {
     const value = String(subject ?? "").trim();
@@ -190,7 +204,7 @@ export function lintText(text, styleKey, { subject } = {}) {
     const repeated = new Set(starts.filter((start, i) => start.length > 3 && starts.indexOf(start) !== i));
     const tricolon = /\b\w+,\s+\w+,?\s+y\s+\w+\b|\b\w+,\s+\w+,\s+and\s+\w+\b/iu.test(raw);
     if (repeated.size === 0 && !tricolon) {
-      violation("info", "rhetoric-missing", "no repeated sentence openings or triads found", "Add one anaphora block or a triad ('más rápido, más simple, más barato')");
+      violation("info", "rhetoric-missing", "no repeated sentence openings or triads found", "Add repeated sentence openings or a triad, such as 'faster, simpler, and cheaper'");
     }
   }
   if (active.has("minParagraphs:3") && stats.paragraphs < 3) {
@@ -207,8 +221,8 @@ export function lintText(text, styleKey, { subject } = {}) {
       violation("warn", "too-long", `${stats.words} words (target ${min}-${max})`, `Cut about ${stats.words - max} words`);
     }
   }
-  if (active.has("sectionsPropuesta")) {
-    for (const section of SECTIONS_PROPUESTA) {
+  if (active.has("sectionsProposal")) {
+    for (const section of PROPOSAL_SECTIONS) {
       if (!section.re.test(raw)) {
         violation("error", `missing-section:${section.key}`, `'${section.key}' section not found`, `Add the '${section.key}' section with a heading`);
       }

@@ -1,8 +1,8 @@
 /**
  * Local attachment vault: downloaded attachments filed by content hash
  * under the plugin data directory with a JSON index (filename, sender,
- * date, Gmail ids) so "the PDF María sent in March" is one lookup.
- * Downloading is explicit — nothing is fetched behind the user's back.
+ * date, Gmail ids) so "the PDF Alex sent in March" is one lookup.
+ * Downloading is explicit - nothing is fetched behind the user's back.
  */
 import { createHash, randomUUID } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync, renameSync, rmSync } from "node:fs";

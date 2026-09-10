@@ -1,7 +1,7 @@
 /**
  * Minimal Gmail API client over plain fetch: search/list, message fetch
  * (format=full so the MIME tree is pre-parsed), labels and
- * attachment download. Read-only — never send, never
+ * attachment download. Read-only - never send, never
  * delete. Base URLs injectable for offline testing.
  */
 

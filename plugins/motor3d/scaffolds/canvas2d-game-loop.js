@@ -1,16 +1,16 @@
 import { withErrorOverlay } from "../server/overlay.mjs";
-// Scaffold: canvas2d-game-loop — loop de juego serio en Canvas 2D:
-// timestep FIJO para física, render interpolado, DPR correcto,
-// input edge/hold, pausa al ocultar pestaña.
+// Scaffold: canvas2d-game-loop - production Canvas 2D game loop:
+// fixed physics timestep, interpolated rendering, correct DPR,
+// edge/hold input, and pause when the tab is hidden.
 export default {
   "name": "canvas2d-game-loop",
   "framework": "canvas2d",
-  "description": "Game loop de producción: física a 60 Hz fijos con render interp, DPR-aware, input limpio, visibilidad.",
+  "description": "Production game loop: fixed 60 Hz physics, interpolated rendering, DPR awareness, clean input, and visibility handling.",
   "html": withErrorOverlay(`<!doctype html>
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<title>TODO: título</title>
+<title>TODO: title</title>
 <style>html,body{margin:0;height:100%;overflow:hidden;background:#0f172a}canvas{display:block;image-rendering:pixelated}</style>
 </head>
 <body>
@@ -19,7 +19,7 @@ export default {
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-// ── Resolución + DPR ───────────────────────────────────────────────
+// ── Resolution + DPR ───────────────────────────────────────────────
 let dpr = 1;
 function resize() {
   dpr = Math.min(devicePixelRatio || 1, 2);
@@ -46,12 +46,12 @@ function resetInput() {
 }
 addEventListener("blur", resetInput);
 
-// ── Estado del juego ───────────────────────────────────────────────
+// ── Game state ───────────────────────────────────────────────
 const player = {
-  x: 0, y: 0, px: 0, py: 0, // posición actual y previa (para interp)
+  x: 0, y: 0, px: 0, py: 0, // current and previous position for interpolation
   speed: 260, size: 24,
 };
-const STEP = 1 / 60;         // física fija: determinista
+const STEP = 1 / 60;         // fixed physics: deterministic
 let accumulator = 0;
 let last = performance.now();
 let running = true;
@@ -72,25 +72,25 @@ function update(dt) {
   if (dx !== 0 && dy !== 0) { dx *= Math.SQRT1_2; dy *= Math.SQRT1_2; } // diagonal
   player.x += dx * player.speed * dt;
   player.y += dy * player.speed * dt;
-  // TODO: física, colisiones — solo aquí, con dt
+  // TODO: physics and collisions, only here, with dt
 }
 
 function render(alpha) {
-  // interpolación: dibujar ENTRE px y x → movimiento suave a cualquier Hz
+  // Interpolation: draw between px and x for smooth movement at any refresh rate
   const ix = player.px + (player.x - player.px) * alpha;
   const iy = player.py + (player.y - player.py) * alpha;
 
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // unidades CSS dentro del canvas HiDPI
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // CSS units inside the HiDPI canvas
   ctx.fillStyle = "#0f172a";
   ctx.fillRect(0, 0, innerWidth, innerHeight);
 
-  // TODO: dibujar el mundo
+  // TODO: draw the world
   ctx.fillStyle = "#38bdf8";
   const half = player.size / 2;
   ctx.fillRect(ix - half + innerWidth / 2, iy - half + innerHeight / 2, player.size, player.size);
 }
 
-// ── Loop: física fija, render interp ───────────────────────────────
+// ── Loop: fixed physics, interpolated rendering ───────────────────────────────
 function frame(now) {
   requestAnimationFrame(frame);
   if (!running) return;
@@ -111,8 +111,8 @@ requestAnimationFrame(frame);
 </body>
 </html>`),
   "notes": [
-    "Física con dt VARIABLE rompe colisiones y determinismo; fija + interp no.",
-    "canvas.width SIEMPRE × dpr, y setTransform(dpr,…) para dibujar en unidades CSS.",
-    "pressedThisTick: edge-detection limpio para saltos/disparos de un frame.",
+    "Variable-delta physics can break collisions and determinism; use a fixed timestep with interpolation.",
+    "Always scale canvas.width by dpr and use setTransform(dpr,…) to draw in CSS units.",
+    "pressedThisTick provides clean edge detection for single-frame jumps or firing.",
   ],
 }

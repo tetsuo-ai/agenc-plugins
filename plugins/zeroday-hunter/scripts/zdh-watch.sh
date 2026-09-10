@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# zdh-watch.sh — delta-audit scaffolder (watch mode).
+# zdh-watch.sh - delta-audit scaffolder (watch mode).
 #
 # Diffs baseline..HEAD and keeps only hunks touching security-relevant code
 # (sinks, entry points, auth logic). Emits a focused G2 goal file so the audit
-# covers the delta against the existing threat model — not the whole repo.
+# covers the delta against the existing threat model - not the whole repo.
 #
 # Usage: zdh-watch.sh <repo> <baseline-commit> [sink-regex]
 set -eu
@@ -20,7 +20,7 @@ mkdir -p "$OUT"
 
 changed="$(git -C "$REPO" diff --name-only "$BASE..$HEAD" || true)"
 if [ -z "$changed" ]; then
-  echo "no changes between $BASE and $HEAD — nothing to audit"
+  echo "no changes between $BASE and $HEAD - nothing to audit"
   exit 0
 fi
 
@@ -32,11 +32,11 @@ nfiles=$(printf '%s\n' "$changed" | wc -l)
 nhits=$(wc -l < "$OUT/sink-hits.txt")
 
 {
-  echo "# Watch-mode audit goal — $TS"
+  echo "# Watch-mode audit goal - $TS"
   echo
   echo "baseline: $BASE"
   echo "head:     $HEAD"
-  echo "changed files: $nfiles — sink-touching added lines: $nhits"
+  echo "changed files: $nfiles - sink-touching added lines: $nhits"
   echo
   echo "## Changed files"
   printf '%s\n' "$changed" | sed 's/^/- /'

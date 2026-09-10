@@ -1,21 +1,20 @@
 ---
-description: Write code with a chosen discipline — clean, defensive, functional, solid — or the minimal-diff surgery protocol for existing files, verified by a deterministic structural linter
-argument-hint: "<limpio|defensivo|funcional|solid|minimal-diff> <pedido o archivo>"
+aliases: [codigo]
+description: Write code in a clean, defensive, functional, or solid discipline, or use minimal-diff for existing files, with deterministic structural checks
+argument-hint: "<clean|defensive|functional|solid|minimal-diff> <request or file>"
 ---
 
-Follow the `calidad` skill and its boundaries.
+Follow the skill in `skills/calidad/SKILL.md` and its boundaries.
 
-The first argument names the style when it matches one of: limpio,
-defensivo, funcional, solid, minimal-diff. Everything else is the
-task (or the file to edit).
+Recognize clean, defensive, functional, solid, and minimal-diff as canonical
+style arguments. Accept legacy style IDs through the linter's compatibility
+aliases. Remaining arguments contain the task or target file.
 
-1. Confirm the style if ambiguous (one short question at most). When
-   the target is an existing file, minimal-diff applies by default.
-2. Draft following the style's output-style definition; for edits,
-   Read the file first and match its conventions.
-3. `code_lint` the draft (with `original` for edits); fix violations
-   and re-lint until pass — two iterations maximum, then surface the
-   unresolved choice to the user.
-4. Deliver the code plus one line: style, score, what changed.
-5. If the user keeps coding in this discipline, suggest
-   `/output-style` for the session.
+1. Clarify an ambiguous style with at most one short question. Default to
+   minimal-diff when editing an existing file.
+2. Draft using the output style. Read existing files first and match their
+   conventions.
+3. Run `code_lint`, passing `original` for edits. Revise and recheck at most
+   twice, then explain any unresolved choice to the user.
+4. Deliver the code and one line with style, score, and changes.
+5. Suggest `/output-style` for a continuing session-wide discipline.

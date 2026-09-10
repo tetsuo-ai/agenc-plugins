@@ -29,6 +29,7 @@ const expectedPlugins = Object.fromEntries(localCatalog.plugins.map(({ name }) =
   const manifest = JSON.parse(readFileSync(join(root, ".agenc-plugin", "plugin.json"), "utf8"));
   return [name, {
     version: manifest.version,
+    manifestDigest: createHash("sha256").update(readFileSync(join(root, ".agenc-plugin", "plugin.json"))).digest("hex"),
     logoDigest: createHash("sha256").update(readFileSync(join(root, "assets", "logo.png"))).digest("hex"),
   }];
 }));
@@ -118,6 +119,12 @@ try {
       await readFile(join(result.destination, ".agenc-plugin", "plugin.json"), "utf8")
     );
     const expected = expectedPlugins[entry.name];
+    const manifestDigest = createHash("sha256").update(
+      await readFile(join(result.destination, ".agenc-plugin", "plugin.json"))
+    ).digest("hex");
+    if (manifestDigest !== expected.manifestDigest) {
+      throw new Error(entry.name + ": installed copy does not match the reviewed release manifest");
+    }
     if (installedManifest.version !== expected.version) {
       throw new Error(entry.name + ": installed version does not match this release");
     }

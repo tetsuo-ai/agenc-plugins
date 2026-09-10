@@ -1,15 +1,15 @@
 import { withErrorOverlay } from "../server/overlay.mjs";
-// Scaffold: three-asset-loading — carga de GLTF con progreso visible,
-// gestión de errores y dispose correcto. Nada de pantalla negra silenciosa.
+// Scaffold: three-asset-loading - GLTF loading with visible progress,
+// error handling, and correct disposal instead of a silent black screen.
 export default {
   "name": "three-asset-loading",
   "framework": "three",
-  "description": "GLTFLoader con LoadingManager: barra de progreso, error explícito, dispose al fallar/recargar.",
+  "description": "GLTFLoader with LoadingManager: progress bar, explicit errors, and disposal on failure/reload.",
   "html": withErrorOverlay(`<!doctype html>
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<title>TODO: título</title>
+<title>TODO: title</title>
 <style>
   html,body{margin:0;height:100%;overflow:hidden;background:#0f172a}canvas{display:block}
   #bar{position:fixed;left:0;top:0;height:3px;width:0%;background:#38bdf8;transition:width .2s;z-index:9}
@@ -43,7 +43,7 @@ manager.onLoad = () => { bar.style.width = "100%"; if (!loadFailed) msg.style.di
 manager.onError = (url) => {
   loadFailed = true; msg.style.display = "block";
   msg.style.color = "#f87171";
-  msg.textContent = \`error cargando: \${url} — revisá la URL/CORS\`;
+  msg.textContent = \`loading error: \${url} - check the URL/CORS\`;
 };
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -74,7 +74,7 @@ function track(model) {
   });
 }
 
-// TODO: tu URL de modelo (mismo origen o con CORS habilitado)
+// TODO: your model URL (same origin or CORS enabled)
 const MODEL_URL = "https://threejs.org/examples/models/gltf/DamagedHelmet/glTF/DamagedHelmet.gltf";
 
 const loader = new GLTFLoader(manager);
@@ -90,7 +90,7 @@ loader.load(
   (error) => {
     loadFailed = true; msg.style.display = "block";
     msg.style.color = "#f87171";
-    msg.textContent = \`fallo la carga: \${error?.message ?? error}\`;
+    msg.textContent = \`loading failed: \${error?.message ?? error}\`;
   },
 );
 
@@ -117,8 +117,8 @@ const clock = new THREE.Clock();
 </body>
 </html>`),
   "notes": [
-    "manager.onError: sin esto, un 404/CORS = pantalla negra silenciosa.",
-    "Trackear geometry/material al cargar: el dispose de modelos es manual en three.",
-    "Texturas de modelos GLTF: ya traen colorSpace correcto desde el loader moderno.",
+    "manager.onError prevents a silent black screen after a 404 or CORS failure.",
+    "Track geometries/materials during loading; three.js model disposal is manual.",
+    "The modern GLTF loader already sets the correct colorSpace on model textures.",
   ],
 }

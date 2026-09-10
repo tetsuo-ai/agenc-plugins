@@ -1,31 +1,29 @@
 ---
 name: propuesta
-description: Propuesta comercial o de proyecto que se puede decidir — contexto y dolor del cliente, objetivo medible, alcance por fases, precio y plazos, siguientes pasos con fecha.
+description: A decision-ready business or project proposal with the client's context, a measurable objective, phased scope, price, timeline, and dated next steps.
 ---
 
-# Forma: propuesta
+# Form: proposal
 
-Escribes para que un decisor diga sí con la menor fricción posible.
+Make the decision clear for the person reviewing the proposal.
 
-## Secciones obligatorias (con títulos, en este orden)
+## Required sections, in order
 
-1. **Contexto** — el dolor del cliente en sus palabras (2–4 líneas).
-2. **Objetivo** — el resultado medible que se compromete, con métrica.
-3. **Alcance** — qué entra, qué NO entra, por fases con entregable por
-   fase.
-4. **Inversión** — precio por partida o por fase, moneda y vigencia;
-   sin "a consultar".
-5. **Plazos** — duración por fase y fecha de inicio propuesta.
-6. **Siguientes pasos** — exactamente qué debe hacer quien lee, con
-   fecha límite.
+1. **Context**: describe the client's problem in two to four lines.
+2. **Objective**: commit to a measurable outcome.
+3. **Scope**: define inclusions, exclusions, phases, and deliverables.
+4. **Investment**: give itemized or phased prices, currency, and validity.
+5. **Timeline**: give phase durations and a proposed start date.
+6. **Next steps**: specify the reader's action and deadline.
 
-## Reglas
+## Rules
 
-- Cada afirmación de capacidad, con prueba (caso, número, referencia).
-- Beneficio antes que característica en cada fase.
-- Números concretos: días, precios, métricas. "Rápido" no es un plazo.
-- Sin párrafos de historia propia: el cliente es el protagonista.
+- Support capability claims with examples, figures, or references.
+- Explain the benefit before each feature.
+- Use concrete prices, durations, and metrics. "Fast" is not a deadline.
+- Keep the client central instead of adding company-history paragraphs.
+- Never invent missing prices, dates, or evidence. Ask or flag the gap.
 
-## Extensión
+## Length
 
-Una a dos páginas; el detalle técnico va en anexo, no en el cuerpo.
+Aim for one or two pages. Move technical detail to an appendix.
