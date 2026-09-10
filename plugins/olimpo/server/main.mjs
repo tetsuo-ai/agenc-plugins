@@ -28,11 +28,11 @@ const PROTOCOL_VERSION = "2025-06-18";
 const SERVER_INFO = { name: "olimpo", version: "0.2.1" };
 
 const dataDir = resolveDataDir();
-mkdirSync(dataDir, { recursive: true });
+mkdirSync(dataDir, { recursive: true, mode: 0o700 });
 const corpusDir = join(dirname(fileURLToPath(import.meta.url)), "..", "corpus");
 const userCorpusPath = join(dataDir, "user-problems.json");
 const progress = makeProgressStore(dataDir);
-const ingest = makeIngestStore(dataDir);
+const ingest = makeIngestStore(dataDir, loadCorpus(corpusDir).map((p) => p.id));
 
 function resolveDataDir() {
   if (process.env.AGENC_PLUGIN_DATA && process.env.AGENC_PLUGIN_DATA.trim() !== "") {
@@ -106,7 +106,7 @@ const tools = [
   },
   {
     name: "problem_random",
-    description: "A random problem for practice, optionally filtered by topic and minimum difficulty. Deterministic per call seed — no hidden state.",
+    description: "A random problem for practice, optionally filtered by topic and minimum difficulty. Random selection; no reproducible seed.",
     inputSchema: {
       type: "object",
       properties: {
@@ -217,6 +217,7 @@ async function handleMessage(message) {
   if (message === null || typeof message !== "object") return null;
   const { id, method, params } = message;
   const isNotification = id === undefined;
+  if (isNotification) return null;
   try {
     if (method === "initialize") {
       return reply(id, {
@@ -278,7 +279,7 @@ async function main() {
       try {
         message = JSON.parse(line);
       } catch {
-        process.stderr.write(`olimpo: unparseable line: ${line.slice(0, 120)}\n`);
+        process.stderr.write("olimpo: invalid JSON\n");
         continue;
       }
       const response = await handleMessage(message);

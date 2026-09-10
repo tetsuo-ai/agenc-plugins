@@ -33,7 +33,18 @@ of the model:
 `problem_search`, `problem_get`, `problem_random`, `answer_check`,
 `study_plan`, `progress_mark`, `progress_list`, `ingest`. Fully offline.
 
-Core issue [tetsuo-ai/agenc-core#2078](https://github.com/tetsuo-ai/agenc-core/issues/2078):
-until it ships, register the identical server with the one-line
-user-level `agenc mcp add-json` (`env_vars: ["PATH"]`). The skill and
-`/olimpo` command work regardless.
+
+## Release blocked — corpus review required
+
+This PR is not approved for publishing. It bundles 396 entries (12 curated,
+384 mirrored); file/schema checks do not establish mathematical correctness.
+Known blockers: truncated 1959-2 and 1959-3 statements, unverified curated
+solutions, and missing per-source redistribution provenance/license evidence.
+Restore complete statements from authoritative, permitted sources and audit
+the solutions before removing the release gate.
+
+Runtime fixes conceal answers below solution level, preserve corrupt state
+instead of overwriting it, lock writes and use private atomic files. Answer
+checking is conservative text equality, not a symbolic equivalence/proof check.
+Missing solutions have a null solutionType. Native MCP registration is
+automatic; do not register a duplicate user server.

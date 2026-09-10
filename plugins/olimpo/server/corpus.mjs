@@ -4,8 +4,9 @@
  * disclosure lives here: a small model should never see the solution
  * until it asks for that level explicitly.
  */
-import { readdirSync, readFileSync, existsSync, writeFileSync, renameSync, mkdirSync } from "node:fs";
+import { readdirSync, readFileSync, existsSync, writeFileSync, renameSync, mkdirSync, rmSync, rmdirSync } from "node:fs";
 import { join } from "node:path";
+import { randomUUID } from "node:crypto";
 
 export const TOPICS = ["algebra", "geometry", "number-theory", "combinatorics"];
 
@@ -16,10 +17,10 @@ export function loadCorpus(corpusDir, extraPath) {
     let parsed;
     try {
       parsed = JSON.parse(readFileSync(path, "utf8"));
-    } catch {
-      return;
+    } catch (error) {
+      throw new Error("Cannot read corpus; preserve and repair the source file", {cause:error});
     }
-    if (!Array.isArray(parsed)) return;
+    if (!Array.isArray(parsed)) throw new Error("Corpus must be an array");
     for (const raw of parsed) {
       const problem = normalizeProblem(raw);
       if (problem === null || seen.has(problem.id)) continue;
@@ -55,7 +56,7 @@ export function normalizeProblem(raw) {
     answer: raw.answer === null || raw.answer === undefined ? null : String(raw.answer).slice(0, 200),
     keyIdea: String(raw.keyIdea ?? "").trim() || null,
     hints,
-    solutionType: raw.solutionType === "sketch" ? "sketch" : "full",
+    solutionType: !solution ? null : raw.solutionType === "sketch" ? "sketch" : "full",
     ...(solution.length > 0 ? { solution } : {}),
     ...(raw.sourceNote !== undefined ? { sourceNote: String(raw.sourceNote).slice(0, 300) } : {}),
   };
@@ -76,7 +77,6 @@ export function problemAtLevel(problem, level) {
     tags: problem.tags,
     title: problem.title,
     statement: problem.statement,
-    ...(problem.answer !== null ? { answer: problem.answer } : {}),
   };
   if (level === undefined || level === "statement") return base;
   if (level === "hints") {
@@ -94,6 +94,7 @@ export function problemAtLevel(problem, level) {
       hints: problem.hints,
       keyIdea: problem.keyIdea,
       solutionType: problem.solutionType,
+      ...(problem.answer !== null ? { answer: problem.answer } : {}),
       ...(problem.solution !== undefined ? { solution: problem.solution } : { solution: null, note: "solution not recorded for this problem" }),
       ...(problem.sourceNote !== undefined ? { sourceNote: problem.sourceNote } : {}),
     };
@@ -102,6 +103,7 @@ export function problemAtLevel(problem, level) {
 }
 
 export function searchProblems(problems, { query, topic, year, difficulty, limit = 20 }) {
+  limit = Number.isFinite(limit) ? Math.max(1, Math.min(100, Math.trunc(limit))) : 20;
   const terms = String(query ?? "").toLowerCase().split(/\s+/u).filter((t) => t.length > 1);
   const hits = [];
   for (const problem of problems) {
@@ -127,8 +129,8 @@ export function searchProblems(problems, { query, topic, year, difficulty, limit
 }
 
 /**
- * Deterministic numeric/expression answer check: normalizes commas,
- * whitespace, and a few textual equivalences before comparing. When the
+ * Exact short-answer comparison after conservative text normalization.
+ * This is not symbolic equivalence or a proof verifier. When the
  * recorded answer is null the check is reported as not-applicable — the
  * model must never guess verification.
  */
@@ -136,20 +138,11 @@ export function checkAnswer(problem, attempt) {
   if (problem.answer === null || problem.answer === undefined) {
     return { applicable: false, note: "this problem has no recorded short answer (proof-type); verify by reading the solution level" };
   }
-  const norm = (value) => String(value)
-    .toLowerCase()
-    .replace(/^[a-z]\)|^\d+[.)]/gu, "")
-    .replace(/^(?:el|la|los|las|the)\b/u, "")
-    .replace(/múltiplos|multiplos/gu, "múltiplo")
-    .replace(/ningún|ninguno|no existe|imposible|none/gu, "∅")
-    .replace(/f\(n\)\s*=\s*/gu, "")
-    .replace(/[\s,]/gu, "")
-    .trim();
-  const expected = norm(problem.answer);
-  const got = norm(attempt);
-  const ok = expected === got
-    || expected.includes(got) && got.length >= Math.max(3, expected.length - 4)
-    || got.includes(expected) && expected.length >= 3;
+  if (typeof attempt !== "string" || !attempt.trim() || attempt.length > 1000) return { applicable: true, correct: false, note: "attempt must be a nonempty string of at most 1000 characters" };
+  // Text equality only; preserve decimal points, commas, negation and signs.
+  const norm = (value) => String(value).normalize("NFKC").toLowerCase().trim()
+    .replace(/^(?:[a-z]\)|\d+[.)])\s+/u, "").replace(/\s+/gu, " ");
+  const ok = norm(problem.answer) === norm(attempt);
   return { applicable: true, correct: ok, expectedHint: ok ? null : "not quite — try the hints level before the solution" };
 }
 
@@ -165,27 +158,31 @@ export function studyPlan(problems, { topic, count = 5 }) {
 }
 
 export function makeProgressStore(dataDir) {
-  mkdirSync(dataDir, { recursive: true });
+  mkdirSync(dataDir, { recursive: true, mode: 0o700 });
   const path = join(dataDir, "progress.json");
   const load = () => {
     try {
       const parsed = JSON.parse(readFileSync(path, "utf8"));
-      return Array.isArray(parsed.entries) ? parsed.entries : [];
-    } catch {
-      return [];
+      if (!Array.isArray(parsed.entries)) throw new Error("entries must be an array");
+      return parsed.entries;
+    } catch (error) {
+      if (error.code === "ENOENT") return [];
+      throw new Error("Cannot read progress; preserving the original file", {cause:error});
     }
   };
   return {
     mark(id, { status, note }) {
+      if (!["attempted", "solved", "learning"].includes(status)) throw new Error("invalid progress status");
+      return withLock(path, () => {
       const entries = load();
       const entry = entries.find((e) => e.id === id) ?? { id };
       if (["attempted", "solved", "learning"].includes(status)) entry.status = status;
       if (note !== undefined) entry.note = String(note).slice(0, 200);
       entry.at = new Date().toISOString();
       if (!entries.includes(entry)) entries.push(entry);
-      writeFileSync(`${path}.tmp`, JSON.stringify({ entries }, null, 2));
-      renameSync(`${path}.tmp`, path);
+      writeJson(path, { entries });
       return entry;
+      });
     },
     list() {
       return load();
@@ -193,19 +190,21 @@ export function makeProgressStore(dataDir) {
   };
 }
 
-export function makeIngestStore(dataDir) {
+export function makeIngestStore(dataDir, builtInIds = []) {
   mkdirSync(dataDir, { recursive: true });
   const path = join(dataDir, "user-problems.json");
   return {
     ingest(items) {
+      return withLock(path, () => {
       const added = [];
       const rejected = [];
       let existing = [];
       try {
         const parsed = JSON.parse(readFileSync(path, "utf8"));
-        existing = Array.isArray(parsed) ? parsed : [];
-      } catch {
-        existing = [];
+        if (!Array.isArray(parsed)) throw new Error("user corpus must be an array");
+        existing = parsed;
+      } catch (error) {
+        if (error.code !== "ENOENT") throw new Error("Cannot read user corpus; preserving the original file", {cause:error});
       }
       for (const raw of Array.isArray(items) ? items : [items]) {
         const problem = normalizeProblem(raw);
@@ -213,7 +212,7 @@ export function makeIngestStore(dataDir) {
           rejected.push({ id: raw?.id ?? "?", reason: "id must be YYYY-N and statement ≥ 20 chars" });
           continue;
         }
-        if (existing.some((p) => p.id === problem.id)) {
+        if (builtInIds.includes(problem.id) || existing.some((p) => p.id === problem.id)) {
           rejected.push({ id: problem.id, reason: "duplicate" });
           continue;
         }
@@ -221,10 +220,26 @@ export function makeIngestStore(dataDir) {
         added.push(problem.id);
       }
       if (added.length > 0) {
-        writeFileSync(`${path}.tmp`, JSON.stringify(existing, null, 2));
-        renameSync(`${path}.tmp`, path);
+        writeJson(path, existing);
       }
       return { added, rejected };
+      });
     },
   };
+}
+function writeJson(path, value) {
+  const temporary = path + "." + randomUUID() + ".tmp";
+  try {
+    writeFileSync(temporary, JSON.stringify(value, null, 2), {mode:0o600, flag:"wx"});
+    renameSync(temporary, path);
+  } finally { rmSync(temporary, {force:true}); }
+}
+function withLock(path, action) {
+  const lock = path + ".lock";
+  try { mkdirSync(lock, {mode:0o700}); }
+  catch(error) {
+    if(error.code === "EEXIST") throw new Error("Store busy; retry. Crash locks require operator recovery.");
+    throw error;
+  }
+  try { return action(); } finally { rmdirSync(lock); }
 }
