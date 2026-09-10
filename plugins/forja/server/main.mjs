@@ -17,7 +17,7 @@ import { fileURLToPath } from "node:url";
 import { CODE_STYLE_RULESETS, CODE_STYLE_ALIASES, CODE_STYLE_FILES, verifyCode } from "./verify.mjs";
 
 const PROTOCOL_VERSION = "2025-06-18";
-const SERVER_INFO = { name: "forja", title: "Forge", version: "0.2.4" };
+const SERVER_INFO = { name: "forja", title: "Forge", version: "0.2.5" };
 const STYLES_DIR = join(dirname(fileURLToPath(import.meta.url)), "..", "outputStyles");
 
 const tools = [

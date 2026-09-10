@@ -4,11 +4,15 @@ Offline olympiad-style practice with **16 original exercises**, four per topic:
 algebra, geometry, number theory and combinatorics. Not an official IMO archive;
 not affiliated with the IMO or AoPS.
 
-Original Spanish statements, progressive hints, key ideas and worked solutions.
+Original English statements, progressive hints, key ideas and worked solutions.
 Stable IDs such as `olimpo-nt-004`; no invented contest years or attributions.
 Native AgenC registration provides nine offline MCP tools: `problems_list`,
 `problem_search`, `problem_get`, `problem_random`, `answer_check`, `study_plan`,
 `progress_mark`, `progress_list`, `ingest`. Do not add a duplicate manual server.
+
+Use `/olympus practice number theory`, `/olympus explain olimpo-nt-004`, or
+`/olympus search geometry`. `/olimpo` remains a compatibility alias; existing
+installation IDs, tool names and exercise IDs are unchanged.
 
 ## Accuracy and disclosure
 
