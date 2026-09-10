@@ -7,6 +7,7 @@
     "build": "node build-manifest.mjs",
     "validate": "node validate.mjs",
     "validate:core": "node validate-core.mjs",
+    "validate:built": "node validate-plugins-built.mjs",
     "validate:stonks-core": "node validate-stonks-core.mjs",
     "validate:stonks-built": "node validate-stonks-built.mjs",
     "validate:stonks-visuals": "node capture-stonks-visuals.mjs",
