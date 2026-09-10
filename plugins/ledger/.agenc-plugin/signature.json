@@ -1,6 +1,6 @@
 {
   "publisher": "tetsuo-ai",
-  "signature": "Zh8eeqXsGqGwyP7nk9TI2nplJLv91o4XhXCs67uVhAoEYS5Tait7QHv3T2xa8YqZacGgzBqVLWqVDnXx5er4Dg==",
+  "signature": "ArfDgrizAZFFq2jn981mJqMoF8UgD3gdXyhMOI1oT6WqTpBuWpoiip2Vu5AhTujiUfHdLfr1DtIB63n4tm4ZDA==",
   "files": {
     "assets/logo.png": "sha256:9699316d97635694b410dcb55741cec6b31b60132af25612b794b7242b375587",
     "commands/ledger-balance.md": "sha256:1b30ae15f71fe8baea6e38ebdd156cbacd5f61fb0179fbc70b7ddf7ef9f4e407",

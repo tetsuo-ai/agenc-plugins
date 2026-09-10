@@ -23,7 +23,7 @@ import {
 } from "./corpus.mjs";
 
 const PROTOCOL_VERSION = "2025-06-18";
-const SERVER_INFO = { name: "olimpo", version: "0.2.4" };
+const SERVER_INFO = { name: "olimpo", version: "0.2.5" };
 
 const dataDir = resolveDataDir();
 mkdirSync(dataDir, { recursive: true, mode: 0o700 });

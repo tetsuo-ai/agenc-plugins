@@ -16,7 +16,7 @@ import { fileURLToPath } from "node:url";
 import { STYLE_RULESETS, STYLE_ALIASES, STYLE_FILES, lintText } from "./lint.mjs";
 
 const PROTOCOL_VERSION = "2025-06-18";
-const SERVER_INFO = { name: "pluma", title: "Quill", version: "0.2.4" };
+const SERVER_INFO = { name: "pluma", title: "Quill", version: "0.2.5" };
 const STYLES_DIR = join(dirname(fileURLToPath(import.meta.url)), "..", "outputStyles");
 
 const tools = [

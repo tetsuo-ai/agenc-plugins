@@ -176,6 +176,11 @@ distribution certificate. Never upload the private signing key. Validate the
 catalog against compatible Core before deployment, preserve historical packages
 and the legacy public key, and keep a rollback copy of the previous hosted artifacts.
 
+### English command-label release (0.2.5)
+
+Olympus displays `/olympus` as its canonical command and retains `/olimpo` as
+a compatibility alias. Installation IDs, tool names and exercise IDs stay unchanged.
+
 ### Skill display-label release (0.2.4)
 
 Code Quality, Writing and Olympiad Practice carry English skill display names.
