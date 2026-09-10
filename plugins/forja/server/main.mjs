@@ -52,7 +52,7 @@ const tools = [
   },
   {
     name: "code_lint",
-    description: "Verify a code draft against one style (JS/TS or Python, heuristic structural analysis): function length bands, nesting depth, param counts, duplicate blocks, naming, debug leftovers, dead imports, per-style discipline (guard clauses, const discipline, class size, injected deps…), and — with style minimal-diff and `original` — measurable consistency with the file being edited (indentation style/width, quotes, naming, semicolons). Returns violations with fixes and a 0-100 score (pass ≥ 85).",
+    description: "Verify a code draft against one style (JS/TS or Python, heuristic structural analysis): function length bands, nesting depth, param counts, duplicate blocks, naming, debug leftovers, dead imports, per-style discipline (guard clauses, const discipline, class size, injected deps…), and — with style minimal-diff and `original` — measurable consistency with the file being edited (indentation style/width, quotes, naming, semicolons). Returns violations with fixes and a 0-100 score (pass requires ≥ 85 and no errors).",
     inputSchema: {
       type: "object",
       properties: {
@@ -88,6 +88,7 @@ async function handleMessage(message) {
   if (message === null || typeof message !== "object") return null;
   const { id, method, params } = message;
   const isNotification = id === undefined;
+  if (isNotification) return null;
   try {
     if (method === "initialize") {
       return reply(id, {
@@ -149,7 +150,7 @@ async function main() {
       try {
         message = JSON.parse(line);
       } catch {
-        process.stderr.write(`forja: unparseable line: ${line.slice(0, 120)}\n`);
+        process.stderr.write("forja: invalid JSON-RPC input\n");
         continue;
       }
       const response = await handleMessage(message);

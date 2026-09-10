@@ -46,7 +46,7 @@
   ],
   "interface": {
     "displayName": "Forja",
-    "shortDescription": "Code disciplines — and a linter that proves them.",
+    "shortDescription": "Code disciplines — and practical structural lint checks.",
     "longDescription": "A code-writing-styles library and its verifier. Five disciplines ship as AgenC output styles: limpio (small single-purpose functions, early returns, intention-revealing names), defensivo (guard clauses at boundaries, fail-fast, no swallowed errors), funcional (pure functions, const discipline, transforms over mutation), solid (one responsibility per class, injected dependencies, composition over inheritance) — and minimal-diff, the surgery protocol for editing existing code: the smallest coherent change, matching the host file's own conventions. The differentiator is the deterministic structural verifier: every draft (JS/TS and Python, heuristics stated as heuristics) is checked for function-length bands, nesting depth, parameter counts, duplicate blocks, naming consistency, debug leftovers, dead imports, style-specific discipline — and, for edits, measurable consistency with the original file (indentation style and width, quote style, naming convention, semicolons). Violations carry concrete fixes; drafts must clear 85/100. Fully offline, zero dependencies, identical on local models.",
     "developerName": "tetsuo-ai",
     "category": "developer-tools",
