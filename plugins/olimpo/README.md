@@ -1,4 +1,4 @@
-# Olimpo
+# Olympus
 
 Offline olympiad-style practice with **16 original exercises**, four per topic:
 algebra, geometry, number theory and combinatorics. Not an official IMO archive;

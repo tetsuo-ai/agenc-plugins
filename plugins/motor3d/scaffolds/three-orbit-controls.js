@@ -1,16 +1,16 @@
 import { withErrorOverlay } from "../server/overlay.mjs";
-// Scaffold: three-orbit-controls — órbita/dolly/pan con puntero y touch,
-// SIN dependencias más allá de three (controles propios, ~80 líneas
-// correctas: inercia, límites, capture de puntero).
+// Scaffold: three-orbit-controls - orbit/dolly/pan with pointer and touch,
+// with no dependencies beyond three.js (custom controls, about 80 lines
+// covering inertia, limits, and pointer capture).
 export default {
   "name": "three-orbit-controls",
   "framework": "three",
-  "description": "Controles orbitales propios con inercia y límites (puntero + touch), sin addons externos.",
+  "description": "Custom orbital controls with inertia and limits for pointer and touch, without external addons.",
   "html": withErrorOverlay(`<!doctype html>
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<title>TODO: título</title>
+<title>TODO: title</title>
 <style>html,body{margin:0;height:100%;overflow:hidden}canvas{display:block;touch-action:none}</style>
 <script type="importmap">
 { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js" } }
@@ -44,7 +44,7 @@ const orbit = {
   minRadius: 2, maxRadius: 20,
   minPhi: 0.05, maxPhi: Math.PI - 0.05,
 };
-const vel = { theta: 0, phi: 0, radius: 0 }; // velocidad para inercia
+const vel = { theta: 0, phi: 0, radius: 0 }; // velocity for inertia
 const INERTIA = 0.90, SENS = 0.005, ZOOM_SENS = 0.0012, PAN_SENS = 0.002;
 
 const pointers = new Map();
@@ -72,7 +72,7 @@ renderer.domElement.addEventListener("pointermove", (e) => {
   const dx = e.clientX - prev.x, dy = e.clientY - prev.y;
   prev.x = e.clientX; prev.y = e.clientY;
   if (prev.button === 2 || (pointers.size === 2)) {
-    // pan: mover target en el plano de la cámara
+    // pan: move the target in the camera plane
     right.setFromMatrixColumn(camera.matrix, 0);
     up.setFromMatrixColumn(camera.matrix, 1);
     orbit.target.addScaledVector(right, -dx * PAN_SENS * orbit.radius);
@@ -115,7 +115,7 @@ function animate() {
     orbit.radius += vel.radius; vel.radius *= INERTIA;
   }
   applyCamera();
-  // TODO: animar contenido con dt
+  // TODO: animate content with dt
   world.rotation.y += dt * 0.5;
   renderer.render(scene, camera);
   requestAnimationFrame(animate);
@@ -126,8 +126,8 @@ animate();
 </body>
 </html>`),
   "notes": [
-    "setPointerCapture: no perdés el arrastre al salir del canvas.",
-    "touch-action: none en el canvas es OBLIGATORIO para pointermove en móvil.",
-    "El pan escala con orbit.radius: cerca de la escena, pan fino; lejos, amplio.",
+    "setPointerCapture keeps dragging active when the pointer leaves the canvas.",
+    "touch-action: none on the canvas is required for mobile pointermove.",
+    "Pan scales with orbit.radius: fine movement nearby and wider movement farther away.",
   ],
 }

@@ -7,7 +7,7 @@ slice: ""                # entry symbol + depth used
 pass_at_k: 1             # independent runs that found this (k total in notes)
 ---
 
-# H-000 — <one-line claim>
+# H-000 - <one-line claim>
 
 ## Entry → Sink
 `file:line` entry point → `file:line` dangerous operation. Data flow in 1-3 lines.

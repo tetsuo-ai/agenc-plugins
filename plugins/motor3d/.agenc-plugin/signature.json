@@ -1,20 +1,20 @@
 {
   "publisher": "tetsuo-ai",
-  "signature": "o9niGah08TAY1C7wbAO5NqERRAMwNidiB7PlrMV4iduJE3yj2xSSovHX2TI5yPPmWjui9aeLqFm188QJeS0yBA==",
+  "signature": "cqciSGBVi8yneoQ+sjLl8F+uuXQoLMBMockG1Wkq2e9gzPHoFCKqM9M9UStBHBiYV/A8ybJQox/05tQ7nwpvDA==",
   "files": {
     "assets/logo.png": "sha256:287cb704f60c6a84d5cdc3cccf82c2f37e97733b8fb461e83740a4661756e4a1",
-    "commands/motor3d.md": "sha256:b76ace050faac5c9a442cd10d90bcaf0bb706e62e26e38720c6d25802c27b5b3",
-    "README.md": "sha256:6fbf5b53e83c9aa9bdf7804b309a6900ccce50972320f27faf6da4dcb56f3c12",
-    "scaffolds/canvas2d-game-loop.js": "sha256:971584bb8882aecd45453c7ed24a0e746807b19d04b33a9e83c8536a636b3ddd",
-    "scaffolds/three-asset-loading.js": "sha256:7c57256fb2467803ce21b7c71fa9183c527d7e263e4c3441d7cad5bd22f7e464",
-    "scaffolds/three-basic-scene.js": "sha256:66606bfac5b6f279dcfc2e39064e2548419d074ac1646b03c1751df901594eb3",
-    "scaffolds/three-instancing.js": "sha256:7ae05ae1c238fb38e01e1a37db85a3b0831120520d4f8f291670ae9651024c89",
-    "scaffolds/three-orbit-controls.js": "sha256:34c5a5c6c629935f547f284262c4dd48b438071b2442f8c2d68475a481e75125",
-    "scaffolds/three-raycast-picking.js": "sha256:fba7fd750c08eccdcd82306b0bcec4af72a7adef6f48d0326f655214db97d8a3",
-    "scaffolds/webgpu-init.js": "sha256:05cefa692e4408f19c20a263b21b80a35fee38791d02859a272712735d733f9f",
-    "server/lint3d.mjs": "sha256:a63b8b7bc0385d888c3d0c404da39f2a099f8b1b0afafe8db2823fc8bd29133f",
-    "server/main.mjs": "sha256:5e09cc71dc79185a2ca345ed06f90e15f3178bc25a22a3fe28795e3da4f60829",
+    "commands/motor3d.md": "sha256:c1d3ebd618ab8ee505943faf9af1b8f24f99e0318b5178dda0ed6d9a052f91d1",
+    "README.md": "sha256:849228edc210e8a036fb7d7ae681b2b0d4cdb4fcf5d2288c98f414de3a9e95c9",
+    "scaffolds/canvas2d-game-loop.js": "sha256:7528f817566410984d837e4f8fa4ed5cd71c0346ed3f4fc44d45667c280b0db1",
+    "scaffolds/three-asset-loading.js": "sha256:ca2c415f2361e4ae18614a819bd798eff4cfb89a80b728ccb9ca13f57c136706",
+    "scaffolds/three-basic-scene.js": "sha256:204580a1acff8894d59e62326c451e542d008979c6fbd25feb420b3a6cb55282",
+    "scaffolds/three-instancing.js": "sha256:5a22e21eb7c19cc16f96822a9a7732aeedcc79233ef2504ca48751effc742a7f",
+    "scaffolds/three-orbit-controls.js": "sha256:12bbc8ab3c2f8f38ba40940a1075802f34075f9155b9950333d24c7e910315f3",
+    "scaffolds/three-raycast-picking.js": "sha256:0cfbaec6dd073637d4737c94044cca7b7994bbc9c0520c43d6d33eb1822b1397",
+    "scaffolds/webgpu-init.js": "sha256:423ad996b0b24b2649eacaa570d495a08c43339cc7f50c1d4e4426760f3ab513",
+    "server/lint3d.mjs": "sha256:29878dd60e11c1caa5829075f05fcf02a58ef5482332074da2764ba6eff72224",
+    "server/main.mjs": "sha256:fbbb4c32cd4f13a4a19dd9e022358f176eca0145d52f2c3f76ba365604dee1ef",
     "server/overlay.mjs": "sha256:7a0a326f5427a5a477486d53b99fe31751941e9c03b6f2f3e7812318bb0ffb88",
-    "skills/motor3d/SKILL.md": "sha256:c378ad9c39e2a35488cb361c3e64385a8f4d5f152771296e8f76f1451304cee0"
+    "skills/motor3d/SKILL.md": "sha256:35b44a97900918a37c308ad585a6ae4907713df89d9b36a5f2dd390fb6db39f0"
   }
 }

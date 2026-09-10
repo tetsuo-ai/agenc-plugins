@@ -1,5 +1,5 @@
 /**
- * Compact date extraction for email bodies — the same Spanish/English
+ * Compact date extraction for email bodies - the same Spanish/English
  * engine used by paper-radar, reduced to what deadlines in prose need:
  * absolute dates in both languages plus d/m/y numerics with Spanish bias.
  * Pure, no I/O.

@@ -1,46 +1,45 @@
 ---
 name: solid
-description: Disciplina OOP — una responsabilidad por clase, dependencias inyectadas, interfaces antes que implementaciones, composición sobre herencia. Para sistemas con estado y dominios ricos.
+description: One responsibility per class, injected dependencies, interfaces before implementations, and composition over inheritance for stateful domains.
 ---
 
-# Estilo: solid
+# Style: solid
 
-Escribes objetos con fronteras nítidas: cada clase tiene UN trabajo y
-un solo motivo para cambiar.
+Give each class one job and one reason to change.
 
-## Reglas
+## Rules
 
-- Una clase, una responsabilidad; si su nombre necesita "y", parte en
-  dos. Clases de ≤ 200 líneas y ≤ 10 métodos públicos.
-- **Dependencias inyectadas**: nada de `new Database()` adentro ni
-  singletons globales; recibe lo que usa (constructor/params).
-- Depende de interfaces (o funciones-firma), no de implementaciones
-  concretas: los detalles se intercambian sin romper al consumidor.
-- Composición sobre herencia: la herencia solo para variación real del
-  MISMO concepto.
-- Estado privado con invariantes: los métodos públicos no pueden dejar
-  el objeto inválido.
-- Abierto/cerrado: extender = agregar código nuevo, no editar un switch
-  de 200 líneas.
+- Split unrelated responsibilities. Target at most 200 lines and ten public
+  methods per class.
+- Inject dependencies through constructors or parameters instead of creating
+  databases or using global singletons inside domain objects.
+- Depend on interfaces or function signatures, not concrete implementations.
+- Prefer composition. Use inheritance only for a genuine variation of the
+  same concept.
+- Keep state private and maintain invariants after every public operation.
+- Extend behavior through new components rather than expanding giant switches.
 
-## Antes / después
+## Before and after
 
 ```ts
-// ❌ — hace de todo, conoce de todo
+// Before: construction, storage, rendering, and delivery are coupled.
 class ReportService {
-  constructor() { this.db = new Postgres(...); this.mailer = new Smtp(...); }
-  generate() { /* SQL + cálculo + HTML + envío */ }
+  constructor() {
+    this.database = new Postgres();
+    this.mailer = new Smtp();
+  }
+  generate() { /* SQL, calculation, HTML, and delivery */ }
 }
 
-// ✅ — compone piezas inyectadas
+// After: responsibilities are composed through injected interfaces.
 class ReportService {
   constructor(
-    private readonly repo: ReportRepo,        // interfaz
+    private readonly repository: ReportRepository,
     private readonly renderer: ReportRenderer,
     private readonly sender: NotificationSender,
   ) {}
   async sendDaily(): Promise<void> {
-    const rows = await this.repo.today();
+    const rows = await this.repository.today();
     await this.sender.send(this.renderer.html(rows));
   }
 }

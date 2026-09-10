@@ -1,6 +1,6 @@
 {
   "name": "olimpo",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Olympiad-style practice with 16 original exercises, complete worked solutions, progressive hints and a private study ledger. Four topics, offline tools and conservative short-answer comparison. Not an official IMO archive.",
   "author": {
     "name": "tetsuo-ai"
@@ -32,7 +32,7 @@
     "olimpo": {
       "source": "./commands/olimpo.md",
       "description": "Practice original math exercises with progressive hints and worked solutions",
-      "argumentHint": "<practica|explica|busca> [tema|id|técnica]",
+      "argumentHint": "<practice|explain|search> [topic|id|technique]",
       "allowedTools": [
         "Bash",
         "Read"
@@ -43,7 +43,7 @@
     "./skills/olimpiada"
   ],
   "interface": {
-    "displayName": "Olimpo",
+    "displayName": "Olympus",
     "shortDescription": "Math practice, one hint at a time.",
     "longDescription": "Sixteen original exercises across algebra, geometry, number theory and combinatorics, with worked solutions and progressive hints. Search techniques, plan a session, track progress locally and import your own exercises. Short answers use conservative text comparison, not symbolic equivalence or proof verification. Includes derivation-based review and reproducible checks; no claim of independent human or formal verification. Fully offline; not an official IMO collection.",
     "developerName": "tetsuo-ai",
@@ -62,10 +62,10 @@
     "brandColor": "#06b6d4",
     "logo": "./assets/logo.png",
     "defaultPrompt": [
-      "Prepara una práctica de teoría de números",
-      "Explícame el ejercicio olimpo-nt-004",
-      "Dame una pista, sin mostrar la solución",
-      "Busca ejercicios de geometría"
+      "Prepare a number theory practice session",
+      "Explain exercise olimpo-nt-004",
+      "Give me a hint without showing the solution",
+      "Find geometry exercises"
     ],
     "screenshots": []
   }

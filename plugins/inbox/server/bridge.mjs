@@ -1,6 +1,6 @@
 /**
- * The paper-radar bridge: find emails that ARE documents — renewal
- * notices, policies, invoices, tickets — and emit their text in the exact
+ * The paper-radar bridge: find emails that ARE documents - renewal
+ * notices, policies, invoices, tickets - and emit their text in the exact
  * shape paper-radar's ingest expects, so the agent can feed the
  * administrative memory without copy-pasting. Also surfaces event-like
  * emails (bookings, appointments) as calendar candidates. Pure.
@@ -21,7 +21,7 @@ const EVENT_KEYWORDS = /(?:vuelo|flight|reserva|booking|reservaci[oó]n|cita|app
 
 /**
  * Classify analyzed messages into document candidates for paper-radar.
- * Output rows carry `ingestText` — pass it straight to paper-radar's
+ * Output rows carry `ingestText` - pass it straight to paper-radar's
  * ingest_extract when that plugin is installed.
  */
 export function documentRows(messages) {
@@ -96,7 +96,7 @@ function suggestCategory(keywords, attachments) {
 function buildIngestText(message, docAttachments) {
   const parts = [message.subject, "", message.text.slice(0, 4000)];
   for (const attachment of docAttachments) {
-    parts.push("", `[ATTACHMENT: ${attachment.filename} (${attachment.mimeType}, ${attachment.sizeBytes} bytes) — download with vault_fetch and run pdftotext for full text]`);
+    parts.push("", `[ATTACHMENT: ${attachment.filename} (${attachment.mimeType}, ${attachment.sizeBytes} bytes) - download with vault_fetch and run pdftotext for full text]`);
   }
   return parts.join("\n");
 }

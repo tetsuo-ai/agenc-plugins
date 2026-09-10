@@ -1,50 +1,44 @@
 ---
 name: escritura
-description: Writing with styles and a deterministic verifier. Picks the right tone or document form, drafts, then verifies the draft against the style's lint ruleset (register, structure, length, readability) and fixes every violation before delivering. Use for letters, emails, speeches, proposals, cover letters, or any text that must carry a specific voice.
-when_to_use: The user asks to write something with a voice or form ("write a formal letter", "redactá un discurso", "make this concise", "suena muy frío"), or wants existing text re-styled or checked.
-argument-hint: <estilo> [texto o pedido]
+description: Choose a voice or document form, draft, check register, structure, length, and readability with a deterministic linter, then revise before delivery. Use for letters, emails, speeches, proposals, cover letters, or restyling existing text.
+when_to_use: The user asks for a specific voice or document form, wants warmer or more concise writing, or asks to restyle or check existing text.
+argument-hint: <style> [text or request]
 ---
 
-# Escritura — la voz elegida, verificada
+# Writing with a verified style
 
-Los estilos de pluma son dos cosas: una biblioteca de voces y formas
-(seleccionables como output styles con `/output-style` para toda la
-sesión) y un verificador determinista que se asegura de que el borrador
-CUMPLE el estilo antes de entregarlo. El modelo escribe; el linter
-juzga.
+Quill combines session-wide output styles with a deterministic prose linter.
+The model writes; the linter supplies heuristic feedback.
 
-## Protocolo
+## Workflow
 
-1. **Elige el estilo con el usuario** — `styles_list` y una pregunta
-   corta si no está claro. Tonos (formal, cercano, directo, persuasivo,
-   técnico) vs formas (carta-formal, email-profesional, discurso,
-   propuesta, cover-letter). Si el usuario da texto existente para
-   re-estilizar, nombra qué tiene y qué quiere.
-2. **Borrador** — escribe siguiendo el output style correspondiente (su
-   markdown define estructura y reglas). Máxima densidad de propósito:
-   cada línea gana la siguiente.
-3. **Verifica** — `style_lint` con el borrador y el estilo. Lee las
-   violaciones: severidad, excerpt, fix.
-4. **Corrige y repite** — aplica los fixes y vuelve a lintear hasta
-   `pass: true` (score ≥ 85). Máximo dos iteraciones de corrección; si
-   algo sigue en rojo, es una decisión del usuario: muéstrala, no la
-   resuelvas por él (p. ej. falta el precio real en una propuesta).
-5. **Entrega** — el texto final, más una línea con el score y qué
-   corregiste. Si el usuario querrá escribir más en esa voz, sugiere
-   `/output-style <nombre>` para toda la sesión.
+1. Choose the style with the user. Call `styles_list` and ask one short
+   question only if needed. Voices: formal, warm, concise, persuasive,
+   technical. Forms: formal-letter, professional-email, speech, proposal,
+   cover-letter. When restyling, identify the current and desired voice.
+2. Draft using the corresponding output style's structure and rules. Give
+   every sentence a clear purpose.
+3. Call `style_lint` with the draft and style. Read each finding's severity,
+   excerpt, and suggested fix.
+4. Revise and recheck until `pass: true`, requiring a score of at least 85
+   and no errors. Make at most two revision passes. Present unresolved
+   choices to the user instead of inventing facts, such as a missing price.
+5. Deliver the final text and one line stating the score and changes.
+   If the user wants this voice throughout the session, open `/output-style`
+   and select the installed plugin style matching the catalog's `outputStyleName`.
+   Do not construct an exact style ID; it includes an installation namespace.
 
-## Sobre re-estilizar texto existente
+## Restyling existing text
 
-Preserva los HECHOS del original (nombres, cifras, fechas, pedidos) al
-mil por ciento; el estilo cambia, la verdad no. Si el original contiene
-afirmaciones que el lint marca (vaguedades, hedges), no las "mejores"
-inventando datos: márcalas al usuario.
+Preserve names, figures, dates, requests, and all other facts. If a rule
+flags an unsupported or vague claim, ask for evidence or mark the gap.
+Do not make up data to improve the score.
 
-## Límites
+## Boundaries
 
-- El linter es determinista: sus reglas son francas, no sutiles. Un
-  `info` no bloquea la entrega; un `error` sí.
-- No inventes destinatarios, empresas ni logros: el gancho de un cover
-  letter se escribe con lo que el usuario dio, o se pregunta.
-- Los tools son entradas deferidas del catálogo: busca con tu tool
-  search (`system.searchTools`) "pluma" antes del primer uso.
+- Checks are deterministic heuristics. An informational finding alone does
+  not block delivery; an error does.
+- Do not invent recipients, companies, or achievements. Use supplied
+  details or ask for what is missing.
+- Discover deferred tools with `system.searchTools` using the compatible
+  installation ID `pluma` before first use.

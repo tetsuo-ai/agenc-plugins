@@ -3,7 +3,7 @@
 Check every candidate against this library *before* the walkthrough (cheap kill) and
 again before G3 (expensive kill). Matching a pattern kills the candidate unless you can
 state, concretely, why the pattern does not apply. Kills are logged in
-`logs/bad-attempts.md` — they are permanent filters for future campaigns.
+`logs/bad-attempts.md` - they are permanent filters for future campaigns.
 
 Signal:noise on raw LLM audits is ≈ 1:50 (Heelan's measurement). This library is how you
 beat that base rate.
@@ -19,7 +19,7 @@ beat that base rate.
 
 ## Sanitizer-already-present FPs
 
-- Validation exists one layer up (middleware, framework auto-escape, ORM binding) — verify
+- Validation exists one layer up (middleware, framework auto-escape, ORM binding) - verify
   by *sending the payload and observing the actual query/command*, never by reading one
   function.
 - Length check you dismissed is actually correct: recompute it with the real types and
@@ -33,21 +33,21 @@ beat that base rate.
 - **Debug-only paths**: assertion/abort reachable only in debug builds; the release build
   handles it.
 - **Container confinement**: the traversal/RCE works but is confined to an ephemeral
-  sandbox with no secrets and no network — note as defense-in-depth gap, not a vuln.
+  sandbox with no secrets and no network - note as defense-in-depth gap, not a vuln.
 - **Version mirage**: you're auditing a dependency version older/newer than what ships.
 
 ## Severity-inflation FPs
 
 - **Self-DoS**: the "victim" and "attacker" are the same principal (crashing your own
   process with your own malformed file, no cross-principal impact).
-- **Requires-the-keys-to-the-kingdom**: needs an existing admin/root — then it's not a
+- **Requires-the-keys-to-the-kingdom**: needs an existing admin/root - then it's not a
   privilege boundary crossing.
 - **Theoretical race**: window exists but is not attacker-influenceable and has no
   security consequence (cosmetic state skew).
 - **Infoleak of nothing**: OOB read returns bytes that never leave the process or contain
   no sensitive data on any path you can show.
 
-## Reasoning FPs (model failure modes — self-check)
+## Reasoning FPs (model failure modes - self-check)
 
 - **Assumed definition**: you guessed what a missing function/macro does. Fetch it. If
   you can't, the hypothesis stays unproven.
@@ -55,7 +55,7 @@ beat that base rate.
 - **Skipped conditional**: a branch on the path was waved through without attacker
   control demonstrated.
 - **Echo-chamber promotion**: promoting because a previous agent/run said so. Independent
-  verification only — pass@k runs must not see each other's notes.
+  verification only - pass@k runs must not see each other's notes.
 - **Verifier gaming**: editing the verifier, weakening the signal regex, or asserting on
   your own log lines. Instant invalidation; log it as a process failure.
 
@@ -63,7 +63,7 @@ beat that base rate.
 
 - **Reflected-but-sterile XSS**: payload reflects inside a context the browser can't
   execute (correctly-encoded attribute, JSON with the right content-type + nosniff).
-  Confirm execution in a headless browser — reflection alone is not XSS.
+  Confirm execution in a headless browser - reflection alone is not XSS.
 - **Open-redirect dressing**: a redirect is not an auth bypass; state the real impact or
   demote.
 - **CSRF on a state-unchanging endpoint.**

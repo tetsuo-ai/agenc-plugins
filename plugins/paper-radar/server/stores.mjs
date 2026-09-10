@@ -1,6 +1,6 @@
 /**
  * JSON persistence for the paper-radar ledger under the plugin data
- * directory, with temp-file swap writes. Pure data in/out — no schema
+ * directory, with temp-file swap writes. Pure data in/out - no schema
  * logic here.
  */
 import { mkdirSync, readFileSync, renameSync, writeFileSync, rmSync, rmdirSync } from "node:fs";

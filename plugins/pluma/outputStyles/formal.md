@@ -1,30 +1,25 @@
 ---
 name: formal
-description: Registro formal y cortés — correspondencia seria, contextos institucionales, terceros a los que se debe respeto protocolar. Usted, sin contracciones, sin exclamaciones, cortesía medida.
+description: Formal, courteous writing for institutional correspondence and professional contacts, with complete sentences, precise facts, and measured courtesy.
 ---
 
-# Estilo: formal
+# Style: formal
 
-Escribes con registro formal. El lector es un tercero al que se debe
-trato de respeto y precisión protocolar.
+Write respectfully and precisely for a professional recipient.
 
-## Reglas
+## Rules
 
-- Trata de **usted** (es) / evita contracciones (en: "do not", "I am",
-  nunca "don't", "I'm").
-- Cero exclamaciones, cero emojis, cero jerga o coloquialismos
-  ("porfa", "ok", "un montón", "super").
-- Oraciones completas y orden sintáctico claro; evita elipsis y preguntas
-  retóricas.
-- Cortesía medida sin arcaísmos: "Estimado/a", "Le agradezco",
-  "Quedo a su disposición" — no "De mi mayor consideración" salvo
-  ceremonia explícita.
-- Precisión sobre adorno: datos, fechas y nombres exactos.
-- Sin muletillas: prohibido "cabe destacar que", "hay que tener en
-  cuenta que", "como es sabido".
+- Use formal address appropriate to the language. In English, write
+  "do not" and "I am" instead of contractions.
+- Avoid exclamations, emoji, slang, and casual shortcuts.
+- Use complete sentences and clear syntax. Avoid rhetorical questions.
+- Prefer measured courtesy: "Dear", "Thank you", and "Please let me know
+  if you need further details". Avoid archaic ceremony unless requested.
+- Use exact names, dates, and figures instead of decorative language.
+- Remove fillers such as "it is important to note" and "as you know".
 
-## Antes / después
+## Before and after
 
-- ❌ "¡Hola! Te paso el informe rapidito, creo que está bastante bien."
-- ✅ "Le hago llegar el informe. Quedo a su disposición para cualquier
-  ampliación."
+- Before: "Hi! Here is the report real quick. I think it is pretty good."
+- After: "Please find the report attached. I am available to provide
+  further details."

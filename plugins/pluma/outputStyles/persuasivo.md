@@ -1,28 +1,24 @@
 ---
 name: persuasivo
-description: Escritura que mueve a la acción — propuestas comerciales, landing, fundraising. Beneficio primero, prueba, y un solo llamado claro a actuar.
+description: Evidence-backed writing that motivates one clear action, with the reader's benefit first, specific proof, and truthful urgency.
 ---
 
-# Estilo: persuasivo
+# Style: persuasive
 
-Escribes para que alguien haga algo. Cada línea gana el derecho a la
-siguiente.
+Help the reader decide to act. Each sentence should justify the next.
 
-## Reglas
+## Rules
 
-- Abre con el beneficio para el lector, no con quién eres tú.
-- Verbos de acción en voz activa: "ahorra", "recupera", "empieza" —
-  no "se podría considerar".
-- Cada afirmación fuerte va con su prueba: número, caso, nombre o
-  plazo. Sin prueba, se debilita o se corta.
-- Un solo llamado a la acción, concreto y con verbo imperativo
-  ("Responde este correo con el día que te venga bien").
-- Prohibidos los hedge: "quizás", "tal vez", "maybe", "somewhat".
-- Urgencia solo si es verdadera, y siempre con su motivo.
+- Open with the reader's benefit, not the author's identity.
+- Use active verbs such as "save", "recover", and "start".
+- Support strong claims with a number, example, source, or timeframe.
+  Weaken or remove claims that lack evidence.
+- Include exactly one concrete call to action with an imperative verb.
+- Remove hedges such as "maybe", "perhaps", and "somewhat".
+- Use urgency only when it is true, and explain its reason.
 
-## Antes / después
+## Before and after
 
-- ❌ "Creemos que quizás nuestra solución podría ser de utilidad para
-  su organización."
-- ✅ "Tus facturas se pagan 12 días antes con recordatorios
-  automatizados. Empieza el lunes con tu plantilla actual."
+- Before: "We think our solution might perhaps be useful to your team."
+- After: "Automated reminders reduced payment delays by 12 days in the
+  supplied case study. Reply with a time for a demonstration."

@@ -1,7 +1,7 @@
 /**
- * Motor3D contract tests: the deterministic verifier against the classic
+ * 3D Engine contract tests: the deterministic verifier against the classic
  * hallucinations (API-era table), performance heuristics, harness
- * generation, scaffold loading — plus the MCP server as a real child
+ * generation, scaffold loading, plus the MCP server as a real child
  * process. Fully offline.
  */
 import assert from "node:assert/strict";
@@ -133,7 +133,7 @@ test("lint3d: framework detection and empty input", () => {
   assert.equal(detectFramework("const c = canvas.getContext('2d')"), "canvas2d");
   assert.equal(detectFramework("navigator.gpu.requestAdapter()"), "webgpu");
   const empty = lint3d("x");
-  assert.match(empty.error, /demasiado corto/u);
+  assert.match(empty.error, /code is too short to analyze/u);
 });
 
 test("scaffolds: all import cleanly and carry structure", async () => {
@@ -144,7 +144,7 @@ test("scaffolds: all import cleanly and carry structure", async () => {
     assert.equal(mod.default.name, name);
     assert.ok(mod.default.html.length > 800, `${name} has real HTML`);
     assert.ok(Array.isArray(mod.default.notes) && mod.default.notes.length >= 3, `${name} carries notes`);
-    // Los scaffolds three deben pasar su propio linter o casi
+    // Three.js scaffolds should pass their own linter or come close.
     if (mod.default.framework === "three") {
       const result = lint3d(mod.default.html, { framework: "three" });
       assert.ok(result.score >= 80, `${name} self-lints ≥80 (${result.score}: ${rules(result)})`);

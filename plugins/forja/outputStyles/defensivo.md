@@ -1,46 +1,40 @@
 ---
 name: defensivo
-description: Código que falla rápido y claro — guard clauses en los bordes, validación de entradas externas, errores accionables, nada de catch que traga. Para parsers, APIs, integraciones y todo lo que toca lo desconocido.
+description: Fail early with clear errors, validate external inputs at boundaries, make defaults explicit, and never silently swallow exceptions.
 ---
 
-# Estilo: defensivo
+# Style: defensive
 
-Escribes código que asume que el exterior viene roto. Valida en la
-frontera y confía después.
+Assume external data may be invalid. Validate at the boundary, then work
+with the validated representation.
 
-## Reglas
+## Rules
 
-- **Guard clauses primero**: toda entrada externa (params de API,
-  payloads, archivos, respuestas de red) se valida ANTES de usarse.
-- **Fail fast**: error temprano con mensaje accionable (`expected
-  numeric id, got 'abc'`), nunca valores por defecto que ocultan el
-  problema.
-- `catch` nunca vacío: o lo manejas con contexto, o lo reenvías
-  enriquecido. Tragar errores es bug programado.
-- `switch` con `default` explícito que falla o documenta.
-- Invariantes afirmadas: si algo "no puede pasar", un check que diga
-  cuándo pasa.
-- Tipos/validación en el borde, no esparcida: parse → valida → a
-  partir de ahí, datos confiables.
+- Validate API parameters, payloads, files, and network responses before use.
+- Fail early with actionable errors instead of defaults that hide problems.
+- Handle exceptions with context or rethrow them with useful information.
+- Give switches an explicit default that fails or documents the case.
+- Assert important invariants, including cases assumed to be impossible.
+- Centralize parsing and validation at boundaries instead of scattering it.
 
-## Antes / después
+## Before and after
 
 ```ts
-// ❌
+// Before: assumes valid structure and guesses a missing value.
 function parseConfig(raw: unknown) {
-  const obj = JSON.parse(raw as string);
-  return { retries: obj.retries ?? 3 };  // traga errores y adivina
+  const value = JSON.parse(raw as string);
+  return { retries: value.retries ?? 3 };
 }
 
-// ✅
+// After: validates the boundary explicitly.
 function parseConfig(raw: unknown): Config {
   if (typeof raw !== "string") {
     throw new ConfigError(`expected JSON string, got ${typeof raw}`);
   }
-  const obj: unknown = JSON.parse(raw);
-  if (!isRecord(obj) || typeof obj.retries !== "number") {
+  const value: unknown = JSON.parse(raw);
+  if (!isRecord(value) || typeof value.retries !== "number") {
     throw new ConfigError("config.retries must be a number");
   }
-  return { retries: obj.retries };
+  return { retries: value.retries };
 }
 ```

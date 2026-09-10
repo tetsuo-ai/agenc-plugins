@@ -1,6 +1,6 @@
 {
   "name": "inbox",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "The Gmail copilot that reads what no reader reads: a relationship-ranked digest from your own local trust graph, the social commitments layer (who owes you a reply, who's waiting on you, what you promised with dates), a local attachment vault, newsletter archaeology with evidence, and a document bridge that feeds paper-radar straight from your mailbox. Read-only: never sends, never deletes.",
   "author": {
     "name": "tetsuo-ai"
@@ -42,8 +42,8 @@
   ],
   "interface": {
     "displayName": "Inbox",
-    "shortDescription": "Your Gmail, read by relationships — not by content.",
-    "longDescription": "Connects your Gmail with your own Google Cloud OAuth client (bring-your-own credentials, loopback redirect, tokens stored only in the plugin data directory; results are visible to the host chat model). Then it reads the layers no email reader reads: a daily digest ranked by your own local trust graph (humans first, security alerts when they matter, newsletters never, with deterministic reasons per row); the social commitments layer — waiting-on threads with aging, reply debt, and your outbound promises paired with dates; a content-hashed local attachment vault so 'the PDF María sent in March' is one search; newsletter archaeology as an evidence-backed kill-list from List-Unsubscribe headers; and a document bridge that turns renewal notices, policies and invoices into paper-radar ledger entries automatically. Strictly read-only: it never sends, never deletes, never unsubscribes for you.",
+    "shortDescription": "Your Gmail, prioritized by relationships.",
+    "longDescription": "Connects your Gmail with your own Google Cloud OAuth client (bring-your-own credentials, loopback redirect, tokens stored only in the plugin data directory; results are visible to the host chat model). Then it reads the layers no email reader reads: a daily digest ranked by your own local trust graph (humans first, security alerts when they matter, newsletters never, with deterministic reasons per row); the social commitments layer - waiting-on threads with aging, reply debt, and your outbound promises paired with dates; a content-hashed local attachment vault so 'the PDF Alex sent in March' is one search; newsletter archaeology as an evidence-backed kill-list from List-Unsubscribe headers; and a document bridge that turns renewal notices, policies and invoices into paper-radar ledger entries automatically. Strictly read-only: it never sends, never deletes, never unsubscribes for you.",
     "developerName": "tetsuo-ai",
     "category": "productivity",
     "capabilities": [

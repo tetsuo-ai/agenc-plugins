@@ -1,30 +1,30 @@
 /**
- * Deterministic 3D/browser-game code verifier — the motor3d engine room.
+ * Deterministic 3D/browser-game code verifier - the motor3d engine room.
  * Two families of rules, plain regex/arithmetic, zero dependencies:
  *
- * 1. API-era table: the classic small-model hallucinations — APIs that
+ * 1. API-era table: the classic small-model hallucinations - APIs that
  *    were REMOVED or RENAMED in modern three.js/WebGPU, each with the
  *    modern replacement and the release that changed it. These are
  *    errors, not style.
  * 2. Performance/robustness heuristics: per-frame allocations, missing
  *    resize handling, missing dispose, DPR-blind canvas sizing, delta
  *    without clamp, cached WebGPU textures, touch-action absent on
- *    interactive canvases — stated severity, stated fix.
+ *    interactive canvases - stated severity, stated fix.
  */
 
 export const REMOVED_APIS = [
-  { re: /\bTHREE\.Geometry\b/gu, fix: "THREE.BufferGeometry", note: "Geometry se eliminó en r125" },
-  { re: /\bTHREE\.sRGBEncoding\b/gu, fix: "THREE.SRGBColorSpace", note: "sRGBEncoding se eliminó (r162)" },
-  { re: /\bTHREE\.LinearEncoding\b/gu, fix: "THREE.NoColorSpace / LinearSRGBColorSpace", note: "eliminado junto a sRGBEncoding" },
+  { re: /\bTHREE\.Geometry\b/gu, fix: "THREE.BufferGeometry", note: "Geometry was removed in r125" },
+  { re: /\bTHREE\.sRGBEncoding\b/gu, fix: "THREE.SRGBColorSpace", note: "sRGBEncoding was removed (r162)" },
+  { re: /\bTHREE\.LinearEncoding\b/gu, fix: "THREE.NoColorSpace / LinearSRGBColorSpace", note: "removed with sRGBEncoding" },
   { re: /\b\.outputEncoding\b/gu, fix: "renderer.outputColorSpace", note: "renamed r152+" },
-  { re: /\b\.physicallyCorrectLights\b/gu, fix: "(eliminado: ahora siempre físico)", note: "eliminado r150+" },
-  { re: /\buseLegacyLights\b/gu, fix: "(eliminado: escala de intensidad moderna)", note: "eliminado r165" },
-  { re: /\bTHREE\.MeshLambertMaterial\b/gu, fix: "MeshStandardMaterial / MeshPhongMaterial", note: "Lambert sin PBR; en pipelines HDR moderna da resultados planos — solo si es intencional", severity: "info" },
-  { re: /\bnew\s+THREE\.OrbitControls\b/gu, fix: "import { OrbitControls } from \"three/addons/controls/OrbitControls.js\"", note: "no está en el core de THREE" },
-  { re: /\bTHREE\.GLTFLoader\b/gu, fix: "import { GLTFLoader } from \"three/addons/loaders/GLTFLoader.js\"", note: "addon, no core" },
-  { re: /new\s+THREE\.WebGLRenderer\s*\(\s*\{\s*gammaFactor/gu, fix: "outputColorSpace", note: "gammaFactor eliminado" },
-  { re: /\brenderer\.gammaOutput\b/gu, fix: "renderer.outputColorSpace", note: "eliminado r152+" },
-  { re: /\bgeometry\.attributes\.position\.array\s*=/gu, fix: "geometry.attributes.position.set(...) + needsUpdate, o setAttribute", note: "asignar .array directo no refreshea el buffer" },
+  { re: /\b\.physicallyCorrectLights\b/gu, fix: "(removed: lighting is now always physical)", note: "removed in r150+" },
+  { re: /\buseLegacyLights\b/gu, fix: "(removed: use the modern intensity scale)", note: "removed in r165" },
+  { re: /\bTHREE\.MeshLambertMaterial\b/gu, fix: "MeshStandardMaterial / MeshPhongMaterial", note: "Lambert lacks PBR and can look flat in modern HDR pipelines; use only intentionally", severity: "info" },
+  { re: /\bnew\s+THREE\.OrbitControls\b/gu, fix: "import { OrbitControls } from \"three/addons/controls/OrbitControls.js\"", note: "not part of the THREE core" },
+  { re: /\bTHREE\.GLTFLoader\b/gu, fix: "import { GLTFLoader } from \"three/addons/loaders/GLTFLoader.js\"", note: "addon, not core" },
+  { re: /new\s+THREE\.WebGLRenderer\s*\(\s*\{\s*gammaFactor/gu, fix: "outputColorSpace", note: "gammaFactor was removed" },
+  { re: /\brenderer\.gammaOutput\b/gu, fix: "renderer.outputColorSpace", note: "removed in r152+" },
+  { re: /\bgeometry\.attributes\.position\.array\s*=/gu, fix: "geometry.attributes.position.set(...) + needsUpdate, or setAttribute", note: "assigning .array directly does not refresh the buffer" },
   { re: /\btexture\.encoding\b/gu, fix: "texture.colorSpace", note: "renamed r152+" },
   { re: /\bTHREE\.ACESFilmicToneMapping\s*\?\?/gu, fix: "", note: "", skip: true },
 ];
@@ -34,46 +34,46 @@ const PERF_RULES = {
     re: /(?:new THREE\.(?:Vector2|Vector3|Matrix4|Matrix3|Quaternion|Euler|Color|Raycaster|Box3|Sphere)\s*\()/gu,
     inLoop: true,
     severity: "warn",
-    message: "allocation de objetos THREE dentro del loop de animación",
-    fix: "Creá los objetos UNA vez fuera del loop y reutilizá (set/copy). El GC por frame causa stutter.",
+    message: "THREE objects allocated inside the animation loop",
+    fix: "Create objects once outside the loop and reuse them with set/copy. Per-frame garbage collection causes stutter.",
   },
   missingResize: {
     detect: (code, framework) => framework !== "webgpu"
       && /(?:requestAnimationFrame|setAnimationLoop)/u.test(code)
       && !/addEventListener\s*\(\s*["']resize["']/u.test(code),
     severity: "warn",
-    message: "loop de render sin handler de resize",
-    fix: "resize: camera.aspect + updateProjectionMatrix + renderer.setSize. Sin esto, deformás al cambiar tamaño.",
+    message: "render loop without a resize handler",
+    fix: "On resize, update camera.aspect, call updateProjectionMatrix, and renderer.setSize to prevent distortion.",
   },
   missingDispose: {
     detect: (code) => (code.match(/new THREE\.\w*(?:Geometry|Material|Texture)\b/gu) ?? []).length >= 3
       && !/\.dispose\s*\(/u.test(code),
     severity: "info",
-    message: "recursos THREE creados sin ningún dispose()",
-    fix: "En SPAs: geometry.dispose(), material.dispose(), renderer.dispose() al descargar la escena.",
+    message: "THREE resources created without any dispose() calls",
+    fix: "In single-page apps, call geometry.dispose(), material.dispose(), and renderer.dispose() when unloading the scene.",
   },
   missingPixelRatio: {
     detect: (code) => /new THREE\.WebGLRenderer/u.test(code)
       && !/setPixelRatio/u.test(code),
     severity: "info",
-    message: "WebGLRenderer sin setPixelRatio",
-    fix: "renderer.setPixelRatio(Math.min(devicePixelRatio, 2)) — con tope 2 para móvil.",
+    message: "WebGLRenderer without setPixelRatio",
+    fix: "Use renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); cap it at 2 for mobile.",
   },
   canvas2dDprBlind: {
     detect: (code, framework) => framework === "canvas2d"
       && /canvas\.width\s*=\s*(?!.*dpr)/u.test(code.replace(/\n/gu, " "))
       && !/devicePixelRatio/u.test(code),
     severity: "error",
-    message: "canvas 2D dimensionado sin devicePixelRatio",
-    fix: "canvas.width = innerWidth * dpr; y ctx.setTransform(dpr,0,0,dpr,0,0) para dibujar en unidades CSS.",
+    message: "2D canvas sized without devicePixelRatio",
+    fix: "Use canvas.width = innerWidth * dpr and ctx.setTransform(dpr,0,0,dpr,0,0) to draw in CSS units.",
   },
   deltaNoClamp: {
     detect: (code) => /getDelta\s*\(\s*\)/u.test(code)
       && !/Math\.min\s*\(\s*\w+\s*\.?getDelta|Math\.min\s*\([^)]*getDelta|clamp/giu.test(code.split("getDelta")[0] + "getDelta")
       && !/Math\.min\s*\(/u.test(code),
     severity: "warn",
-    message: "delta del clock sin clamp",
-    fix: "const dt = Math.min(clock.getDelta(), 0.1): al volver de pestaña inactiva, dt gigante rompe física y salta objetos.",
+    message: "clock delta without a clamp",
+    fix: "Use const dt = Math.min(clock.getDelta(), 0.1); a large delta after an inactive tab can break physics and make objects jump.",
   },
   cachedGpuTexture: {
     detect: (code, framework) => framework === "webgpu"
@@ -81,23 +81,23 @@ const PERF_RULES = {
         .some((m) => !isInsideLoop(code, m.index))
       && /requestAnimationFrame|frame\s*\(/u.test(code),
     severity: "error",
-    message: "getCurrentTexture() cacheado en variable de módulo",
-    fix: "Es una textura nueva por frame: llamá getCurrentTexture() DENTRO del frame, nunca cachear.",
+    message: "getCurrentTexture() cached in a module-level variable",
+    fix: "The texture changes every frame. Call getCurrentTexture() inside the frame; never cache it across frames.",
   },
   missingTouchAction: {
     detect: (code) => /(?:pointerdown|pointermove)/u.test(code)
       && /<canvas/u.test(code)
       && !/touch-action/u.test(code),
     severity: "warn",
-    message: "canvas interactivo sin touch-action",
-    fix: "canvas { touch-action: none } en CSS — sin eso, el navegador roba el gesto para scroll en móvil.",
+    message: "interactive canvas without touch-action",
+    fix: "Use canvas { touch-action: none } in CSS so the browser does not use the gesture for mobile scrolling.",
   },
   audioNoGesture: {
     detect: (code) => /new\s+(?:AudioContext|webkitAudioContext)\s*\(/u.test(code)
       && !/resume\s*\(/u.test(code),
     severity: "warn",
-    message: "AudioContext sin resume por gesto",
-    fix: "Los navegadores bloquean audio sin interacción: ctx.resume() en el primer pointerdown/keydown.",
+    message: "AudioContext without gesture-triggered resume",
+    fix: "Browsers block audio without interaction. Call ctx.resume() on the first pointerdown or keydown.",
   },
   manyMeshesNoInstancing: {
     detect: (code) => {
@@ -106,15 +106,15 @@ const PERF_RULES = {
       return inLoop || adds >= 15;
     },
     severity: "warn",
-    message: "muchos meshes agregados individualmente",
-    fix: "Objetos idénticos → InstancedMesh (1 draw call por N instancias). Es la diferencia entre 5 y 5000 objetos fluidos.",
+    message: "many meshes added individually",
+    fix: "For identical objects, use InstancedMesh: one draw call for N instances. This can greatly improve performance for large scenes.",
   },
   rendererInLoop: {
     detect: (code) => [...code.matchAll(/new THREE\.(?:WebGLRenderer|PerspectiveCamera)\s*\(/gu)]
       .some((m) => isInsideLoop(code, m.index)),
     severity: "error",
-    message: "renderer o cámara creados más de una vez",
-    fix: "UN renderer y UNA cámara por página; recrearlos filtra contextos WebGL (el navegador los limita a ~8-16).",
+    message: "renderer or camera created more than once",
+    fix: "Use one renderer and one camera per page. Recreating renderers can leak WebGL contexts, which browsers typically limit to about 8-16.",
   },
 };
 
@@ -128,21 +128,21 @@ export function lint3d(code, { framework } = {}) {
   if (framework !== undefined && !["three", "canvas2d", "webgpu"].includes(framework)) return { error: "unknown framework" };
   const source = code;
   if (source.trim().length < 10) {
-    return { error: "código demasiado corto para analizar" };
+    return { error: "code is too short to analyze" };
   }
   const detected = framework ?? detectFramework(source);
   const violations = [];
   const push = (severity, rule, message, fix) =>
     violations.push({ severity, rule, message, fix });
 
-  // 1) API-era table (solo three)
+  // 1) API-era table (three only)
   if (detected === "three") {
     for (const api of REMOVED_APIS) {
       if (api.skip) continue;
       const hits = [...source.matchAll(api.re)].length;
       if (hits > 0) {
         push(api.severity ?? "error", `api-era:${api.re.source.slice(0, 30)}`,
-          `${hits}× ${api.note}${api.fix ? ` → ${api.fix}` : ""}`, api.fix || "Consultá la tabla de scaffolds.");
+          `${hits}× ${api.note}${api.fix ? ` → ${api.fix}` : ""}`, api.fix || "Check the scaffold catalog.");
       }
     }
   }
@@ -195,9 +195,9 @@ export function detectFramework(code) {
   return "three";
 }
 
-/** Heurística: ¿el índice cae dentro de una función invocada por frame? */
+/** Heuristic: is this index inside a function invoked on each frame? */
 function isInsideLoop(source, index) {
-  // Busca el rango de la función envolvente que contiene a requestAnimationFrame/setAnimationLoop
+  // Find the enclosing function range referenced by requestAnimationFrame/setAnimationLoop
   const rafMatches = [...source.matchAll(/(?:requestAnimationFrame\s*\(\s*(\w+)|setAnimationLoop\s*\(\s*(\w+))/gu)];
   for (const m of rafMatches) {
     const fnName = m[1] ?? m[2];

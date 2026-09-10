@@ -1,7 +1,7 @@
 {
   "name": "paper-radar",
-  "version": "0.2.2",
-  "description": "The administrative memory: drop contracts, policies, warranties and IDs in any language; paper-radar extracts renewal dates, costs and cancellation windows deterministically, keeps a private local ledger, warns before notice windows close, drafts cancellations, and exports deadlines to your calendar. Fully offline — designed to work efficiently with local models.",
+  "version": "0.2.3",
+  "description": "The administrative memory: drop contracts, policies, warranties and IDs in any language; paper-radar extracts renewal dates, costs and cancellation windows deterministically, keeps a private local ledger, warns before notice windows close, drafts cancellations, and exports deadlines to your calendar. Fully offline - designed to work efficiently with local models.",
   "author": {
     "name": "tetsuo-ai"
   },
@@ -43,7 +43,7 @@
   "interface": {
     "displayName": "Paper Radar",
     "shortDescription": "Never miss a renewal or cancellation window again.",
-    "longDescription": "Renewals, warranties, subscriptions and document deadlines tracked from the documents themselves — not from typing dates into an app. Drop a contract or policy (PDF via pdftotext, or pasted text); deterministic Spanish/English parsers extract the renewal date, cost, periodicity and the cancellation-notice window; a strict local ledger derives notice deadlines automatically. The radar warns when a window is about to close ('cancel by Sep 4 or it renews for another year'), drafts the cancellation notice in the document's language, totals your recurring costs, and exports everything to your calendar. Fully offline and local: no network tools, no uploads, and the compact structured candidates keep it efficient even on small local models.",
+    "longDescription": "Renewals, warranties, subscriptions and document deadlines tracked from the documents themselves - not from typing dates into an app. Drop a contract or policy (PDF via pdftotext, or pasted text); deterministic Spanish/English parsers extract the renewal date, cost, periodicity and the cancellation-notice window; a strict local ledger derives notice deadlines automatically. The radar warns when a window is about to close ('cancel by Sep 4 or it renews for another year'), drafts the cancellation notice in English, totals your recurring costs, and exports everything to your calendar. Fully offline and local: no network tools, no uploads, and the compact structured candidates keep it efficient even on small local models.",
     "developerName": "tetsuo-ai",
     "category": "productivity",
     "capabilities": [

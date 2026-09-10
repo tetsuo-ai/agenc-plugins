@@ -1,11 +1,11 @@
 ---
 name: inbox-digest
-description: Gmail daily digest ranked by relationship, not content. Reads your local sender-trust graph (built from your own exchange history), surfaces the unread mail that actually needs you — humans first, security alerts from bulk when they matter, newsletters never — with deterministic reasons per row. Use for "what's in my inbox", "did I miss anything", daily email triage, and Gmail search/read.
+description: Gmail daily digest ranked by relationship, not content. Reads your local sender-trust graph (built from your own exchange history), surfaces the unread mail that actually needs you - humans first, security alerts from bulk when they matter, newsletters never - with deterministic reasons per row. Use for "what's in my inbox", "did I miss anything", daily email triage, and Gmail search/read.
 when_to_use: The user asks about their inbox, unread mail, a daily email summary, wants to find or read an email, or wants to check whether something important arrived.
 argument-hint: [days]
 ---
 
-# Inbox digest — what actually needs you
+# Inbox digest - what actually needs you
 
 The ranking comes from a local trust graph built from the user's own
 exchange history (bidirectional volume, replies, recency) plus
@@ -23,18 +23,18 @@ Check `auth_status` before anything else. When it reports
 3. `auth_store_credentials` with both values.
 Then `auth_begin` → give the user the consentUrl to open → poll
 `auth_status` until `connected: true`. Say plainly that Google Cloud
-apps in Testing mode need this re-consent weekly (one click) — it is a
+apps in Testing mode need this re-consent weekly (one click) - it is a
 Google policy, not a plugin bug.
 
 ## Daily protocol
 
 1. Run `digest` (default window 30 days for the graph).
 2. Report rows top-down, leading with the REASON each surfaced:
-   "María (frequent contact, asks a question, mentions Sep 30)". The
-   reasons are in the row — quote them, do not invent new ones.
+   "Alex (frequent contact, asks a question, mentions Sep 30)". The
+   reasons are in the row - quote them, do not invent new ones.
 3. Offer follow-ups per row: `read` for the full body, `vault_fetch` for
    attachments, or an answer drafted later with their confirmation.
-4. `search` for anything specific the user names — pass their query
+4. `search` for anything specific the user names - pass their query
    through in native Gmail syntax; do not translate it into guesswork.
 5. Empty digest: report no matches in the sampled window and its scanned/unread counts. This is not proof that the whole mailbox is empty.
 

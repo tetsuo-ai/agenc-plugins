@@ -26,6 +26,6 @@ budget:
   max_cost_usd: 10
   split: { map: 0.15, audit: 0.45, prove: 0.30, falsify_report: 0.10 }
 
-reviewer_model: ""        # different provider than the auditor — e.g. anthropic:... vs grok:...
+reviewer_model: ""        # different provider than the auditor - e.g. anthropic:... vs grok:...
 
 abandon_criteria: []      # declared at G0, e.g. "budget exhausted", "last 3 hypotheses demoted"

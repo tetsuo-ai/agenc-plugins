@@ -9,6 +9,17 @@ import { join } from "node:path";
 import { readJsonFile, makeDataStore } from "./storage.mjs";
 
 export const TOPICS = ["algebra", "geometry", "number-theory", "combinatorics"];
+// Legacy search inputs remain recognized; displayed corpus tags are English.
+export const LEGACY_TAG_ALIASES = Object.freeze({
+  euclides: "euclid", congruencias: "congruences", periodicidad: "periodicity",
+  divisores: "divisors", factorizacion: "factorization", "descenso-infinito": "infinite-descent",
+  "suma-de-cuadrados": "sum-of-squares", minimo: "minimum", sucesiones: "sequences",
+  induccion: "induction", polinomios: "polynomials", interpolacion: "interpolation",
+  desigualdades: "inequalities", pitagoras: "pythagoras", incirculo: "incircle",
+  vectores: "vectors", baricentro: "centroid", optimizacion: "optimization",
+  semejanza: "similarity", conteo: "counting", combinaciones: "combinations",
+  caminos: "paths", "potencias-de-dos": "powers-of-two", grafos: "graphs",
+});
 export const isProblemId = (id) => typeof id === "string" && /^(?:\d{4}-\d[a-z]?|[a-z][a-z0-9]*(?:-[a-z0-9]+)+)$/u.test(id) && id.length <= 64;
 const object = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
 const optionalText = (value, max) => value == null || (typeof value === "string" && value.length <= max);
@@ -63,7 +74,7 @@ export function normalizeProblem(raw, { bundled = false } = {}) {
     topic: TOPICS.includes(raw.topic) ? raw.topic : "other",
     difficulty: ["easy", "medium", "hard", "legendary"].includes(raw.difficulty) ? raw.difficulty : "medium",
     tags: raw.tags ?? [],
-    title: raw.title ?? `Ejercicio ${id}`,
+    title: raw.title ?? `Exercise ${id}`,
     statement,
     answer: raw.answer === null || raw.answer === undefined ? null : String(raw.answer).slice(0, 200),
     keyIdea: String(raw.keyIdea ?? "").trim() || null,
@@ -126,7 +137,8 @@ export function searchProblems(problems, { query, topic, year, difficulty, limit
     if (difficulty !== undefined && problem.difficulty !== difficulty) continue;
     if (terms.length > 0) {
       const haystack = `${problem.title} ${problem.statement} ${problem.tags.join(" ")} ${problem.keyIdea ?? ""}`.toLowerCase();
-      if (!terms.every((term) => haystack.includes(term))) continue;
+      if (!terms.every((term) => haystack.includes(term)
+        || (Object.hasOwn(LEGACY_TAG_ALIASES, term) && haystack.includes(LEGACY_TAG_ALIASES[term])))) continue;
     }
     hits.push({
       id: problem.id,
@@ -145,7 +157,7 @@ export function searchProblems(problems, { query, topic, year, difficulty, limit
 /**
  * Exact short-answer comparison after conservative text normalization.
  * This is not symbolic equivalence or a proof verifier. When the
- * recorded answer is null the check is reported as not-applicable — the
+ * recorded answer is null the check is reported as not-applicable - the
  * model must never guess verification.
  */
 export function checkAnswer(problem, attempt) {

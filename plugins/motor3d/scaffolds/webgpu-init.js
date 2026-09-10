@@ -1,16 +1,16 @@
 import { withErrorOverlay } from "../server/overlay.mjs";
-// Scaffold: webgpu-init — arranque WebGPU correcto: feature-detect,
-// adapter con fallback de power preference, formato preferido del
-// canvas, y clear frame (el hello-world que casi todos escriben mal).
+// Scaffold: webgpu-init - arranque WebGPU correcto: feature-detect,
+// adapter with a power-preference fallback, preferred canvas format,
+// and a clear frame, a frequently misimplemented hello world.
 export default {
   "name": "webgpu-init",
   "framework": "webgpu",
-  "description": "Init WebGPU moderno: navigator.gpu, adapter/device con etiquetas, formato del canvas, clear animado.",
+  "description": "Modern WebGPU initialization: navigator.gpu, labeled adapter/device, canvas format, and animated clearing.",
   "html": withErrorOverlay(`<!doctype html>
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<title>TODO: título</title>
+<title>TODO: title</title>
 <style>html,body{margin:0;height:100%;overflow:hidden;background:#0f172a}canvas{display:block;width:100%;height:100%}</style>
 </head>
 <body>
@@ -37,7 +37,7 @@ if (!navigator.gpu) {
     device.addEventListener("uncapturederror", (e) => { stopped = true; fail(e.error.message); });
     device.lost.then((info) => {
       stopped = true; fail("Dispositivo WebGPU perdido: " + info.reason);
-      // TODO: recuperación (recrear device y re-subir recursos)
+      // TODO: recovery (recreate the device and upload resources again)
       console.error("device perdido", info.reason);
     });
 
@@ -47,7 +47,7 @@ if (!navigator.gpu) {
     context.configure({ device, format, alphaMode: "opaque" });
 
     function resize() {
-      // tamaño del buffer SIEMPRE explícito; el CSS estira
+      // Always set buffer dimensions explicitly; CSS only stretches the result
       canvas.width = Math.min(device.limits.maxTextureDimension2D, Math.max(1, Math.floor(innerWidth * Math.min(devicePixelRatio, 2))));
       canvas.height = Math.min(device.limits.maxTextureDimension2D, Math.max(1, Math.floor(innerHeight * Math.min(devicePixelRatio, 2))));
     }
@@ -69,7 +69,7 @@ if (!navigator.gpu) {
           storeOp: "store",
         }],
       });
-      // TODO: pipeline de render real
+      // TODO: actual render pipeline
       pass.end();
       device.queue.submit([encoder.finish()]);
       requestAnimationFrame(frame);
@@ -82,8 +82,8 @@ if (!navigator.gpu) {
 </body>
 </html>`),
   "notes": [
-    "getCurrentTexture() por frame NUEVO — nunca cachear la view entre frames.",
-    "getPreferredCanvasFormat(): bgra8unorm en la mayoría; hardcodear rompe en ARM.",
-    "alphaMode 'opaque' es el rápido si no necesitás transparencia del canvas.",
+    "Call getCurrentTexture() for every new frame; never cache the view across frames.",
+    "Use getPreferredCanvasFormat(); hardcoding a format can fail on other platforms.",
+    "alphaMode 'opaque' is the fast option when canvas transparency is unnecessary.",
   ],
 }
