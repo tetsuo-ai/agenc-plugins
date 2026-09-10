@@ -1,10 +1,11 @@
+import { withErrorOverlay } from "../server/overlay.mjs";
 // Scaffold: three-raycast-picking — clic/hover sobre objetos 3D con
 // coordenadas NDC correctas (el bug #1 de los modelos chicos).
 export default {
   "name": "three-raycast-picking",
   "framework": "three",
   "description": "Picking correcto: pointer→NDC→raycaster, hover y click, con contador de objetos.",
-  "html": `<!doctype html>
+  "html": withErrorOverlay(`<!doctype html>
 <html lang="es">
 <head>
 <meta charset="utf-8">
@@ -30,7 +31,6 @@ camera.position.set(0, 0, 10);
 
 const pickables = [];
 const base = new THREE.MeshStandardMaterial({ color: 0x64748b });
-const hoverMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, emissive: 0x451a03 });
 for (let i = 0; i < 12; i += 1) {
   const box = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), base.clone());
   const ring = Math.floor(i / 4), idx = i % 4;
@@ -61,7 +61,7 @@ function updateHover() {
   if (first !== hovered) {
     if (hovered !== null) hovered.material.color.set(hovered.userData.baseColor);
     hovered = first;
-    if (hovered !== null) hovered.material = hoverMat;
+    if (hovered !== null) hovered.material.color.set(0xf59e0b);
   }
 }
 
@@ -75,10 +75,18 @@ renderer.domElement.addEventListener("pointerdown", (e) => {
   if (hovered !== null) {
     // TODO: tu acción de click
     hovered.userData.baseColor = 0x22c55e;
-    hovered.material = base.clone();
     hovered.material.color.set(0x22c55e);
     hovered = null;
   }
+});
+
+renderer.domElement.addEventListener("pointerleave", () => {
+  if (hovered) hovered.material.color.set(hovered.userData.baseColor);
+  hovered = null;
+});
+addEventListener("beforeunload", () => {
+  for (const mesh of pickables) { mesh.geometry.dispose(); mesh.material.dispose(); }
+  base.dispose(); renderer.dispose();
 });
 
 addEventListener("resize", () => {
@@ -93,7 +101,7 @@ addEventListener("resize", () => {
 })();
 </script>
 </body>
-</html>`,
+</html>`),
   "notes": [
     "getBoundingClientRect(): NDC relativo al canvas, no a la ventana (scroll-safe).",
     "intersectObjects(objs, false): recursive=true solo si hay children que pickear.",

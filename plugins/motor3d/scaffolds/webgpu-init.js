@@ -1,3 +1,4 @@
+import { withErrorOverlay } from "../server/overlay.mjs";
 // Scaffold: webgpu-init — arranque WebGPU correcto: feature-detect,
 // adapter con fallback de power preference, formato preferido del
 // canvas, y clear frame (el hello-world que casi todos escriben mal).
@@ -5,12 +6,12 @@ export default {
   "name": "webgpu-init",
   "framework": "webgpu",
   "description": "Init WebGPU moderno: navigator.gpu, adapter/device con etiquetas, formato del canvas, clear animado.",
-  "html": `<!doctype html>
+  "html": withErrorOverlay(`<!doctype html>
 <html lang="es">
 <head>
 <meta charset="utf-8">
 <title>TODO: título</title>
-<style>html,body{margin:0;height:100%;overflow:hidden;background:#0f172a}canvas{display:block}</style>
+<style>html,body{margin:0;height:100%;overflow:hidden;background:#0f172a}canvas{display:block;width:100%;height:100%}</style>
 </head>
 <body>
 <canvas id="gpu"></canvas>
@@ -18,34 +19,46 @@ export default {
 <script type="module">
 const canvas = document.getElementById("gpu");
 
+const fallback = document.getElementById("fallback");
+function fail(message) {
+  canvas.style.display = "none"; fallback.style.display = "block";
+  if (message) fallback.textContent = message;
+}
+try {
 if (!navigator.gpu) {
-  document.getElementById("fallback").style.display = "block";
+  fail();
 } else {
   const adapter = await navigator.gpu.requestAdapter({ powerPreference: "high-performance" });
   if (adapter === null) {
-    document.getElementById("fallback").style.display = "block";
+    fail();
   } else {
     const device = await adapter.requestDevice({ label: "main-device" });
+    let stopped = false;
+    device.addEventListener("uncapturederror", (e) => { stopped = true; fail(e.error.message); });
     device.lost.then((info) => {
+      stopped = true; fail("Dispositivo WebGPU perdido: " + info.reason);
       // TODO: recuperación (recrear device y re-subir recursos)
       console.error("device perdido", info.reason);
     });
 
     const context = canvas.getContext("webgpu");
+    if (!context) throw new Error("Canvas WebGPU no disponible");
     const format = navigator.gpu.getPreferredCanvasFormat();
     context.configure({ device, format, alphaMode: "opaque" });
 
     function resize() {
       // tamaño del buffer SIEMPRE explícito; el CSS estira
-      canvas.width = Math.max(1, Math.floor(innerWidth * Math.min(devicePixelRatio, 2)));
-      canvas.height = Math.max(1, Math.floor(innerHeight * Math.min(devicePixelRatio, 2)));
+      canvas.width = Math.min(device.limits.maxTextureDimension2D, Math.max(1, Math.floor(innerWidth * Math.min(devicePixelRatio, 2))));
+      canvas.height = Math.min(device.limits.maxTextureDimension2D, Math.max(1, Math.floor(innerHeight * Math.min(devicePixelRatio, 2))));
     }
     addEventListener("resize", resize);
     resize();
 
     const CLEAR = { r: 0.06, g: 0.09, b: 0.16, a: 1.0 };
 
+    addEventListener("beforeunload", () => { stopped = true; device.destroy(); });
     function frame(t) {
+      if (stopped) return;
       const pulse = 0.5 + 0.5 * Math.sin(t / 1000);
       const encoder = device.createCommandEncoder({ label: "frame" });
       const pass = encoder.beginRenderPass({
@@ -64,9 +77,10 @@ if (!navigator.gpu) {
     requestAnimationFrame(frame);
   }
 }
+} catch (error) { fail(error.message); }
 </script>
 </body>
-</html>`,
+</html>`),
   "notes": [
     "getCurrentTexture() por frame NUEVO — nunca cachear la view entre frames.",
     "getPreferredCanvasFormat(): bgra8unorm en la mayoría; hardcodear rompe en ARM.",

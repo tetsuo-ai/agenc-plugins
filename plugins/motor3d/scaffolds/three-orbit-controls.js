@@ -1,3 +1,4 @@
+import { withErrorOverlay } from "../server/overlay.mjs";
 // Scaffold: three-orbit-controls — órbita/dolly/pan con puntero y touch,
 // SIN dependencias más allá de three (controles propios, ~80 líneas
 // correctas: inercia, límites, capture de puntero).
@@ -5,7 +6,7 @@ export default {
   "name": "three-orbit-controls",
   "framework": "three",
   "description": "Controles orbitales propios con inercia y límites (puntero + touch), sin addons externos.",
-  "html": `<!doctype html>
+  "html": withErrorOverlay(`<!doctype html>
 <html lang="es">
 <head>
 <meta charset="utf-8">
@@ -47,7 +48,7 @@ const vel = { theta: 0, phi: 0, radius: 0 }; // velocidad para inercia
 const INERTIA = 0.90, SENS = 0.005, ZOOM_SENS = 0.0012, PAN_SENS = 0.002;
 
 const pointers = new Map();
-let panning = false;
+const right = new THREE.Vector3(), up = new THREE.Vector3();
 
 function applyCamera() {
   orbit.phi = Math.max(orbit.minPhi, Math.min(orbit.maxPhi, orbit.phi));
@@ -70,10 +71,10 @@ renderer.domElement.addEventListener("pointermove", (e) => {
   if (prev === undefined) return;
   const dx = e.clientX - prev.x, dy = e.clientY - prev.y;
   prev.x = e.clientX; prev.y = e.clientY;
-  if (panning || (pointers.size === 2)) {
+  if (prev.button === 2 || (pointers.size === 2)) {
     // pan: mover target en el plano de la cámara
-    const right = new THREE.Vector3().setFromMatrixColumn(camera.matrix, 0);
-    const up = new THREE.Vector3().setFromMatrixColumn(camera.matrix, 1);
+    right.setFromMatrixColumn(camera.matrix, 0);
+    up.setFromMatrixColumn(camera.matrix, 1);
     orbit.target.addScaledVector(right, -dx * PAN_SENS * orbit.radius);
     orbit.target.addScaledVector(up, dy * PAN_SENS * orbit.radius);
   } else if (prev.button === 0) {
@@ -83,12 +84,11 @@ renderer.domElement.addEventListener("pointermove", (e) => {
     orbit.phi += vel.phi;
   }
 });
-const releasePointer = (e) => { pointers.delete(e.pointerId); panning = false; };
+const releasePointer = (e) => { pointers.delete(e.pointerId); };
 renderer.domElement.addEventListener("pointerup", releasePointer);
 renderer.domElement.addEventListener("pointercancel", releasePointer);
-renderer.domElement.addEventListener("pointerleave", releasePointer);
+renderer.domElement.addEventListener("lostpointercapture", releasePointer);
 renderer.domElement.addEventListener("contextmenu", (e) => e.preventDefault());
-renderer.domElement.addEventListener("pointerenter", (e) => { panning = e.buttons === 2; });
 renderer.domElement.addEventListener("wheel", (e) => {
   e.preventDefault();
   vel.radius = e.deltaY * ZOOM_SENS * orbit.radius;
@@ -101,6 +101,10 @@ addEventListener("resize", () => {
   renderer.setSize(innerWidth, innerHeight);
 });
 
+addEventListener("beforeunload", () => {
+  world.traverse((node) => { if (node.isMesh) { node.geometry.dispose(); node.material.dispose(); } });
+  renderer.dispose();
+});
 const clock = new THREE.Clock();
 function animate() {
   const dt = Math.min(clock.getDelta(), 0.1);
@@ -120,7 +124,7 @@ applyCamera();
 animate();
 </script>
 </body>
-</html>`,
+</html>`),
   "notes": [
     "setPointerCapture: no perdés el arrastre al salir del canvas.",
     "touch-action: none en el canvas es OBLIGATORIO para pointermove en móvil.",

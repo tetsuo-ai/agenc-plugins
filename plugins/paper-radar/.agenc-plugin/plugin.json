@@ -1,0 +1,70 @@
+{
+  "name": "paper-radar",
+  "version": "0.2.1",
+  "description": "The administrative memory: drop contracts, policies, warranties and IDs in any language; paper-radar extracts renewal dates, costs and cancellation windows deterministically, keeps a private local ledger, warns before notice windows close, drafts cancellations, and exports deadlines to your calendar. Fully offline — designed to work efficiently with local models.",
+  "author": {
+    "name": "tetsuo-ai"
+  },
+  "homepage": "https://agenc.tech",
+  "repository": "https://github.com/tetsuo-ai/agenc-plugins",
+  "license": "MIT",
+  "keywords": [
+    "documents",
+    "renewals",
+    "subscriptions",
+    "warranties",
+    "contracts",
+    "deadlines",
+    "cancellation",
+    "privacy",
+    "local-first",
+    "offline"
+  ],
+  "mcpServers": {
+    "paper-ledger": {
+      "command": "node",
+      "args": ["./server/main.mjs"],
+      "transport": "stdio",
+      "env_vars": ["PATH"]
+    }
+  },
+  "commands": {
+    "paper": {
+      "source": "./commands/paper.md",
+      "description": "Radar over tracked documents: what renews, what it costs, how to cancel before the window closes",
+      "argumentHint": "<radar|ingest|ledger|cost|calendar|cancel> [target]",
+      "allowedTools": ["Bash", "Read"]
+    }
+  },
+  "skills": [
+    "./skills/paper-ingest",
+    "./skills/paper-radar"
+  ],
+  "interface": {
+    "displayName": "Paper Radar",
+    "shortDescription": "Never miss a renewal or cancellation window again.",
+    "longDescription": "Renewals, warranties, subscriptions and document deadlines tracked from the documents themselves — not from typing dates into an app. Drop a contract or policy (PDF via pdftotext, or pasted text); deterministic Spanish/English parsers extract the renewal date, cost, periodicity and the cancellation-notice window; a strict local ledger derives notice deadlines automatically. The radar warns when a window is about to close ('cancel by Sep 4 or it renews for another year'), drafts the cancellation notice in the document's language, totals your recurring costs, and exports everything to your calendar. Fully offline and local: no network tools, no uploads, and the compact structured candidates keep it efficient even on small local models.",
+    "developerName": "tetsuo-ai",
+    "category": "productivity",
+    "capabilities": [
+      "document-ingestion",
+      "deterministic-extraction",
+      "renewal-ledger",
+      "notice-window-tracking",
+      "cancellation-drafts",
+      "recurring-cost-reports",
+      "calendar-export",
+      "offline-local-first"
+    ],
+    "websiteUrl": "https://agenc.tech",
+    "brandColor": "#f59e0b",
+    "logo": "./assets/logo.png",
+    "defaultPrompt": [
+      "What renews or expires in the next month?",
+      "Track this insurance policy",
+      "How much do I spend on subscriptions a year?",
+      "Draft a cancellation for my gym contract"
+    ],
+    "screenshots": []
+  }
+}

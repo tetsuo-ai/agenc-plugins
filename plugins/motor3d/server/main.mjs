@@ -10,7 +10,7 @@
  */
 import { readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { lint3d, detectFramework } from "./lint3d.mjs";
 
 const PROTOCOL_VERSION = "2025-06-18";
@@ -22,7 +22,7 @@ async function scaffolds() {
   if (scaffoldCache.size > 0) return scaffoldCache;
   for (const entry of readdirSync(SCAFFOLDS_DIR).sort()) {
     if (!entry.endsWith(".js")) continue;
-    const mod = await import(`file://${join(SCAFFOLDS_DIR, entry)}`);
+    const mod = await import(pathToFileURL(join(SCAFFOLDS_DIR, entry)).href);
     if (mod.default !== undefined) scaffoldCache.set(mod.default.name, mod.default);
   }
   return scaffoldCache;
@@ -31,7 +31,7 @@ async function scaffolds() {
 const tools = [
   {
     name: "scaffolds_list",
-    description: "Verified scaffolds for browser 3D/games: modern three.js basics (scene/controls/instancing/raycast/assets), production canvas2d game loop (fixed timestep + DPR), WebGPU init. Each is a complete, correct, runnable HTML with notes.",
+    description: "Verified scaffolds for browser 3D/games: modern three.js basics (scene/controls/instancing/raycast/assets), production canvas2d game loop (fixed timestep + DPR), WebGPU init. Each is a starting HTML template with notes; validate it in the target browser.",
     inputSchema: { type: "object", properties: {} },
     handler: async () => {
       const all = await scaffolds();
@@ -65,7 +65,7 @@ const tools = [
   },
   {
     name: "lint3d",
-    description: "Deterministic verifier for browser 3D/game code: API-era table (removed/renamed three.js APIs — the classic hallucinations), per-frame allocation detection, missing resize/dispose/pixel-ratio, DPR-blind canvas2d, unclamped delta, cached WebGPU textures, touch-action, audio-gesture, instancing advice. Violations with fixes; pass ≥ 85.",
+    description: "Deterministic verifier for browser 3D/game code: API-era table (removed/renamed three.js APIs — the classic hallucinations), per-frame allocation detection, missing resize/dispose/pixel-ratio, DPR-blind canvas2d, unclamped delta, cached WebGPU textures, touch-action, audio-gesture, instancing advice. Violations with fixes; pass requires score ≥ 85 and no errors.",
     inputSchema: {
       type: "object",
       properties: {
@@ -92,10 +92,11 @@ const tools = [
       required: ["code"],
     },
     handler: async ({ code, title }) => {
-      const source = String(code);
+      if (typeof code !== "string" || !code.trim() || code.length > 100_000) return text("code must be nonempty JavaScript, at most 100000 characters");
+      const source = code;
       const framework = detectFramework(source);
       const html = buildHarness(source, String(title ?? "motor3d harness"), framework);
-      return structured({ html, framework, bytes: html.length });
+      return structured({ html, framework, bytes: Buffer.byteLength(html) });
     },
   },
 ];
@@ -157,7 +158,7 @@ ${importMap}
   })();
 </script>
 <script type="module">
-${code}
+${code.replace(/<\/script/gi, "<\\/script")}
 </script>
 </body>
 </html>`;
@@ -184,6 +185,7 @@ async function handleMessage(message) {
   if (message === null || typeof message !== "object") return null;
   const { id, method, params } = message;
   const isNotification = id === undefined;
+  if (isNotification) return null;
   try {
     if (method === "initialize") {
       return reply(id, {
@@ -245,7 +247,7 @@ async function main() {
       try {
         message = JSON.parse(line);
       } catch {
-        process.stderr.write(`motor3d: unparseable line: ${line.slice(0, 120)}\n`);
+        process.stderr.write("motor3d: invalid JSON\n");
         continue;
       }
       const response = await handleMessage(message);

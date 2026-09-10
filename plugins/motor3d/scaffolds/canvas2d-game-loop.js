@@ -1,3 +1,4 @@
+import { withErrorOverlay } from "../server/overlay.mjs";
 // Scaffold: canvas2d-game-loop — loop de juego serio en Canvas 2D:
 // timestep FIJO para física, render interpolado, DPR correcto,
 // input edge/hold, pausa al ocultar pestaña.
@@ -5,7 +6,7 @@ export default {
   "name": "canvas2d-game-loop",
   "framework": "canvas2d",
   "description": "Game loop de producción: física a 60 Hz fijos con render interp, DPR-aware, input limpio, visibilidad.",
-  "html": `<!doctype html>
+  "html": withErrorOverlay(`<!doctype html>
 <html lang="es">
 <head>
 <meta charset="utf-8">
@@ -19,8 +20,9 @@ const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
 // ── Resolución + DPR ───────────────────────────────────────────────
-const dpr = Math.min(devicePixelRatio || 1, 2);
+let dpr = 1;
 function resize() {
+  dpr = Math.min(devicePixelRatio || 1, 2);
   canvas.width = Math.floor(innerWidth * dpr);
   canvas.height = Math.floor(innerHeight * dpr);
   canvas.style.width = innerWidth + "px";
@@ -38,6 +40,12 @@ addEventListener("keydown", (e) => {
 });
 addEventListener("keyup", (e) => { keys[e.code] = false; });
 
+function resetInput() {
+  for (const key of Object.keys(keys)) delete keys[key];
+  pressedThisTick.clear();
+}
+addEventListener("blur", resetInput);
+
 // ── Estado del juego ───────────────────────────────────────────────
 const player = {
   x: 0, y: 0, px: 0, py: 0, // posición actual y previa (para interp)
@@ -50,6 +58,7 @@ let running = true;
 
 document.addEventListener("visibilitychange", () => {
   running = !document.hidden;
+  resetInput(); accumulator = 0;
   last = performance.now(); // evitar salto acumulado
 });
 
@@ -100,7 +109,7 @@ function frame(now) {
 requestAnimationFrame(frame);
 </script>
 </body>
-</html>`,
+</html>`),
   "notes": [
     "Física con dt VARIABLE rompe colisiones y determinismo; fija + interp no.",
     "canvas.width SIEMPRE × dpr, y setTransform(dpr,…) para dibujar en unidades CSS.",

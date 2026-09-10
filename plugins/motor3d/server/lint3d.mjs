@@ -22,7 +22,6 @@ export const REMOVED_APIS = [
   { re: /\bTHREE\.MeshLambertMaterial\b/gu, fix: "MeshStandardMaterial / MeshPhongMaterial", note: "Lambert sin PBR; en pipelines HDR moderna da resultados planos — solo si es intencional", severity: "info" },
   { re: /\bnew\s+THREE\.OrbitControls\b/gu, fix: "import { OrbitControls } from \"three/addons/controls/OrbitControls.js\"", note: "no está en el core de THREE" },
   { re: /\bTHREE\.GLTFLoader\b/gu, fix: "import { GLTFLoader } from \"three/addons/loaders/GLTFLoader.js\"", note: "addon, no core" },
-  { re: /\bTHREE\.RGBADepthPacking\b/gu, fix: "(verificá el uso moderno de depth textures)", note: "moved" },
   { re: /new\s+THREE\.WebGLRenderer\s*\(\s*\{\s*gammaFactor/gu, fix: "outputColorSpace", note: "gammaFactor eliminado" },
   { re: /\brenderer\.gammaOutput\b/gu, fix: "renderer.outputColorSpace", note: "eliminado r152+" },
   { re: /\bgeometry\.attributes\.position\.array\s*=/gu, fix: "geometry.attributes.position.set(...) + needsUpdate, o setAttribute", note: "asignar .array directo no refreshea el buffer" },
@@ -77,8 +76,9 @@ const PERF_RULES = {
     fix: "const dt = Math.min(clock.getDelta(), 0.1): al volver de pestaña inactiva, dt gigante rompe física y salta objetos.",
   },
   cachedGpuTexture: {
-    detect: (code) => frameworkGuard(code, "webgpu")
-      && /(?:const|let)\s+\w+\s*=\s*context\.getCurrentTexture\s*\(\s*\)/u.test(code)
+    detect: (code, framework) => framework === "webgpu"
+      && [...code.matchAll(/(?:const|let)\s+\w+\s*=\s*\w+\.getCurrentTexture\s*\(\s*\)/gu)]
+        .some((m) => !isInsideLoop(code, m.index))
       && /requestAnimationFrame|frame\s*\(/u.test(code),
     severity: "error",
     message: "getCurrentTexture() cacheado en variable de módulo",
@@ -110,25 +110,23 @@ const PERF_RULES = {
     fix: "Objetos idénticos → InstancedMesh (1 draw call por N instancias). Es la diferencia entre 5 y 5000 objetos fluidos.",
   },
   rendererInLoop: {
-    detect: (code) => /(?:new THREE\.WebGLRenderer|new THREE\.PerspectiveCamera)/u.test(code)
-      && /requestAnimationFrame|setAnimationLoop/u.test(code)
-      && new RegExp("(?:new THREE\\.(?:WebGLRenderer|PerspectiveCamera)[\\s\\S]{0,80}){2,}", "u").test(code),
+    detect: (code) => [...code.matchAll(/new THREE\.(?:WebGLRenderer|PerspectiveCamera)\s*\(/gu)]
+      .some((m) => isInsideLoop(code, m.index)),
     severity: "error",
     message: "renderer o cámara creados más de una vez",
     fix: "UN renderer y UNA cámara por página; recrearlos filtra contextos WebGL (el navegador los limita a ~8-16).",
   },
 };
 
-function frameworkGuard(code, framework) {
-  return /getCurrentTexture|navigator\.gpu/u.test(code) || framework === "webgpu";
-}
 
 /**
  * Lint one snippet/file. `framework`: "three" | "canvas2d" | "webgpu"
  * (heuristic auto-detect when omitted).
  */
 export function lint3d(code, { framework } = {}) {
-  const source = String(code ?? "");
+  if (typeof code !== "string" || code.length > 100_000) return { error: "code must be a string of at most 100000 characters" };
+  if (framework !== undefined && !["three", "canvas2d", "webgpu"].includes(framework)) return { error: "unknown framework" };
+  const source = code;
   if (source.trim().length < 10) {
     return { error: "código demasiado corto para analizar" };
   }
@@ -186,7 +184,7 @@ export function lint3d(code, { framework } = {}) {
     },
     violations,
     score,
-    pass: score >= 85,
+    pass: score >= 85 && !violations.some((v) => v.severity === "error"),
   };
 }
 
