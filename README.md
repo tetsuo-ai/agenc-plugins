@@ -3,37 +3,37 @@
 The first-party plugin marketplace for AgenC. It contains eleven packages:
 
 
-- **Zero Day Hunter** — a security-research campaign skill.
-- **IoT Builder** — a guarded PlatformIO build/upload workflow.
-- **Ledger** — read-only wallet inspection with Ledger's official `wallet-cli`.
-- **LLM Checker** — hardware-measured local-model recommendations.
-- **Stonks Copilot** — agent-native investing copilot: 50/50 stock analysis,
+- **Zero Day Hunter**: a security-research campaign skill.
+- **IoT Builder**: a guarded PlatformIO build/upload workflow.
+- **Ledger**: read-only wallet inspection with Ledger's official `wallet-cli`.
+- **LLM Checker**: hardware-measured local-model recommendations.
+- **Stonks Copilot**: agent-native investing copilot: 50/50 stock analysis,
   portfolio X-Ray with real N-PORT fund overlap, SVG charts, and a decision
   journal that flags when your stated thesis breaks.
-- **Inbox** — the Gmail copilot: your own OAuth client and a loopback redirect
+- **Inbox**: the Gmail copilot: your own OAuth client and a loopback redirect
   (no third-party cloud), a relationship-ranked digest from a local trust
   graph, the social commitments layer, an attachment vault, newsletter
   archaeology, and a document bridge that feeds Paper Radar from your mailbox.
   Read-only: never sends, never deletes.
-- **Paper Radar** — the administrative memory: deterministic Spanish/English
+- **Paper Radar**: the administrative memory: deterministic Spanish/English
   extraction of renewal dates, costs and cancellation windows from your own
   documents, a local urgency radar, cancellation drafts, and calendar export.
   Fully offline, built to work efficiently with local models.
-- **Pluma** — writing styles with a deterministic verifier: ten output
+- **Quill**: writing styles with a deterministic verifier: ten output
   styles (voices and full forms) plus a prose linter that checks register,
   structure, length and readability before anything is delivered.
-- **Forja** — code writing styles with a deterministic verifier: clean,
+- **Forge**: code writing styles with a deterministic verifier: clean,
   defensive, functional and solid disciplines plus the minimal-diff surgery
   protocol, checked by a structural code linter (including measured
   consistency with the file being edited).
 
-- **Motor3D** — browser 3D and games with verified scaffolds and a
+- **3D Engine**: browser 3D and games with verified scaffolds and a
   deterministic verifier: modern three.js/canvas2d/WebGPU patterns retrieved
   (not recalled), an API-era table that kills the classic hallucinations,
   performance heuristics, and a self-checking HTML harness.
 
 
-- **Olimpo** — 16 original olympiad-style exercises across four topics, with
+- **Olympus**: 16 original olympiad-style exercises across four topics, with
   progressive hints, worked solutions, conservative short-answer comparison,
   study plans and private imports. Not an official IMO archive.
 
@@ -176,13 +176,24 @@ distribution certificate. Never upload the private signing key. Validate the
 catalog against compatible Core before deployment, preserve historical packages
 and the legacy public key, and keep a rollback copy of the previous hosted artifacts.
 
+### English-copy release (0.2.3)
+
+All eleven plugins use English product copy without em dashes. Forge, Quill,
+Olympus and 3D Engine keep their existing installation IDs (`forja`, `pluma`,
+`olimpo` and `motor3d`). English style labels preserve legacy aliases. This
+release keeps the approved artwork and existing publisher trust keys.
+
+Refresh the marketplace to see the updated catalog copy. Update an installed
+plugin from the new catalog source to receive its translated instructions and
+diagnostics. Publication does not change existing installations automatically.
+
 ### Profile-logo release (0.2.2)
 
 All ten available plugins ship the approved profile artwork as 512 × 512,
 8-bit RGBA PNGs. Their manifests and signatures include the new assets.
 Refresh the catalog and install or update from its latest pinned source to
 receive them; publication does not automatically install plugins or enable
-permissions on existing clients. Olimpo joins the catalog with original,
+permissions on existing clients. Olympus joins the catalog with original,
 MIT-licensed exercises and its matching profile artwork; the copied draft
 corpus is not included.
 
@@ -195,6 +206,17 @@ and `AGENC_PUBLISHERS_PATH` to downloaded production artifacts for a post-deploy
 check; otherwise it checks the locally built `public/` artifacts.
 
 ## Validate
+
+### Copy policy
+
+All authored plugin text is English, with no em dashes. This includes catalog
+names, descriptions, starter prompts, commands, styles, examples and diagnostics.
+English display names do not change the stable installation IDs or legacy API
+aliases. Multilingual input recognition remains supported.
+
+`npm run validate:copy` checks all plugin text for em dashes, including encoded
+forms in JSON, and catches known Spanish UI-copy regressions. It is not a general
+language detector: review new prose for English before signing a release.
 
 ```bash
 npm ci

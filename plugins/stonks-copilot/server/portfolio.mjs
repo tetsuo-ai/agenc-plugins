@@ -3,7 +3,7 @@
  * pasted CSV export from common brokers (Schwab positions export, generic
  * `symbol,quantity,cost` lists) and ignores header/summary noise rows.
  * Analysis merges direct holdings with fund constituents into effective
- * exposure, overlap, and concentration metrics. Pure — no I/O.
+ * exposure, overlap, and concentration metrics. Pure - no I/O.
  */
 
 const SYMBOL_RE = /^[A-Z][A-Z0-9.-]{0,11}$/u;

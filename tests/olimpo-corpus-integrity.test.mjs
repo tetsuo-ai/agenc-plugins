@@ -17,7 +17,7 @@ test("olimpo release: no copied or misattributed draft corpus ships",()=>{
     assert.ok(p.hints.length>=2 && p.hints.length<=5);
     assert.deepEqual(p.provenance,{kind:"original",author:"tetsuo-ai",license:"MIT",review:"derivation-and-deterministic-checks",check:p.id});
     assert.ok(p.answer===null||typeof p.answer==="string");
-    assert.ok(p.sourceNote.includes("no es un problema oficial IMO"));
+    assert.ok(p.sourceNote.includes("not an official IMO problem"));
   }
 });
 test("olimpo release: license and review provenance accompany the actual corpus",()=>{

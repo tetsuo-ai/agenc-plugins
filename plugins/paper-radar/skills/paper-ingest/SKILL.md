@@ -5,10 +5,10 @@ when_to_use: The user shares a contract/policy/invoice/PDF to track, says "track
 argument-hint: <file-path-or-pasted-text>
 ---
 
-# Paper ingest — the document becomes a ledger entry
+# Paper ingest - the document becomes a ledger entry
 
-The plugin does the reading. All parsing — dates, amounts, notice windows,
-periodicity, document kind — is deterministic inside the `ingest_extract`
+The plugin does the reading. All parsing - dates, amounts, notice windows,
+periodicity, document kind - is deterministic inside the `ingest_extract`
 tool, in Spanish and English. You never parse the document yourself and
 never need the full text after extraction. This is deliberate: this
 workflow must work the same on a small local model as on a frontier one,
@@ -21,7 +21,7 @@ command -v pdftotext
 ```
 
 If absent, tell the user to install poppler (`apt install poppler-utils`,
-`brew install poppler`) — like the Ledger plugin's `wallet-cli`, this
+`brew install poppler`) - like the Ledger plugin's `wallet-cli`, this
 plugin uses a real system tool rather than bundling one. Then:
 
 ```bash
@@ -37,7 +37,7 @@ The plugin's MCP tools are deferred entries in the tool catalog: call your tool 
 1. Run `ingest_extract` with the document text.
 2. Read the candidates:
    - The renewal/expiry date is the one with the highest `relevance`.
-   - `noticeWindows` are the cancellation deadlines in days — the single
+   - `noticeWindows` are the cancellation deadlines in days - the single
      most valuable fact in the document.
    - Amounts carry currency and per-period hints; `periodicity` gives the
      cycle; `kinds` gives the category shortlist.
@@ -45,8 +45,8 @@ The plugin's MCP tools are deferred entries in the tool catalog: call your tool 
    top relevance, or no renewal date surfaced. Otherwise propose the entry
    and let them correct it.
 4. Create the entry with `ledger_upsert`. Never compute nextDue or
-   noticeDeadline yourself — the tool derives them and rejects mistakes.
-   Title format: `<what> — <counterparty>` (e.g. "Car insurance — Mapfre").
+   noticeDeadline yourself - the tool derives them and rejects mistakes.
+   Title format: `<what> - <counterparty>` (e.g. "Car insurance - Mapfre").
    Evidence: pass 1–3 of the candidate context snippets; they are capped
    at 160 chars each. Never store the document body.
 5. Report the one line that matters: the entry id, when it renews, when
@@ -69,5 +69,5 @@ The plugin's MCP tools are deferred entries in the tool catalog: call your tool 
 ## Local-model discipline
 
 You will often run on a small local model with a short context. The tool
-outputs are already compact — do not re-quote them in full. Your job is
+outputs are already compact - do not re-quote them in full. Your job is
 selection and confirmation, at most a few short sentences per step.

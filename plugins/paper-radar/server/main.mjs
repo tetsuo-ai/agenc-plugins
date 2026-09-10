@@ -5,7 +5,7 @@
  * Zero-dependency stdio MCP server (JSON-RPC 2.0, newline-delimited),
  * fully offline: no network calls, no telemetry, nothing leaves the
  * machine. Parsing is deterministic inside the tools so the plugin works
- * efficiently with small local models — the model only ever sees compact
+ * efficiently with small local models - the model only ever sees compact
  * structured candidates and acts with strict-validation tools, never raw
  * document bodies. State is a local JSON ledger plus exported .ics files
  * under the plugin data directory.
@@ -17,7 +17,7 @@ import { CATEGORIES, PERIODS, normalizeEntry, radarRows } from "./ledger.mjs";
 import { makeStores } from "./stores.mjs";
 
 const PROTOCOL_VERSION = "2025-06-18";
-const SERVER_INFO = { name: "paper-radar", version: "0.2.2" };
+const SERVER_INFO = { name: "paper-radar", version: "0.2.3" };
 
 const dataDir = resolveDataDir();
 const stores = makeStores(dataDir);
@@ -43,7 +43,7 @@ function newId() {
 const tools = [
   {
     name: "ingest_extract",
-    description: "Deterministic candidate extraction from one document's text (run pdftotext first for PDFs). Returns compact structured candidates — dates with relevance to expiry/renewal language, amounts with per-period hints, cancellation-notice windows, periodicity, and kind guesses — with short context snippets only. Never returns or stores the full document.",
+    description: "Deterministic candidate extraction from one document's text (run pdftotext first for PDFs). Returns compact structured candidates - dates with relevance to expiry/renewal language, amounts with per-period hints, cancellation-notice windows, periodicity, and kind guesses - with short context snippets only. Never returns or stores the full document.",
     inputSchema: {
       type: "object",
       properties: {
@@ -70,7 +70,7 @@ const tools = [
       type: "object",
       properties: {
         id: { type: "string", description: "Existing entry id to update; omit to create" },
-        title: { type: "string", description: "Human name, e.g. 'Car insurance — Mapfre'" },
+        title: { type: "string", description: "Human name, e.g. 'Car insurance - Mapfre'" },
         category: { type: "string", enum: CATEGORIES },
         period: { type: "string", enum: PERIODS },
         anchorDate: { type: "string", description: "ISO date of the next/renewal date found in the document (YYYY-MM-DD)" },
@@ -165,7 +165,7 @@ const tools = [
   },
   {
     name: "radar",
-    description: "The urgency sweep: everything due within a horizon (default 30 days), sorted, with notice-window status. 'critical' = the cancellation notice window is already open (or due within 7 days) — those need action TODAY even if renewal is weeks away.",
+    description: "The urgency sweep: everything due within a horizon (default 30 days), sorted, with notice-window status. 'critical' = the cancellation notice window is already open (or due within 7 days) - those need action TODAY even if renewal is weeks away.",
     inputSchema: {
       type: "object",
       properties: { horizonDays: { type: "number", description: "Default 30" } },
@@ -225,7 +225,7 @@ const tools = [
   },
   {
     name: "cancel_draft",
-    description: "Draft a cancellation notice (email or letter) for one entry from ledger data — deterministic templates in the entry's language. Returns the draft text; the user sends it.",
+    description: "Draft an English cancellation notice (email or letter) for one entry from ledger data using a deterministic template. The source document language is preserved as metadata. Returns the draft text; the user sends it.",
     inputSchema: {
       type: "object",
       properties: {
@@ -250,7 +250,7 @@ const tools = [
         today,
         nextDue,
       });
-      return structured({ id, today, nextDue, draft });
+      return structured({ id, today, nextDue, language: "en", sourceLanguage: entry.language, draft });
     },
   },
   {
@@ -314,42 +314,22 @@ function round2(value) {
 function renderCancelDraft({ entry, senderName, accountRef, channel, today, nextDue }) {
   const who = entry.counterparty ?? "customer service";
   const ref = accountRef ?? "";
-  const refLine = entry.language === "en"
-    ? ref ? `Account/policy reference: ${ref}` : ""
-    : ref ? `Referencia de póliza/cuenta: ${ref}` : "";
-  if (entry.language === "en") {
-    const subject = `Cancellation notice — ${entry.title}${ref ? ` (${ref})` : ""}`;
-    const body = [
-      `Dear ${who},`,
-      "",
-      `I, ${senderName}, hereby give notice of cancellation for the following agreement effective before its next renewal date of ${nextDue}:`,
-      `  ${entry.title}`,
-      refLine,
-      "",
-      `Please confirm in writing that this agreement will not renew and that no further charges will be applied. If any cancellation notice period applies, treat this letter as notice given on ${today}.`,
-      "",
-      "Sincerely,",
-      senderName,
-    ].filter((line) => line !== "").join("\n");
-    return channel === "email"
-      ? `Subject: ${subject}\n\n${body}`
-      : `${senderName}\n${today}\n\n${subject}\n\n${body}`;
-  }
-  const subject = `Preaviso de cancelación — ${entry.title}${ref ? ` (${ref})` : ""}`;
+  const refLine = ref ? `Account/policy reference: ${ref}` : "";
+  const subject = `Cancellation notice - ${entry.title}${ref ? ` (${ref})` : ""}`;
   const body = [
-    `Estimados ${who}:`,
+    `Dear ${who},`,
     "",
-    `Yo, ${senderName}, comunico por la presente mi voluntad de dar por finalizado el siguiente contrato con efectos antes de su próxima fecha de renovación (${nextDue}):`,
+    `I, ${senderName}, hereby give notice of cancellation for the following agreement effective before its next renewal date of ${nextDue}:`,
     `  ${entry.title}`,
     refLine,
     "",
-    `Rogo me confirmen por escrito que el contrato no se renovará y que no se realizarán cargos adicionales. Si existiera un plazo de preaviso, considere esta comunicación como efectuada con fecha ${today}.`,
+    `Please confirm in writing that this agreement will not renew and that no further charges will be applied. If any cancellation notice period applies, treat this letter as notice given on ${today}.`,
     "",
-    "Atentamente,",
+    "Sincerely,",
     senderName,
   ].filter((line) => line !== "").join("\n");
   return channel === "email"
-    ? `Asunto: ${subject}\n\n${body}`
+    ? `Subject: ${subject}\n\n${body}`
     : `${senderName}\n${today}\n\n${subject}\n\n${body}`;
 }
 
@@ -369,8 +349,8 @@ function renderIcs(events, today) {
       `UID:${icsEscape(entry.id)}-${day}@paper-radar`,
       `DTSTAMP:${stamp}`,
       `DTSTART;VALUE=DATE:${day}`,
-      `SUMMARY:${icsEscape(entry.title)} — ${entry.period === "one_time" ? "deadline" : "renewal"}`,
-      `DESCRIPTION:${icsEscape(`paper-radar: ${entry.title}. ${entry.noticeDays ? `Notice period ${entry.noticeDays} days — cancel by ${alarmDate(due, entry.noticeDays)}.` : "No notice period recorded."}`)}`,
+      `SUMMARY:${icsEscape(entry.title)} - ${entry.period === "one_time" ? "deadline" : "renewal"}`,
+      `DESCRIPTION:${icsEscape(`paper-radar: ${entry.title}. ${entry.noticeDays ? `Notice period ${entry.noticeDays} days - cancel by ${alarmDate(due, entry.noticeDays)}.` : "No notice period recorded."}`)}`,
       "BEGIN:VALARM",
       `TRIGGER:-P${alarmDays}D`,
       "ACTION:DISPLAY",

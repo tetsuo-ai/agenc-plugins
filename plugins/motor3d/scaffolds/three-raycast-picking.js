@@ -1,15 +1,15 @@
 import { withErrorOverlay } from "../server/overlay.mjs";
-// Scaffold: three-raycast-picking — clic/hover sobre objetos 3D con
-// coordenadas NDC correctas (el bug #1 de los modelos chicos).
+// Scaffold: three-raycast-picking - click/hover over 3D objects with
+// correct NDC coordinates, a common source of model-generated bugs.
 export default {
   "name": "three-raycast-picking",
   "framework": "three",
-  "description": "Picking correcto: pointer→NDC→raycaster, hover y click, con contador de objetos.",
+  "description": "Correct picking: pointer→NDC→raycaster, hover and click, with an object counter.",
   "html": withErrorOverlay(`<!doctype html>
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<title>TODO: título</title>
+<title>TODO: title</title>
 <style>html,body{margin:0;height:100%;overflow:hidden}canvas{display:block;touch-action:none}</style>
 <script type="importmap">
 { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js" } }
@@ -47,7 +47,7 @@ const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 let hovered = null;
 
-// NDC: (-1..1). El error clásico: olvidar el 2× o el signo.
+// NDC: (-1..1). Common mistakes: forgetting the 2× scale or the sign.
 function setPointerFromEvent(e) {
   const rect = renderer.domElement.getBoundingClientRect();
   pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
@@ -73,7 +73,7 @@ renderer.domElement.addEventListener("pointerdown", (e) => {
   setPointerFromEvent(e);
   updateHover();
   if (hovered !== null) {
-    // TODO: tu acción de click
+    // TODO: your click action
     hovered.userData.baseColor = 0x22c55e;
     hovered.material.color.set(0x22c55e);
     hovered = null;
@@ -103,8 +103,8 @@ addEventListener("resize", () => {
 </body>
 </html>`),
   "notes": [
-    "getBoundingClientRect(): NDC relativo al canvas, no a la ventana (scroll-safe).",
-    "intersectObjects(objs, false): recursive=true solo si hay children que pickear.",
-    "Cámara ortográfica: el mismo raycaster funciona igual con setFromCamera.",
+    "getBoundingClientRect(): NDC is relative to the canvas, not the window, so scrolling is safe.",
+    "intersectObjects(objs, false): use recursive=true only when children must also be picked.",
+    "Orthographic cameras use the same raycaster with setFromCamera.",
   ],
 }

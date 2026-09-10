@@ -1,7 +1,7 @@
 /**
  * The social commitments layer: waiting-on threads (you asked, they went
  * silent), reply debt (humans awaiting YOUR answer), and commitment
- * candidates (promises with dates, detected deterministically in es/en —
+ * candidates (promises with dates, detected deterministically in es/en -
  * the agent confirms and words them). Pure functions over thread records.
  */
 

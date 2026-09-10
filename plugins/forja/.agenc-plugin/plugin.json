@@ -1,7 +1,7 @@
 {
   "name": "forja",
-  "version": "0.2.2",
-  "description": "Code writing styles with a deterministic verifier: writing disciplines (clean, defensive, functional, solid) and the minimal-diff surgery protocol for editing existing code as AgenC output styles — plus a structural code linter that verifies every draft (function bands, nesting, naming, duplicates, consistency with the host file) before delivery. The model writes; the linter judges.",
+  "version": "0.2.3",
+  "description": "Five code-writing disciplines with an offline structural linter. Check function length, nesting, naming, duplication, and consistency with existing files before running the project's compiler and tests.",
   "author": {
     "name": "tetsuo-ai"
   },
@@ -21,17 +21,24 @@
   "mcpServers": {
     "forja-lint": {
       "command": "node",
-      "args": ["./server/main.mjs"],
+      "args": [
+        "./server/main.mjs"
+      ],
       "transport": "stdio",
-      "env_vars": ["PATH"]
+      "env_vars": [
+        "PATH"
+      ]
     }
   },
   "commands": {
-    "codigo": {
+    "code": {
       "source": "./commands/codigo.md",
       "description": "Write code with a chosen discipline, verified by a deterministic structural linter",
-      "argumentHint": "<limpio|defensivo|funcional|solid|minimal-diff> <pedido o archivo>",
-      "allowedTools": ["Bash", "Read"]
+      "argumentHint": "<clean|defensive|functional|solid|minimal-diff> <request or file>",
+      "allowedTools": [
+        "Bash",
+        "Read"
+      ]
     }
   },
   "skills": [
@@ -45,9 +52,9 @@
     "./outputStyles/minimal-diff.md"
   ],
   "interface": {
-    "displayName": "Forja",
-    "shortDescription": "Code disciplines — and practical structural lint checks.",
-    "longDescription": "A code-writing-styles library and its verifier. Five disciplines ship as AgenC output styles: limpio (small single-purpose functions, early returns, intention-revealing names), defensivo (guard clauses at boundaries, fail-fast, no swallowed errors), funcional (pure functions, const discipline, transforms over mutation), solid (one responsibility per class, injected dependencies, composition over inheritance) — and minimal-diff, the surgery protocol for editing existing code: the smallest coherent change, matching the host file's own conventions. The differentiator is the deterministic structural verifier: every draft (JS/TS and Python, heuristics stated as heuristics) is checked for function-length bands, nesting depth, parameter counts, duplicate blocks, naming consistency, debug leftovers, dead imports, style-specific discipline — and, for edits, measurable consistency with the original file (indentation style and width, quote style, naming convention, semicolons). Violations carry concrete fixes; drafts must clear 85/100. Fully offline, zero dependencies, identical on local models.",
+    "displayName": "Forge",
+    "shortDescription": "Code disciplines with practical structural checks.",
+    "longDescription": "Five code-writing disciplines: clean, defensive, functional, solid, and minimal-diff. Each output style includes rules and examples. The offline structural linter checks JS/TS and Python for function length, nesting, parameter counts, duplication, naming, debug leftovers, unused imports, and discipline-specific patterns. For existing files, minimal-diff compares indentation, quotes, naming, and semicolons with the original. Findings include concrete suggestions; passing requires at least 85/100 and no errors. Heuristics do not replace compilation, tests, or security review. Legacy installation and style identifiers remain compatible.",
     "developerName": "tetsuo-ai",
     "category": "developer-tools",
     "capabilities": [
@@ -62,10 +69,10 @@
     "brandColor": "#f97316",
     "logo": "./assets/logo.png",
     "defaultPrompt": [
-      "Escribí esta función limpia",
-      "Editá este archivo con cambio mínimo",
-      "Hacé este parser defensivo",
-      "Revisá si este código es limpio"
+      "Write this function with a clean design",
+      "Edit this file with the smallest complete change",
+      "Make this parser defensive",
+      "Review this code for clarity and structure"
     ],
     "screenshots": []
   }

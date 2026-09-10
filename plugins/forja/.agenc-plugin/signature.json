@@ -1,17 +1,17 @@
 {
   "publisher": "tetsuo-ai",
-  "signature": "JAB6GYOz6eSr2QYTz6EQHPM9l5uQfkvqIPVrZT1rnGdFyyxSS7aMmdXXEFuCma328EKZA6ajMmR2dbE6vHdPAQ==",
+  "signature": "3YZVCKbRNQrMtT5ZecQBheVHelNFYhUXMPB57KTGWN4CgNgLJ9TRng6oZCNJ+z8t/AkFQDO8tUzGqV9qhMKeCg==",
   "files": {
     "assets/logo.png": "sha256:753ce81952fe20c1c17e9f431d3d3f7f5cc1f04c7fec321ed05991980158924c",
-    "commands/codigo.md": "sha256:afa3e8c2de918ab1b6b4ac15c013af33168a740f6c85e5186cf6dfa7087236a1",
-    "outputStyles/defensivo.md": "sha256:03808d7d1b58f89698e37b17a279e34fa3bcd2784744f6c9190b2058a50d2922",
-    "outputStyles/funcional.md": "sha256:ecf258c3ece2232927e07bde85f2a0d472feb50734174d1f994f563059aa0e08",
-    "outputStyles/limpio.md": "sha256:5234f3b333cd479a8969001fc52fd4dd3376766836646230fa83a39319e23c69",
-    "outputStyles/minimal-diff.md": "sha256:808dceae9d1f45b7396732e9f7cbf155acb0064ceb3a973c0edc8f2b2303b815",
-    "outputStyles/solid.md": "sha256:2563dae34379257b787f1aa359d2debfd478220190d33b4c36d7b37c6f63fc53",
-    "README.md": "sha256:905d4d00b80fd2e5fec0d71229a2e7cb0ecac6188a4e1748cfedf1e97f2e8309",
-    "server/main.mjs": "sha256:c89864791c0f27bb94103b2f48c745e80fdaaf90b663209c83012a31109ee777",
-    "server/verify.mjs": "sha256:03eb004a8fc05db1648820919afe584a9ffd11dded2de7a0e3d5acb2c5d78307",
-    "skills/calidad/SKILL.md": "sha256:f740cb068d4b948ae8bda4cabedd58df8c38d3fba06f2984ffb792a7261914e6"
+    "commands/codigo.md": "sha256:76684a8e375198ccd09393ee4a13d51f6b0874ccca5bc4396945a3a8a5543119",
+    "outputStyles/defensivo.md": "sha256:e5de124a989605aaac1fd4889ddf72e08f43f7d7e82f37eae99aff94026021ea",
+    "outputStyles/funcional.md": "sha256:c3b14b58f52df86a804f9c7d88ad6465b8e21dbcbf720e5326b8c7ecdaa25ff7",
+    "outputStyles/limpio.md": "sha256:b818eb14f87f7b3988576efc7a11ae82e9094c46ce09728853a6b0debbada5fc",
+    "outputStyles/minimal-diff.md": "sha256:2b5d67cbc45d25c321dcf71f9de9a6d8dc0cfd0e89ff7cbf7869df88d250906d",
+    "outputStyles/solid.md": "sha256:14bfe5be64efcbe1efcfc36834a99874aa4dafcd7ec1d8d66ff0e67169c71914",
+    "README.md": "sha256:79315db2dd7f315cfbf03a0038da0ca4510200f0e381df71354f345f33d034ed",
+    "server/main.mjs": "sha256:146d631dd5d2e73008bb6c7304403a8db2dc42eeff549271f9cefb3bf7b097da",
+    "server/verify.mjs": "sha256:8303a7d801178fa9f9731f444b50cd61de7e0bbae89eb38edabd25b09a984c0c",
+    "skills/calidad/SKILL.md": "sha256:a5bea0a7fb39a9041c9f23cf54261210cf10218de27e7cf0084de7c5b0dd1012"
   }
 }

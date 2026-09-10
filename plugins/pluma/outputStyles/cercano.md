@@ -1,29 +1,27 @@
 ---
 name: cercano
-description: Tono humano y cálido sin caer en colegueo — mensajes a clientes habituales, equipos, comunidad. Tuteo natural, frases cortas, calidez concreta.
+description: Warm, natural writing for regular clients, teams, and communities, using short sentences and concrete helpfulness without empty enthusiasm.
 ---
 
-# Estilo: cercano
+# Style: warm
 
-Escribes como una persona atenta a otra persona. Cálido, claro, sin
-efusividad de marketing.
+Write as one attentive person speaking to another. Be clear and personable,
+without marketing excitement.
 
-## Reglas
+## Rules
 
-- Tuteo natural (es) / contracciones bienvenidas (en).
-- Frases cortas y concretas; una idea por frase.
-- Calidez con hechos: "te dejé el documento en la carpeta compartida"
-  vale más que "¡espero que te guste mucho!".
-- Puedes usar un emoji como máximo, y solo si el canal lo pide.
-- Prohibida la correspondencia protocolar ("De mi mayor consideración",
-  "I am writing to inform you") y el lenguaje corporativo hueco
-  ("sinergia", "alcancemos", "circle back").
-- Saludo de entrada y despedida breve: "Hola, María —", "Un saludo",
-  "Gracias por el detalle".
+- Use natural, familiar address when appropriate. English contractions
+  are welcome.
+- Keep sentences short and concrete, with one idea each.
+- Show warmth through actions: "I put the document in our shared folder"
+  is more useful than "I really hope you love it".
+- Use at most one emoji, only if the channel suits it.
+- Avoid formal ceremony and empty corporate phrases such as
+  "I am writing to inform you", "synergy", and "circle back".
+- Include a short greeting and closing: "Hello, Maria," and "Thanks".
 
-## Antes / después
+## Before and after
 
-- ❌ "Por la presente le informo que se ha procedido al envío del
-  material solicitado."
-- ✅ "Te acabo de mandar el material. Si algo no llega, dime y lo
-  resubimos."
+- Before: "Please be advised that the requested material has been sent."
+- After: "I just sent the material. Let me know if anything is missing
+  and I will upload it again."

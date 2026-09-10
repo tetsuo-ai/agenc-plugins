@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /**
- * forja MCP server — code writing styles with a deterministic verifier.
+ * Forge MCP server: code-writing styles with a deterministic verifier.
  *
  * Zero-dependency stdio MCP server (JSON-RPC 2.0, newline-delimited),
  * fully offline. The style library ships as AgenC output styles (see
  * outputStyles/); this server contributes the loop's missing half:
  * `code_lint` runs heuristic structural analysis (JS/TS and Python) on
- * a draft — function bands, nesting, params, duplicates, naming,
+ * a draft: function bands, nesting, parameters, duplicates, naming,
  * debug leftovers, dead imports, per-style discipline, and (for
  * minimal-diff) measurable consistency with the original file being
  * edited. The model writes; this judges. No network, no state.
@@ -14,23 +14,23 @@
 import { readFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { CODE_STYLE_RULESETS, verifyCode } from "./verify.mjs";
+import { CODE_STYLE_RULESETS, CODE_STYLE_ALIASES, CODE_STYLE_FILES, verifyCode } from "./verify.mjs";
 
 const PROTOCOL_VERSION = "2025-06-18";
-const SERVER_INFO = { name: "forja", version: "0.2.2" };
+const SERVER_INFO = { name: "forja", title: "Forge", version: "0.2.3" };
 const STYLES_DIR = join(dirname(fileURLToPath(import.meta.url)), "..", "outputStyles");
 
 const tools = [
   {
     name: "code_styles_list",
-    description: "The forja code-style library: writing disciplines (limpio/clean, defensivo/defensive, funcional/functional, solid) and the minimal-diff surgery protocol for editing existing code. Each with its deterministic lint ruleset. Session-wide with /output-style; per-draft through code_lint.",
+    description: "List Forge's clean, defensive, functional, solid, and minimal-diff styles with their deterministic lint rules. For a session-wide style, open /output-style and select the installed plugin style matching outputStyleName. Exact IDs include an installation namespace. Check individual drafts with code_lint.",
     inputSchema: { type: "object", properties: {} },
     handler: async () => {
       const styles = [];
       for (const [key, ruleset] of Object.entries(CODE_STYLE_RULESETS)) {
         let description = null;
         try {
-          const raw = await readFile(join(STYLES_DIR, `${key}.md`), "utf8");
+          const raw = await readFile(join(STYLES_DIR, `${CODE_STYLE_FILES[key]}.md`), "utf8");
           const match = raw.match(/^---\n([\s\S]*?)\n---/u);
           description = match?.[1]?.match(/description:\s*(.+)/u)?.[1]?.trim() ?? null;
         } catch {
@@ -38,6 +38,7 @@ const tools = [
         }
         styles.push({
           key,
+          outputStyleName: CODE_STYLE_FILES[key],
           family: ruleset.family,
           ...(description !== null ? { description } : {}),
           lintRules: ruleset.rules,
@@ -46,18 +47,18 @@ const tools = [
       }
       return structured({
         styles,
-        hint: "New code: pick a discipline, draft, code_lint, fix, deliver. Editing existing code: minimal-diff and pass original: the patch must match the file's own conventions (indent, quotes, naming) — measured, not vibes.",
+        hint: "For new code, choose a discipline, draft, run code_lint, and revise. For existing code, use minimal-diff and provide original so the checker can compare the file's indentation, quotes, and naming.",
       });
     },
   },
   {
     name: "code_lint",
-    description: "Verify a code draft against one style (JS/TS or Python, heuristic structural analysis): function length bands, nesting depth, param counts, duplicate blocks, naming, debug leftovers, dead imports, per-style discipline (guard clauses, const discipline, class size, injected deps…), and — with style minimal-diff and `original` — measurable consistency with the file being edited (indentation style/width, quotes, naming, semicolons). Returns violations with fixes and a 0-100 score (pass requires ≥ 85 and no errors).",
+    description: "Check a JS/TS or Python draft with structural heuristics for function length, nesting, parameters, duplication, naming, debug leftovers, unused imports, and the chosen discipline. With minimal-diff and original, also compare indentation, quotes, naming, and semicolons with the existing file. Returns findings, suggestions, and a 0-100 score. Passing requires at least 85 and no errors; this does not replace compilation or tests.",
     inputSchema: {
       type: "object",
       properties: {
         code: { type: "string", description: "The draft source" },
-        style: { type: "string", enum: Object.keys(CODE_STYLE_RULESETS) },
+        style: { type: "string", enum: [...Object.keys(CODE_STYLE_RULESETS), ...Object.keys(CODE_STYLE_ALIASES)], description: "English style name; legacy input aliases remain accepted" },
         language: { type: "string", enum: ["js", "py"], description: "js covers TS; py covers Python" },
         original: { type: "string", description: "For minimal-diff: the file's current contents" },
       },
@@ -150,7 +151,7 @@ async function main() {
       try {
         message = JSON.parse(line);
       } catch {
-        process.stderr.write("forja: invalid JSON-RPC input\n");
+        process.stderr.write("Forge: invalid JSON-RPC input\n");
         continue;
       }
       const response = await handleMessage(message);
@@ -162,6 +163,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  process.stderr.write(`forja fatal: ${error instanceof Error ? error.stack : String(error)}\n`);
+  process.stderr.write(`Forge fatal: ${error instanceof Error ? error.stack : String(error)}\n`);
   process.exitCode = 1;
 });

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# zdh-variant.sh — codify a confirmed pattern as a reusable query and run it repo-wide.
+# zdh-variant.sh - codify a confirmed pattern as a reusable query and run it repo-wide.
 #
 # Turns one confirmed bug into a permanent detector (variant analysis):
 # writes a semgrep rule into .zdh/queries/ and runs it; falls back to grep when
@@ -9,15 +9,15 @@
 # Usage: zdh-variant.sh <repo> <name> <pattern-regex> [message]
 # Example:
 #   zdh-variant.sh . strlen-memcpy 'memcpy\s*\([^;]*strlen\s*\(' \
-#     "memcpy sized by strlen(source) — classic off-by-one/overflow"
+#     "memcpy sized by strlen(source) - classic off-by-one/overflow"
 # Note: pattern-regex is line-based (no nested-paren matching); prefer simple,
-# high-signal shapes over precise ones — triage does the filtering.
+# high-signal shapes over precise ones - triage does the filtering.
 set -eu
 
 REPO="${1:?usage: zdh-variant.sh <repo> <name> <pattern-regex> [message]}"
 NAME="${2:?rule name required}"
 REGEX="${3:?pattern regex required}"
-MSG="${4:-variant of a confirmed pattern — audit me}"
+MSG="${4:-variant of a confirmed pattern - audit me}"
 
 REPO="$(cd "$REPO" && pwd)"
 QDIR="$REPO/.zdh/queries"

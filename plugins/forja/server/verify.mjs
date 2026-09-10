@@ -1,10 +1,10 @@
 /**
- * Deterministic code verifier — the forja engine room. Heuristic
+ * Deterministic code verifier for Forge. Heuristic
  * structural analysis over JS/TS and Python source, no AST, no
  * dependencies: function length and count via brace/def indentation
  * tracking, nesting depth, parameter counts, magic numbers, duplicate
  * normalized blocks, naming convention consistency, debug leftovers,
- * dead imports, else-after-return, empty catch, long lines/files — plus
+ * dead imports, else-after-return, empty catch, long lines/files, plus
  * per-style bands and (for minimal-diff) consistency against the
  * ORIGINAL file being edited: indentation style/width, quote style and
  * naming convention must match the host file, measurably.
@@ -12,12 +12,21 @@
  */
 
 export const CODE_STYLE_RULESETS = {
-  limpio: { family: "tone", rules: ["fnBand:25:40", "namesRevealIntent", "noMagicNumbers", "noDebugLeftovers", "earlyReturns"] },
-  defensivo: { family: "tone", rules: ["noEmptyCatch", "noSwallowedDefaults", "switchHasDefault"] },
-  funcional: { family: "tone", rules: ["constOverLet", "noParamMutation", "pureTransforms"] },
+  clean: { family: "tone", rules: ["fnBand:25:40", "namesRevealIntent", "noMagicNumbers", "noDebugLeftovers", "earlyReturns"] },
+  defensive: { family: "tone", rules: ["noEmptyCatch", "noSwallowedDefaults", "switchHasDefault"] },
+  functional: { family: "tone", rules: ["constOverLet", "noParamMutation", "pureTransforms"] },
   solid: { family: "tone", rules: ["classSizeBands", "injectedDeps", "noGodSwitch"] },
   "minimal-diff": { family: "form", rules: ["matchOriginal"] },
 };
+
+// Accepted input IDs and filenames retain compatibility with earlier releases.
+export const CODE_STYLE_ALIASES = Object.freeze({
+  limpio: "clean", defensivo: "defensive", funcional: "functional",
+});
+export const CODE_STYLE_FILES = Object.freeze({
+  clean: "limpio", defensive: "defensivo", functional: "funcional",
+  solid: "solid", "minimal-diff": "minimal-diff",
+});
 
 const BASE_RULES = [
   "fnBand:40:60",
@@ -52,10 +61,11 @@ const FN_STARTERS = {
 
 /**
  * Lint one source file. `language` is "js" (JS/TS) or "py". For
- * minimal-diff, pass `original` — the file's current contents — and the
+ * minimal-diff, pass `original` (the file's current contents) so the
  * consistency checks run against it.
  */
-export function verifyCode(code, { style = "limpio", language = "js", original } = {}) {
+export function verifyCode(code, { style = "clean", language = "js", original } = {}) {
+  style = Object.hasOwn(CODE_STYLE_ALIASES, style) ? CODE_STYLE_ALIASES[style] : style;
   const ruleset = Object.hasOwn(CODE_STYLE_RULESETS, style) ? CODE_STYLE_RULESETS[style] : undefined;
   if (ruleset === undefined) {
     return { error: `unknown style '${style}'; known: ${Object.keys(CODE_STYLE_RULESETS).join(", ")}` };
@@ -189,7 +199,7 @@ export function verifyCode(code, { style = "limpio", language = "js", original }
     }
   }
 
-  // ── early returns (limpio) ───────────────────────────────────────
+  // ── early returns (clean) ───────────────────────────────────────
   if (active.has("earlyReturns")) {
     const nestedIfs = (source.match(/\bif\b[^\n{]*\{\s*\n\s*\bif\b/gu) ?? []).length;
     if (nestedIfs > 0) {
@@ -197,7 +207,7 @@ export function verifyCode(code, { style = "limpio", language = "js", original }
     }
   }
 
-  // ── funcional: let discipline and param mutation ─────────────────
+  // ── functional: let discipline and param mutation ─────────────────
   if (active.has("constOverLet")) {
     for (const lets of stats.reassignedNever) {
       violation("info", "let-could-be-const", `let ${lets} never reassigned`, "Use const");

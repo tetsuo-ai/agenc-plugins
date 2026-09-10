@@ -1,12 +1,12 @@
 /**
- * Deterministic document extraction — the plugin's engine room.
+ * Deterministic document extraction - the plugin's engine room.
  *
  * Everything here is plain regex/date arithmetic over extracted text in
  * Spanish and English: absolute dates, durations, periodicities, money
  * amounts, cancellation-notice windows, and document-kind scoring. No
  * model involvement, no network, no locale dependencies. The design rule:
  * the language model (hosted or local) only ever sees these compact
- * candidates with short context snippets — never the full document.
+ * candidates with short context snippets - never the full document.
  */
 
 /** Month name → number. Regional duplicates ("setiembre") map to the same month. */
@@ -213,7 +213,7 @@ const MONEY_CONTEXT = /(?:prima|cuota|precio|importe|total|coste|costo|tarifa|fa
 /**
  * Money amounts with per-period hints: "€412", "1.299,99 €", "$1,299.99/mo".
  * Bare numbers (date fragments, page numbers) are kept only when they carry
- * a currency symbol, a decimal/thousands shape AND money language nearby —
+ * a currency symbol, a decimal/thousands shape AND money language nearby -
  * documents are noisy and false amounts cost more than missed ones.
  */
 export function extractAmounts(text) {

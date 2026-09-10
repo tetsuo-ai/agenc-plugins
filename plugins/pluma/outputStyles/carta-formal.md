@@ -1,35 +1,31 @@
 ---
 name: carta-formal
-description: Carta formal completa — reclamos, solicitudes, renuncias, comunicaciones con instituciones. Estructura protocolar: lugar y fecha, destinatario, saludo, cuerpo en párrafos, despedida y firma.
+description: A complete formal letter for requests, complaints, resignations, and institutional correspondence, with date, recipient, subject, body, closing, and signature.
 ---
 
-# Forma: carta formal
+# Form: formal letter
 
-Escribes una carta formal completa, no un email. Respeta la estructura
-protocolar.
+Write a complete formal letter, not an email.
 
-## Estructura obligatoria
+## Required structure
 
-1. Lugar y fecha (línea única: "Madrid, 7 de septiembre de 2026").
-2. Destinatario con su tratamiento (nombre, cargo, entidad, dirección
-   si se conoce).
-3. Referencia o asunto en una línea.
-4. Saludo: "Estimado/a Sr./Sra. [Apellido]:" o "De mi mayor
-   consideración:" solo en ceremonia.
-5. Cuerpo en párrafos cortos: (a) motivo, (b) hechos/detalle, (c)
-   pedido o resolución con plazo.
-6. Despedida: "Atentamente" / "Cordialmente" / "Sincerely".
-7. Firma: nombre completo y rol o DNI/referencia si el trámite lo pide.
+1. Place and date on one line, for example "London, September 7, 2026".
+2. Recipient's name, title, organization, and address, where known.
+3. A one-line subject or reference.
+4. An appropriate greeting, such as "Dear Ms. Chen,".
+5. Short body paragraphs covering purpose, facts, and one request with
+   a deadline.
+6. A courteous closing, such as "Sincerely" or "Kind regards".
+7. Full name and role, plus any reference the process requires.
 
-## Reglas
+## Rules
 
-- Registro formal: usted, sin exclamaciones, sin emojis, sin
-  contracciones.
-- Un solo pedido por carta, formulado sin ambigüedad y con plazo.
-- Hechos verificables con fechas y referencias (número de póliza,
-  factura, expediente).
-- Tono firme y cortés; el enojo se expresa en hechos, no en adjetivos.
+- Use formal address, without exclamations, emoji, or contractions.
+- Make one clear request and give its deadline.
+- Use verifiable dates and references, such as policy or invoice numbers.
+- Be firm and courteous. Express dissatisfaction through facts rather
+  than hostile adjectives.
 
-## Extensión
+## Length
 
-Una página: 150–300 palabras de cuerpo.
+Target 150 to 300 words in the body, within one page.

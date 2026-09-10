@@ -1,5 +1,5 @@
 /**
- * Ledger schema, validation, and derived deadlines. Pure — persistence
+ * Ledger schema, validation, and derived deadlines. Pure - persistence
  * lives in the server's stores. Validation is strict and the errors are
  * written for a small local model to act on directly ("noticeDays must be
  * 1-365, got 900"), because this plugin must work end-to-end on local
@@ -135,7 +135,7 @@ function sanitizeEvidence(evidence) {
 
 /**
  * Radar view: urgency-sorted rows. `critical` means the notice window is
- * already open (or the deadline itself is imminent) — that is the row the
+ * already open (or the deadline itself is imminent) - that is the row the
  * user must act on TODAY even though renewal is weeks away.
  */
 export function radarRows(entries, { horizonDays = 30, now = new Date() } = {}) {
@@ -174,7 +174,7 @@ export function radarRows(entries, { horizonDays = 30, now = new Date() } = {}) 
 
 /**
  * Within one urgency band, the row whose deadline to ACT comes first wins:
- * for notice-bearing rows that is the notice deadline — a window that is
+ * for notice-bearing rows that is the notice deadline - a window that is
  * open today outranks a renewal that is merely a few days out.
  */
 function actionDeadline(row) {

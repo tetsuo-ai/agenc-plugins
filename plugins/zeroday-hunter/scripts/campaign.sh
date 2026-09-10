@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# campaign.sh — launch zeroday-hunter campaigns through the AgenC daemon.
+# campaign.sh - launch zeroday-hunter campaigns through the AgenC daemon.
 #
 # Modes:
 #   campaign.sh single <repo> <goal-file> <verify-cmd> [max-cost] [reviewer-model]
@@ -53,7 +53,7 @@ swarm)
     echo "--- $c → $id"
     agenc agent start \
       --unattended-allow read,grep,glob,bash \
-      "zeroday-hunter campaign $id in $REPO, bug class: $c. You are the AUDITOR for this class only. Read $dir/campaign.yaml and $dir/logs/bad-attempts.md first. Follow the zeroday-hunter skill state machine: fill the threat model, build surface.md (G1), audit slices (G2) writing hypothesis records under $dir/hypotheses/, and stop at G3 boundaries — PoC execution beyond read-only probes requires the coordinator. Append every action to $dir/logs/decision.log. Abandon criteria: see campaign.yaml. Report hypothesis count and top scores when done." \
+      "zeroday-hunter campaign $id in $REPO, bug class: $c. You are the AUDITOR for this class only. Read $dir/campaign.yaml and $dir/logs/bad-attempts.md first. Follow the zeroday-hunter skill state machine: fill the threat model, build surface.md (G1), audit slices (G2) writing hypothesis records under $dir/hypotheses/, and stop at G3 boundaries - PoC execution beyond read-only probes requires the coordinator. Append every action to $dir/logs/decision.log. Abandon criteria: see campaign.yaml. Report hypothesis count and top scores when done." \
       || echo "warning: agent start failed for class $c" >&2
   done
   echo "swarm launched. Track: agenc agent list / agenc agent logs <id>"

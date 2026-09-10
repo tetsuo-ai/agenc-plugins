@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# zdh-slice.sh — extract a budget-capped call-graph slice around an entry symbol.
+# zdh-slice.sh - extract a budget-capped call-graph slice around an entry symbol.
 #
 # Heuristic for brace-bodied languages (C/C++/Go/JS/Java): BFS from the entry
 # symbol, expanding callee identifiers found inside each definition body plus
-# callers found by grep. Not a parser — verify gaps with ctags/joern/codeql on
+# callers found by grep. Not a parser - verify gaps with ctags/joern/codeql on
 # big targets (see references/toolchain.md). For Python, bodies fall back to
 # whole defining files.
 #
@@ -91,5 +91,5 @@ for f in ${ORDERED_FILES[@]:-}; do
 done
 
 echo "----- zdh-slice: ${#ORDERED_FILES[@]} files considered, $total lines emitted, depth=$DEPTH" >&2
-[ "$truncated" = "1" ] && echo "WARNING: slice exceeded $MAXLINES lines and was truncated — narrow to a deeper entry point." >&2
+[ "$truncated" = "1" ] && echo "WARNING: slice exceeded $MAXLINES lines and was truncated - narrow to a deeper entry point." >&2
 exit 0

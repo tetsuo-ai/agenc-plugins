@@ -1,15 +1,15 @@
 import { withErrorOverlay } from "../server/overlay.mjs";
-// Scaffold: three-instancing — InstancedMesh para N objetos idénticos:
-// UN draw call en vez de N. La regla de oro del performance 3D.
+// Scaffold: three-instancing - InstancedMesh for N identical objects:
+// one draw call instead of N, a key 3D performance technique.
 export default {
   "name": "three-instancing",
   "framework": "three",
-  "description": "InstancedMesh con actualización por instancia y conteo dinámico; reduce draw calls para objetos repetidos.",
+  "description": "InstancedMesh with per-instance updates and a dynamic count; reduces draw calls for repeated objects.",
   "html": withErrorOverlay(`<!doctype html>
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<title>TODO: título</title>
+<title>TODO: title</title>
 <style>html,body{margin:0;height:100%;overflow:hidden}canvas{display:block}</style>
 <script type="importmap">
 { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js" } }
@@ -36,14 +36,14 @@ scene.add(dir);
 
 const COUNT = 5000;
 
-// UNA geometría, UN material, UN draw call.
+// One geometry, one material, one draw call.
 const geometry = new THREE.BoxGeometry(0.4, 0.4, 0.4);
 const material = new THREE.MeshStandardMaterial({ color: 0x38bdf8 });
 const instances = new THREE.InstancedMesh(geometry, material, COUNT);
-instances.instanceMatrix.setUsage(THREE.DynamicDrawUsage); // se actualiza por frame
+instances.instanceMatrix.setUsage(THREE.DynamicDrawUsage); // updated every frame
 scene.add(instances);
 
-// Vectores FUERA del loop: cero allocations por frame.
+// Keep vectors outside the loop: no per-frame allocations.
 const dummy = new THREE.Object3D();
 const state = new Float32Array(COUNT * 4); // x, z, fase, velocidad
 for (let i = 0; i < COUNT; i += 1) {
@@ -55,7 +55,7 @@ for (let i = 0; i < COUNT; i += 1) {
 
 let color = new THREE.Color();
 for (let i = 0; i < COUNT; i += 1) {
-  // color por instancia (opcional): set once
+  // Optional per-instance color: set once
   instances.setColorAt(i, color.setHSL(0.55 + state[i * 4 + 2] * 0.05, 0.7, 0.55));
 }
 if (instances.instanceColor) instances.instanceColor.needsUpdate = true;
@@ -80,7 +80,7 @@ function animate() {
     dummy.updateMatrix();
     instances.setMatrixAt(i, dummy.matrix);
   }
-  instances.instanceMatrix.needsUpdate = true; // UNA subida de buffer por frame
+  instances.instanceMatrix.needsUpdate = true; // One buffer upload per frame
   renderer.render(scene, camera);
   requestAnimationFrame(animate);
 }
@@ -89,8 +89,8 @@ animate();
 </body>
 </html>`),
   "notes": [
-    "instanceMatrix.setUsage(DynamicDrawUsage): evita re-reserva del buffer GPU.",
-    "dummy (Object3D) reutilizado: la allocation por instancia por frame mata el GC.",
-    "Más de ~100 meshes idénticos → InstancedMesh; más de ~10 materiales distintos → atlas.",
+    "instanceMatrix.setUsage(DynamicDrawUsage): avoids repeated GPU buffer allocation.",
+    "Reuse the dummy Object3D; per-instance allocations on every frame increase garbage collection.",
+    "For more than about 100 identical meshes, consider InstancedMesh; for more than about 10 distinct materials, consider an atlas.",
   ],
 }

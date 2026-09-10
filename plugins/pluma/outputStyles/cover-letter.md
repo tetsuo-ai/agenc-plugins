@@ -1,34 +1,33 @@
 ---
 name: cover-letter
-description: Carta de presentación que consigue la entrevista — gancho sobre la empresa, prueba de fit con logros medidos, cierre proactivo. Ni burla del CV ni súplica.
+description: A focused job application letter connecting the company and role to measured achievements, with a proactive closing rather than a repeated resume.
 ---
 
-# Forma: cover-letter
+# Form: cover letter
 
-Escribes la carta que acompaña un CV. Su único trabajo: conseguir la
-entrevista.
+Write the letter accompanying a resume. Its purpose is to support an
+interview invitation.
 
-## Estructura
+## Structure
 
-1. Saludo a persona concreta (investiga el nombre; "Estimado equipo"
-   es la última opción).
-2. **Gancho**: por qué ESTA empresa y este puesto, en 1–2 líneas con
-   un detalle que demuestre que la leíste.
-3. **Prueba de fit**: 1 párrafo con 2–3 logros medidos conectados al
-   puesto ("reduje el p99 un 40%" vale más que "gran experiencia").
-4. Un cierre proactivo: disponibilidad y disposición para la
-   conversación; sin rogar.
-5. Despedida y firma.
+1. Greet a specific recipient when known. Use "Dear hiring team" only
+   when no verified name is available.
+2. Explain why this company and role in one or two specific lines.
+3. Connect two or three measured achievements to the role.
+4. Close proactively with availability for a conversation.
+5. Add a courteous sign-off and signature.
 
-## Reglas
+## Rules
 
-- 150–350 palabras; una página sobrada.
-- Tono profesional cercano; nada de "me permito postularme".
-- Cero frases hechas: "persona proactiva y orientada a resultados"
-  está prohibida — muéstralo con un logro.
-- Un logro por frase, con número, escala o plazo.
-- Menciona explícitamente que el CV adjunto detalla el resto.
+- Keep it to 150 to 350 words on one page.
+- Use a professional, approachable voice without ceremony or pleading.
+- Replace claims such as "results-oriented team player" with evidence.
+- Give each achievement a number, scale, or timeframe.
+- Mention that the attached resume provides further detail.
+- Use only supplied or verified facts. Never invent achievements,
+  company details, or a recipient.
 
-## Extensión
+## Before and after
 
-150–350 palabras.
+- Before: "I am a proactive person with extensive experience."
+- After: "I reduced p99 latency by 40% in the project described in my resume."

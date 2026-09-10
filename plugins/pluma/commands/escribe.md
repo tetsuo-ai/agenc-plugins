@@ -1,22 +1,23 @@
 ---
-description: Write with a chosen voice — formal, warm, concise, persuasive, technical — or a full form (letter, email, speech, proposal, cover letter), verified by a deterministic linter before delivery
-argument-hint: "<estilo> <pedido o texto>"
+aliases: [escribe]
+description: Write in a formal, warm, concise, persuasive, or technical voice, or a complete document form, with deterministic lint checks before delivery
+argument-hint: "<style> <request or text>"
 ---
 
-Follow the `escritura` skill and its boundaries.
+Follow the skill in `skills/escritura/SKILL.md` and its boundaries.
 
-The first argument names the style when it matches one of: formal,
-cercano, directo, persuasivo, tecnico, carta-formal,
-email-profesional, discurso, propuesta, cover-letter. Everything else
-is the writing request (or the text to re-style).
+Recognize these canonical styles in the first argument: formal, warm,
+concise, persuasive, technical, formal-letter, professional-email, speech,
+proposal, cover-letter. Accept legacy style IDs through the linter's
+compatibility aliases. Remaining arguments contain the writing request
+or text to restyle.
 
-1. Confirm the style if ambiguous (one short question at most).
-2. Draft following the style's output-style definition.
-3. `style_lint` the draft; fix violations and re-lint until pass (two
-   iterations maximum — then surface the unresolved choice to the user).
-4. Deliver the final text plus one line: style, score, what changed.
-5. If the user will keep writing in this voice, suggest
-   `/output-style` for the session.
+1. Confirm an ambiguous style with at most one short question.
+2. Draft using its output-style definition.
+3. Run `style_lint`, revise findings, and recheck. Stop after two revision
+   passes and explain any unresolved choice to the user.
+4. Deliver the text and one line with style, score, and changes.
+5. Suggest `/output-style` for a continuing session-wide voice.
 
-With no style in the argument, propose the two most likely styles in
-one line and pick the better fit if the user does not answer.
+If no style is specified, suggest the two most likely choices in one line
+and use the better fit if the user does not answer.
