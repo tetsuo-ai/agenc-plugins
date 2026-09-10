@@ -1,16 +1,16 @@
 {
   "publisher": "tetsuo-ai",
-  "signature": "PpAZgonYG0Cta0ZJ9xsn0wiMkJ2wLz4zroDTSHDFEd9JdhB3yU8s4gmr4ssaS/79Btni/8Idtygp5QuiYwOcAA==",
+  "signature": "eFjHUfrDomNb0P6fPBXjKJNvo4dUQ6oafFKS0TS9vHogNTn3ScJwfjT4wx87i6N0TsFqzWnXLzL/yFwblkxECQ==",
   "files": {
     "assets/logo.png": "sha256:94cc12daafc812b023318ac7779c926a80dfdf5fdc014df7f371cccae0787c5d",
-    "commands/olimpo.md": "sha256:c7217a75502737c4bbf118670a6c238a452ec9b8b9b0b76c54bbbd9dc65bf975",
+    "commands/olimpo.md": "sha256:2914964635c0c2ffa99c156ec2231cb68bb5fe804159031a7b1ea7e61a28f4df",
     "corpus/problems-original.json": "sha256:20a8a84a76c89c3e7a65733d5f3ee881ad1085814b41f0dc89297fe35b2a3059",
     "corpus/REVIEW.md": "sha256:eff322ca7b950acb4f9381dbbbfa704f4a0ad8c700d3d0136325310bc2acb549",
     "corpus/SOURCES.md": "sha256:8877265501e0b1e350f99aa2cf2aa0aa87485dab481d158e91260910bd4b7e98",
     "LICENSE": "sha256:ae0203eb52c146e675b84a04cb108855609d48a05a6661fbbf5cdd295e00b05b",
-    "README.md": "sha256:ab22bfd64d141f6a35e6e3d25efabfb84e3769f71cc65eb6c5c1a4870767bd34",
+    "README.md": "sha256:d22500e96da905394a1e6c3604df126ee932b9eaada8ed9828987e21148cffe8",
     "server/corpus.mjs": "sha256:a311eb1600cdc750254d7a61235429d8bbdfcb10d4df5d2ad16e2d98ea91f34f",
-    "server/main.mjs": "sha256:d9dd9cb31e81338da722dec6906678251ad86493df87c3934c0b9bd1361a6939",
+    "server/main.mjs": "sha256:81cb0f775fa38e0c229cb04712300a82eabb4034da21d3372aa1452a6876ee6e",
     "server/storage.mjs": "sha256:df39c92a5f163b28ed28200354405dc4c7800d772c380356e23e3d601d5ee501",
     "skills/olimpiada/SKILL.md": "sha256:c90899c2810dc4491eae1f9fdf75691a1d718b126216bcbdc9141fe27d1cd52b"
   }

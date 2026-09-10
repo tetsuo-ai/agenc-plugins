@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
@@ -66,6 +66,24 @@ test("skill display labels are English without renaming their stable directories
 
 test("plugin payloads satisfy the authored-copy policy", () => {
   assert.deepEqual(repositoryCopyIssues(ROOT), []);
+});
+
+test("all visible canonical commands are English while legacy command aliases retain their paths", () => {
+  for (const plugin of readdirSync(join(ROOT, "plugins"))) {
+    const manifest = JSON.parse(readFileSync(join(ROOT, "plugins", plugin, ".agenc-plugin/plugin.json"), "utf8"));
+    for (const command of Object.keys(manifest.commands ?? {})) {
+      assert.deepEqual(copyIssues(command, { english: true }), [], `${plugin}: /${command}`);
+      assert.doesNotMatch(command, /^(?:olimpo|codigo|escribe)$/u, `${plugin}: canonical command uses a legacy alias`);
+    }
+  }
+  for (const [plugin, canonical, legacy] of [["olimpo", "olympus", "olimpo"], ["forja", "code", "codigo"], ["pluma", "write", "escribe"]]) {
+    const manifest = JSON.parse(readFileSync(join(ROOT, "plugins", plugin, ".agenc-plugin/plugin.json"), "utf8"));
+    assert.deepEqual(Object.keys(manifest.commands), [canonical]);
+    assert.equal(manifest.commands[canonical].source, `./commands/${legacy}.md`);
+    const markdown = readFileSync(join(ROOT, "plugins", plugin, "commands", `${legacy}.md`), "utf8");
+    assert.ok(markdown.includes(`\naliases: [${legacy}]\n`));
+    if (plugin === "olimpo") assert.ok(markdown.includes(`\nname: ${canonical}\n`));
+  }
 });
 
 test("English display names preserve stable plugin installation IDs", () => {

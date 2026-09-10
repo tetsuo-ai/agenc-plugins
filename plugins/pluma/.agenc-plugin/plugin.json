@@ -1,6 +1,6 @@
 {
   "name": "pluma",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "Ten writing voices and document forms with an offline prose linter. Choose a style, draft, check its register and structure, then revise using concrete heuristic feedback.",
   "author": {
     "name": "tetsuo-ai"
