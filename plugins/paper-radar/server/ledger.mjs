@@ -42,7 +42,8 @@ export function normalizeEntry(input, { now = new Date() } = {}) {
   }
 
   const anchorIso = String(input.anchorDate ?? "").trim();
-  if (!ISO_RE.test(anchorIso) || Number.isNaN(Date.parse(`${anchorIso}T00:00:00Z`))) {
+  const parsedDate = new Date(`${anchorIso}T00:00:00Z`);
+  if (!ISO_RE.test(anchorIso) || Number.isNaN(parsedDate.getTime()) || parsedDate.toISOString().slice(0, 10) !== anchorIso) {
     errors.push(`anchorDate must be an ISO date (YYYY-MM-DD), got '${input.anchorDate ?? ""}'`);
   }
 
@@ -57,6 +58,10 @@ export function normalizeEntry(input, { now = new Date() } = {}) {
 
   let cost = null;
   let currency = null;
+  const costPeriod = input.costPeriod ?? ({ weekly: "week", monthly: "month", quarterly: "quarter", annual: "year" }[period] ?? null);
+  if (costPeriod !== null && !["week", "month", "quarter", "year"].includes(costPeriod)) {
+    errors.push("costPeriod must be week, month, quarter or year");
+  }
   if (input.cost !== undefined && input.cost !== null && input.cost !== "") {
     cost = Number(input.cost);
     if (!Number.isFinite(cost) || cost <= 0) {
@@ -86,7 +91,7 @@ export function normalizeEntry(input, { now = new Date() } = {}) {
       period,
       anchorDate: anchorIso,
       noticeDays,
-      ...(cost !== null ? { cost, currency } : {}),
+      ...(cost !== null ? { cost, currency, costPeriod } : {}),
       counterparty: optionalText(input.counterparty),
       language: input.language === "en" ? "en" : "es",
       status: input.status === "cancelled" ? "cancelled" : "active",
@@ -99,7 +104,7 @@ export function normalizeEntry(input, { now = new Date() } = {}) {
       today,
       nextDue,
       noticeDeadline,
-      annualCost: cost !== null ? annualize(cost, input.costPeriod ?? (period === "monthly" ? "month" : "year"), period) : null,
+      annualCost: cost !== null && costPeriod !== null ? annualize(cost, costPeriod, period) : null,
     },
   };
 }
@@ -141,11 +146,12 @@ export function radarRows(entries, { horizonDays = 30, now = new Date() } = {}) 
     const nextDue = nextOccurrence(entry.anchorDate, entry.period, today);
     if (nextDue === null) continue;
     const daysToDue = daysBetween(today, nextDue);
-    if (daysToDue === null || daysToDue > horizonDays) continue;
+    if (daysToDue === null) continue;
     const noticeDeadline = entry.noticeDays !== null && entry.noticeDays !== undefined
       ? addDaysIso(nextDue, -entry.noticeDays)
       : null;
     const daysToNotice = noticeDeadline !== null ? daysBetween(today, noticeDeadline) : null;
+    if (daysToDue > horizonDays && (daysToNotice === null || daysToNotice > horizonDays)) continue;
     rows.push({
       id: entry.id,
       title: entry.title,

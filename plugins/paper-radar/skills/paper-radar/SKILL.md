@@ -33,6 +33,7 @@ Present the annualized number — €9.99/mo lands differently as €120/yr —
 and the top-5 biggest. Suggest candidates to cancel (highest annual cost
 + lowest recent use is a question for the user, not for you) but never
 cancel anything without an explicit instruction.
+Keep totals grouped by currency; there is no exchange-rate conversion.
 
 ## Cancellation flow
 

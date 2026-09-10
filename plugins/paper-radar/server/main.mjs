@@ -20,8 +20,8 @@ const PROTOCOL_VERSION = "2025-06-18";
 const SERVER_INFO = { name: "paper-radar", version: "0.2.1" };
 
 const dataDir = resolveDataDir();
-mkdirSync(join(dataDir, "exports"), { recursive: true });
 const stores = makeStores(dataDir);
+mkdirSync(join(dataDir, "exports"), { recursive: true, mode: 0o700 });
 
 function resolveDataDir() {
   if (process.env.AGENC_PLUGIN_DATA && process.env.AGENC_PLUGIN_DATA.trim() !== "") {
@@ -51,8 +51,8 @@ const tools = [
       },
       required: ["text"],
     },
-    handler: async ({ text }) => {
-      const body = String(text);
+    handler: async ({ text: documentText }) => {
+      const body = typeof documentText === "string" ? documentText : "";
       if (body.trim().length < 20) {
         return text("Text too short to extract anything (need at least 20 characters). Did pdftotext produce output?");
       }
@@ -85,12 +85,13 @@ const tools = [
         sourceFile: { type: "string", description: "File name the entry came from" },
         status: { type: "string", enum: ["active", "cancelled"] },
       },
-      required: ["title", "category", "anchorDate"],
+      description: "New entries require title, category and anchorDate. Updates require id and the fields to change.",
     },
-    handler: async (args) => {
-      const normalized = normalizeEntry(args);
-      if (normalized.error !== undefined) return text(`Invalid entry: ${normalized.error}`);
+    handler: async (args) => stores.withWriteLock(() => {
       const entries = stores.loadLedger();
+      const previous = args.id ? entries.find((entry) => entry.id === args.id) : undefined;
+      const normalized = normalizeEntry({ ...previous, ...args });
+      if (normalized.error !== undefined) return text(`Invalid entry: ${normalized.error}`);
       let entry = normalized.entry;
       let updated = false;
       if (entry.id !== null) {
@@ -110,7 +111,7 @@ const tools = [
         entry,
         derived: normalized.derived,
       });
-    },
+    }),
   },
   {
     name: "ledger_list",
@@ -154,13 +155,13 @@ const tools = [
       properties: { id: { type: "string" } },
       required: ["id"],
     },
-    handler: async ({ id }) => {
+    handler: async ({ id }) => stores.withWriteLock(() => {
       const entries = stores.loadLedger();
       const remaining = entries.filter((entry) => entry.id !== id);
       if (remaining.length === entries.length) return text(`No ledger entry with id '${id}'.`);
       stores.saveLedger(remaining);
       return text(`Removed ${id}.`);
-    },
+    }),
   },
   {
     name: "radar",
@@ -187,32 +188,36 @@ const tools = [
     handler: async () => {
       const entries = stores.loadLedger().filter((entry) => entry.status !== "cancelled" && entry.cost !== undefined);
       const byCategory = new Map();
-      let totalAnnual = 0;
+      const totals = new Map();
       const seen = new Set();
       for (const entry of entries) {
         const annual = annualizeEntry(entry);
         if (annual === null) continue;
         if (seen.has(entry.id)) continue;
         seen.add(entry.id);
-        totalAnnual += annual;
-        const bucket = byCategory.get(entry.category) ?? { annual: 0, items: 0 };
+        totals.set(entry.currency, (totals.get(entry.currency) ?? 0) + annual);
+        const key = `${entry.currency}:${entry.category}`;
+        const bucket = byCategory.get(key) ?? { category: entry.category, currency: entry.currency, annual: 0, items: 0 };
         bucket.annual += annual;
         bucket.items += 1;
-        byCategory.set(entry.category, bucket);
+        byCategory.set(key, bucket);
       }
       return structured({
-        currency: entries[0]?.currency ?? null,
-        monthlyTotal: round2(totalAnnual / 12),
-        annualTotal: round2(totalAnnual),
-        byCategory: [...byCategory.entries()]
-          .map(([category, bucket]) => ({
-            category,
+        currency: totals.size === 1 ? [...totals.keys()][0] : null,
+        monthlyTotal: totals.size === 1 ? round2([...totals.values()][0] / 12) : null,
+        annualTotal: totals.size === 1 ? round2([...totals.values()][0]) : null,
+        totalsByCurrency: [...totals].map(([currency, annual]) => ({ currency, annual: round2(annual), monthly: round2(annual / 12) })),
+        byCategory: [...byCategory.values()]
+          .map((bucket) => ({
+            category: bucket.category,
+            currency: bucket.currency,
             items: bucket.items,
             annual: round2(bucket.annual),
           }))
           .sort((a, b) => b.annual - a.annual),
         biggest: entries
-          .map((entry) => ({ id: entry.id, title: entry.title, annual: round2(annualizeEntry(entry) ?? 0) }))
+          .filter((entry) => annualizeEntry(entry) !== null)
+          .map((entry) => ({ id: entry.id, title: entry.title, currency: entry.currency, annual: round2(annualizeEntry(entry)) }))
           .sort((a, b) => b.annual - a.annual)
           .slice(0, 5),
       });
@@ -273,17 +278,17 @@ const tools = [
       for (const entry of entries) {
         let due = nextOccurrence(entry.anchorDate, entry.period, today);
         let guard = 0;
-        while (due !== null && due <= limit && guard < 60) {
+        while (due !== null && due <= limit && guard < 270) {
           events.push({ entry, due });
           due = entry.period === "one_time"
             ? null
-            : nextOccurrence(due, entry.period, addDay(due));
+            : nextOccurrence(entry.anchorDate, entry.period, addDay(due));
           guard += 1;
         }
       }
       if (events.length === 0) return text("No upcoming dates within the export window.");
       const file = join(dataDir, "exports", `paper-radar-${today}.ics`);
-      writeFileSync(file, renderIcs(events, today));
+      writeFileSync(file, renderIcs(events, today), { mode: 0o600 });
       return structured({ path: file, events: events.length, spanYears: span });
     },
   },
@@ -294,7 +299,8 @@ function addDay(iso) {
 }
 
 function annualizeEntry(entry) {
-  const costPeriod = entry.costPeriod ?? (entry.period === "monthly" ? "month" : "year");
+  const costPeriod = entry.costPeriod ?? ({ weekly: "week", monthly: "month", quarterly: "quarter", annual: "year" }[entry.period] ?? null);
+  if (costPeriod === null) return null;
   if (costPeriod === "week") return entry.cost * 52;
   if (costPeriod === "month") return entry.cost * 12;
   if (costPeriod === "quarter") return entry.cost * 4;
@@ -360,7 +366,7 @@ function renderIcs(events, today) {
     const alarmDays = entry.noticeDays ?? 7;
     lines.push(
       "BEGIN:VEVENT",
-      `UID:${entry.id}@paper-radar`,
+      `UID:${icsEscape(entry.id)}-${day}@paper-radar`,
       `DTSTAMP:${stamp}`,
       `DTSTART;VALUE=DATE:${day}`,
       `SUMMARY:${icsEscape(entry.title)} — ${entry.period === "one_time" ? "deadline" : "renewal"}`,
@@ -388,7 +394,7 @@ function icsEscape(value) {
     .replaceAll("\\", "\\\\")
     .replaceAll(";", "\\;")
     .replaceAll(",", "\\,")
-    .replaceAll("\n", "\\n");
+    .replace(/\r\n?|\n/gu, "\\n");
 }
 
 function text(value) {
@@ -408,6 +414,7 @@ async function handleMessage(message) {
   if (message === null || typeof message !== "object") return null;
   const { id, method, params } = message;
   const isNotification = id === undefined;
+  if (isNotification) return null;
   try {
     if (method === "initialize") {
       return reply(id, {
@@ -469,7 +476,7 @@ async function main() {
       try {
         message = JSON.parse(line);
       } catch {
-        process.stderr.write(`paper-radar: unparseable line: ${line.slice(0, 120)}\n`);
+        process.stderr.write("paper-radar: invalid JSON-RPC input\n");
         continue;
       }
       const response = await handleMessage(message);
