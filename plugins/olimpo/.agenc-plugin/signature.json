@@ -1,6 +1,6 @@
 {
   "publisher": "tetsuo-ai",
-  "signature": "p+HKqbL26ZNHc3XB1XzJlc05kPp8Mkmm9GRQsC0KTa8wj7RiyG1hCixYRpoSyOTfggyAXI7SfYsIkTwQJ4DcCg==",
+  "signature": "PpAZgonYG0Cta0ZJ9xsn0wiMkJ2wLz4zroDTSHDFEd9JdhB3yU8s4gmr4ssaS/79Btni/8Idtygp5QuiYwOcAA==",
   "files": {
     "assets/logo.png": "sha256:94cc12daafc812b023318ac7779c926a80dfdf5fdc014df7f371cccae0787c5d",
     "commands/olimpo.md": "sha256:c7217a75502737c4bbf118670a6c238a452ec9b8b9b0b76c54bbbd9dc65bf975",
@@ -10,8 +10,8 @@
     "LICENSE": "sha256:ae0203eb52c146e675b84a04cb108855609d48a05a6661fbbf5cdd295e00b05b",
     "README.md": "sha256:ab22bfd64d141f6a35e6e3d25efabfb84e3769f71cc65eb6c5c1a4870767bd34",
     "server/corpus.mjs": "sha256:a311eb1600cdc750254d7a61235429d8bbdfcb10d4df5d2ad16e2d98ea91f34f",
-    "server/main.mjs": "sha256:554921579b646da541a423bf40f73c28ed08f36fcfa790a57bcbef2606f06f21",
+    "server/main.mjs": "sha256:d9dd9cb31e81338da722dec6906678251ad86493df87c3934c0b9bd1361a6939",
     "server/storage.mjs": "sha256:df39c92a5f163b28ed28200354405dc4c7800d772c380356e23e3d601d5ee501",
-    "skills/olimpiada/SKILL.md": "sha256:1f54840f5398b607019e508eacd718c8725f96a5813ae9ffc9b6042cb42cf936"
+    "skills/olimpiada/SKILL.md": "sha256:c90899c2810dc4491eae1f9fdf75691a1d718b126216bcbdc9141fe27d1cd52b"
   }
 }

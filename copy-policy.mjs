@@ -2,7 +2,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { basename, join, relative } from "node:path";
 
 // This is a regression guard, not a general-purpose language detector.
-const SPANISH_COPY = /[\u00bf\u00a1]|\b(?:escrib[eí]|escrib[ae]mos|hazme|hac[eé]|redacta|convierte|prep[aá]rame|expl[ií]came|ay[uú]dame|mu[eé]strame|pedido|archivo|c[oó]digo|revis[aá]|pr[aá]ctica|t[eé]cnica|pista|soluci[oó]n|estilo|b[uú]squeda|cartera|cancelaci[oó]n|vencimiento|limpio|defensivo|funcional|cercano|directo|persuasivo|t[eé]cnico|discurso|propuesta)\b/iu;
+const SPANISH_COPY = /[\u00bf\u00a1]|\b(?:escrib[eí]|escrib[ae]mos|hazme|hac[eé]|redacta|convierte|prep[aá]rame|expl[ií]came|ay[uú]dame|mu[eé]strame|pedido|archivo|c[oó]digo|revis[aá]|pr[aá]ctica|t[eé]cnica|pista|soluci[oó]n|estilo|b[uú]squeda|cartera|cancelaci[oó]n|vencimiento|limpio|defensivo|funcional|cercano|directo|persuasivo|t[eé]cnico|discurso|propuesta|calidad|escritura|olimpiada)\b/iu;
 const EM_DASH = /\u2014|\\u(?:2014|\{2014\})|&mdash;|&#(?:0*8212|x0*2014);/iu;
 const TEXT_EXTENSIONS = /\.(?:md|json|[cm]?js|ts|sh|ya?ml|txt|html|svg|css)$/iu;
 const COPY_FIELDS = new Set([
@@ -16,7 +16,7 @@ export function copyIssues(text, { english = false } = {}) {
   // Backticked identifiers and explicit English references to legacy commands
   // are compatibility documentation, not Spanish prose.
   const prose = text.replace(/`[^`]*`/gu, "").replace(
-    /\b(?:codigo|escribe|olimpo|limpio|defensivo|funcional|cercano|directo|persuasivo|tecnico|discurso|propuesta) (?:command|tool|plugin|style|alias|identifier)\b/giu, "",
+    /\b(?:codigo|escribe|olimpo|limpio|defensivo|funcional|cercano|directo|persuasivo|tecnico|discurso|propuesta|calidad|escritura|olimpiada) (?:command|tool|plugin|skill|style|alias|identifier)\b/giu, "",
   );
   if (english && SPANISH_COPY.test(prose)) issues.push("translate authored copy to English");
   return issues;
@@ -43,7 +43,7 @@ export function frontmatterCopyIssues(text, label = "frontmatter") {
     const entry = /^([\w-]+):\s*(.*)$/u.exec(line);
     if (entry) field = entry[1];
     const name = field?.replace(/-([a-z])/gu, (_, char) => char.toUpperCase());
-    if (COPY_FIELDS.has(name)) {
+    if (COPY_FIELDS.has(name) || (name === "name" && /(?:^|\/)SKILL\.md$/u.test(label))) {
       issues.push(...copyIssues(entry ? entry[2] : line, { english: true })
         .map(issue => `${label}.${field}: ${issue}`));
     }

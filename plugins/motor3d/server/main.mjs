@@ -14,7 +14,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { lint3d, detectFramework } from "./lint3d.mjs";
 
 const PROTOCOL_VERSION = "2025-06-18";
-const SERVER_INFO = { name: "motor3d", version: "0.2.3" };
+const SERVER_INFO = { name: "motor3d", version: "0.2.4" };
 const SCAFFOLDS_DIR = join(dirname(fileURLToPath(import.meta.url)), "..", "scaffolds");
 
 const scaffoldCache = new Map();

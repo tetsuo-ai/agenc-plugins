@@ -1,5 +1,5 @@
 ---
-name: olimpiada
+name: Olympiad Practice
 description: Practice original olympiad-style exercises using progressive hints, worked solutions and a private study ledger. Use for math tutoring in algebra, geometry, number theory and combinatorics.
 ---
 

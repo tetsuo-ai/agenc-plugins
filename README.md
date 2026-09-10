@@ -176,6 +176,13 @@ distribution certificate. Never upload the private signing key. Validate the
 catalog against compatible Core before deployment, preserve historical packages
 and the legacy public key, and keep a rollback copy of the previous hosted artifacts.
 
+### Skill display-label release (0.2.4)
+
+Code Quality, Writing and Olympiad Practice carry English skill display names.
+Their existing directories and runtime IDs stay unchanged. Clients with skill
+display-name support show these labels in the catalog and installed inventory;
+older clients can still show the directory-based compatibility identifiers.
+
 ### English-copy release (0.2.3)
 
 All eleven plugins use English product copy without em dashes. Forge, Quill,
