@@ -1,5 +1,5 @@
 ---
-name: calidad
+name: Code Quality
 description: Choose a code-writing discipline or minimal-diff for existing files, draft, verify structural quality and consistency, then revise before delivery. Use for new code, edits, refactoring, or code-quality reviews.
 when_to_use: The user asks to write code, refactor, edit an existing file, review code quality, or apply a design discipline.
 argument-hint: <style> [code or request]

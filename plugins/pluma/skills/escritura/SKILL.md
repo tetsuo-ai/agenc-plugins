@@ -1,5 +1,5 @@
 ---
-name: escritura
+name: Writing
 description: Choose a voice or document form, draft, check register, structure, length, and readability with a deterministic linter, then revise before delivery. Use for letters, emails, speeches, proposals, cover letters, or restyling existing text.
 when_to_use: The user asks for a specific voice or document form, wants warmer or more concise writing, or asks to restyle or check existing text.
 argument-hint: <style> [text or request]

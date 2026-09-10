@@ -17,7 +17,7 @@ import { CATEGORIES, PERIODS, normalizeEntry, radarRows } from "./ledger.mjs";
 import { makeStores } from "./stores.mjs";
 
 const PROTOCOL_VERSION = "2025-06-18";
-const SERVER_INFO = { name: "paper-radar", version: "0.2.3" };
+const SERVER_INFO = { name: "paper-radar", version: "0.2.4" };
 
 const dataDir = resolveDataDir();
 const stores = makeStores(dataDir);

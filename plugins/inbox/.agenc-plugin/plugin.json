@@ -1,6 +1,6 @@
 {
   "name": "inbox",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "The Gmail copilot that reads what no reader reads: a relationship-ranked digest from your own local trust graph, the social commitments layer (who owes you a reply, who's waiting on you, what you promised with dates), a local attachment vault, newsletter archaeology with evidence, and a document bridge that feeds paper-radar straight from your mailbox. Read-only: never sends, never deletes.",
   "author": {
     "name": "tetsuo-ai"
