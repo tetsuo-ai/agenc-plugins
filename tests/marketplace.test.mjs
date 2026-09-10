@@ -15,6 +15,16 @@ const PLUGINS = ["zeroday-hunter","iot-builder","ledger","llm-checker","stonks-c
 
 const PNG_MAGIC = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 
+test("every available plugin uses the catalog release version", () => {
+  const release = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")).version;
+  const catalog = JSON.parse(readFileSync(join(ROOT, ".agenc-plugin", "marketplace.json"), "utf8"));
+  assert.deepEqual(catalog.plugins.map(({ name }) => name), PLUGINS);
+  for (const name of PLUGINS) {
+    const manifest = JSON.parse(readFileSync(join(ROOT, "plugins", name, ".agenc-plugin", "plugin.json"), "utf8"));
+    assert.equal(manifest.version, release, `${name}: release version`);
+  }
+});
+
 test("publisher export is DER-SPKI base64 accepted by Core", () => {
   const pem = readFileSync(join(ROOT, "agenc-plugins.pub"), "utf8");
   const base64 = publisherPublicKeyBase64(pem);
@@ -54,7 +64,7 @@ test("every plugin declares a bounded signed RGBA PNG logo", () => {
     const width = logo.readUInt32BE(16);
     const height = logo.readUInt32BE(20);
     assert.equal(width, height, `${plugin}: square logo`);
-    assert.ok(width >= 128 && width <= 1024, `${plugin}: logo dimension`);
+    assert.equal(width, 512, `${plugin}: uniform profile-logo export dimension`);
     assert.ok(width * height <= 1024 * 1024, `${plugin}: logo pixels`);
     assert.equal(logo[24], 8, `${plugin}: PNG bit depth`);
     assert.equal(logo[25], 6, `${plugin}: PNG RGBA color type`);
