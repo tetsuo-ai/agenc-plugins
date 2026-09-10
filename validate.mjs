@@ -17,7 +17,7 @@ import {
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const MARKETPLACE_PATH = join(ROOT, ".agenc-plugin", "marketplace.json");
-const EXPECTED_PLUGINS = ["zeroday-hunter","iot-builder","ledger","llm-checker","stonks-copilot","paper-radar","inbox","pluma","forja","motor3d"];
+const EXPECTED_PLUGINS = ["zeroday-hunter","iot-builder","ledger","llm-checker","stonks-copilot","paper-radar","inbox","pluma","forja","motor3d","olimpo"];
 
 const EXPECTED_PLUGIN_VERSION = "0.2.2";
 const EXPECTED_LOGO_PATH = "./assets/logo.png";
@@ -385,6 +385,37 @@ for (const required of ["scaffold_get", "lint3d", "harness_build", "system.searc
 const motor3dScaffolds = readdirSync(join(ROOT, "plugins", "motor3d", "scaffolds"))
   .filter((f) => f.endsWith(".js"));
 assert.ok(motor3dScaffolds.length >= 7, "Motor3D must ship its seven verified scaffolds");
+
+
+
+const olimpoManifest = readJson(
+  join(ROOT, "plugins", "olimpo", ".agenc-plugin", "plugin.json"),
+);
+assert.ok(
+  olimpoManifest.mcpServers?.["olimpo-corpus"]?.command === "node",
+  "Olimpo must declare its stdio olimpo-corpus MCP server",
+);
+const olimpoCorpusDir = join(ROOT, "plugins", "olimpo", "corpus");
+assert.deepEqual(readdirSync(olimpoCorpusDir).sort(), ["REVIEW.md", "SOURCES.md", "problems-original.json"], "Only the original reviewed corpus may ship");
+const olimpoCurated = readJson(join(olimpoCorpusDir, "problems-original.json"));
+assert.equal(olimpoCurated.length, 16, "Olimpo must ship its 16 original exercises");
+assert.ok(olimpoCurated.every(problem => problem.provenance?.kind === "original" && problem.provenance?.license === "MIT" && problem.provenance?.check === problem.id), "Original corpus provenance is required");
+assert.equal(readFileSync(join(ROOT, "plugins", "olimpo", "LICENSE"), "utf8"), readFileSync(join(ROOT, "LICENSE"), "utf8"));
+assert.ok(
+  olimpoCurated.every((problem) => typeof problem.statement === "string" && problem.statement.length >= 20),
+  "Olimpo problems must carry real statements",
+);
+assert.ok(
+  olimpoCurated.every((problem) => problem.solutionType === "full" && problem.solution.length > 150),
+  "Olimpo solutions must be honestly typed",
+);
+const olimpoSkill = readFileSync(
+  join(ROOT, "plugins", "olimpo", "skills", "olimpiada", "SKILL.md"),
+  "utf8",
+);
+for (const required of ["problem_get", "answer_check", "solutionType", "system.searchTools"]) {
+  assert.ok(olimpoSkill.includes(required), `Olimpo skill is missing ${required}`);
+}
 
 
 const hostedAlias = readFileSync(join(ROOT, "public", "marketplace.json"), "utf8");

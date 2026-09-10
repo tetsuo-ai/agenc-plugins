@@ -1,0 +1,436 @@
+[
+  {
+    "id": "olimpo-nt-001",
+    "topic": "number-theory",
+    "difficulty": "easy",
+    "title": "Dos expresiones, un divisor",
+    "tags": [
+      "euclides",
+      "bezout"
+    ],
+    "statement": "Sea n un entero positivo. Calcula el máximo común divisor de 13n + 5 y 8n + 3, y demuestra que tu respuesta vale para cualquier n.",
+    "answer": "1",
+    "keyIdea": "Busca una combinación entera de las dos expresiones que sea constante.",
+    "hints": [
+      "Multiplica la primera expresión por 8 y la segunda por 13.",
+      "Resta los dos resultados. ¿Qué debe dividir cualquier divisor común?"
+    ],
+    "solutionType": "full",
+    "solution": "Sea d un divisor común positivo. Entonces d divide 8(13n + 5) − 13(8n + 3) = 1. Por tanto d = 1. Como 1 divide ambos números, su máximo común divisor es 1 para todo entero positivo n.",
+    "provenance": {
+      "kind": "original",
+      "author": "tetsuo-ai",
+      "license": "MIT",
+      "review": "derivation-and-deterministic-checks",
+      "check": "olimpo-nt-001"
+    },
+    "sourceNote": "Ejercicio y explicación redactados para Olimpo (2026). Matemática estándar; no es un problema oficial IMO. Revisión mediante derivación y pruebas deterministas; no certificación formal ni revisión humana independiente."
+  },
+  {
+    "id": "olimpo-nt-002",
+    "topic": "number-theory",
+    "difficulty": "easy",
+    "title": "Una potencia larga, un ciclo corto",
+    "tags": [
+      "congruencias",
+      "periodicidad"
+    ],
+    "statement": "Sin desarrollar la potencia completa, encuentra el resto de dividir 3^2026 entre 7. Justifica la reducción del exponente.",
+    "answer": "4",
+    "keyIdea": "Las potencias de 3 módulo 7 vuelven a 1 después de seis pasos.",
+    "hints": [
+      "Calcula los restos de las seis primeras potencias de 3.",
+      "Escribe 2026 como 6q + r y usa que 3^6 deja resto 1."
+    ],
+    "solutionType": "full",
+    "solution": "Los restos de 3^1, 3^2, …, 3^6 módulo 7 son 3, 2, 6, 4, 5, 1. Como 2026 = 6·337 + 4, tenemos 3^2026 = (3^6)^337·3^4 ≡ 1^337·4 ≡ 4 (mod 7). El resto pedido es 4.",
+    "provenance": {
+      "kind": "original",
+      "author": "tetsuo-ai",
+      "license": "MIT",
+      "review": "derivation-and-deterministic-checks",
+      "check": "olimpo-nt-002"
+    },
+    "sourceNote": "Ejercicio y explicación redactados para Olimpo (2026). Matemática estándar; no es un problema oficial IMO. Revisión mediante derivación y pruebas deterministas; no certificación formal ni revisión humana independiente."
+  },
+  {
+    "id": "olimpo-nt-003",
+    "topic": "number-theory",
+    "difficulty": "medium",
+    "title": "Fracciones que se encuentran",
+    "tags": [
+      "divisores",
+      "factorizacion"
+    ],
+    "statement": "¿Cuántos pares ordenados (x, y) de enteros positivos satisfacen 1/x + 1/y = 1/6? Explica por qué no quedan pares fuera de tu cuenta.",
+    "answer": "9",
+    "keyIdea": "Completa un producto después de eliminar denominadores.",
+    "hints": [
+      "Multiplica la igualdad por 6xy.",
+      "Transforma xy − 6x − 6y = 0 en una igualdad para (x − 6)(y − 6)."
+    ],
+    "solutionType": "full",
+    "solution": "Al multiplicar por 6xy obtenemos xy − 6x − 6y = 0, equivalente a (x − 6)(y − 6) = 36. Además 1/x < 1/6 y 1/y < 1/6, pues el otro sumando es positivo; así x, y > 6. Cada divisor positivo d de 36 da exactamente un par x = 6 + d, y = 6 + 36/d. Como 36 = 2^2·3^2 tiene (2 + 1)(2 + 1) = 9 divisores positivos, hay 9 pares ordenados. La transformación es reversible, así la cuenta es exhaustiva.",
+    "provenance": {
+      "kind": "original",
+      "author": "tetsuo-ai",
+      "license": "MIT",
+      "review": "derivation-and-deterministic-checks",
+      "check": "olimpo-nt-003"
+    },
+    "sourceNote": "Ejercicio y explicación redactados para Olimpo (2026). Matemática estándar; no es un problema oficial IMO. Revisión mediante derivación y pruebas deterministas; no certificación formal ni revisión humana independiente."
+  },
+  {
+    "id": "olimpo-nt-004",
+    "topic": "number-theory",
+    "difficulty": "hard",
+    "title": "Un salto que no puede terminar",
+    "tags": [
+      "vieta-jumping",
+      "descenso-infinito"
+    ],
+    "statement": "Determina cuántos pares ordenados (x, y) de enteros positivos cumplen x^2 + y^2 = 3xy. Justifica tu respuesta mediante un descenso a otro par más pequeño.",
+    "answer": "0",
+    "keyIdea": "La segunda raíz de una cuadrática entera produce el descenso.",
+    "hints": [
+      "Supón que existe una solución con x + y mínimo y ordénala con x ≥ y.",
+      "La otra raíz de t^2 − 3yt + y^2 es x' = 3y − x. Usa xx' = y^2.",
+      "Evalúa la cuadrática en t = y para situar y entre sus raíces."
+    ],
+    "solutionType": "full",
+    "solution": "Supongamos que existe una solución positiva y elijamos una con x + y mínimo; por simetría x ≥ y. La cuadrática F(t) = t^2 − 3yt + y^2 tiene raíces x y x' = 3y − x. Por Vieta, x' es entero y xx' = y^2 > 0, de modo que x' > 0. Como F(y) = −y^2 < 0 y la parábola abre hacia arriba, y está estrictamente entre las raíces. Dado x ≥ y, resulta 0 < x' < y < x. La pareja (x', y) también satisface la ecuación y tiene suma menor, contradicción. Por tanto no existe ningún par positivo: la cantidad es 0.",
+    "provenance": {
+      "kind": "original",
+      "author": "tetsuo-ai",
+      "license": "MIT",
+      "review": "derivation-and-deterministic-checks",
+      "check": "olimpo-nt-004"
+    },
+    "sourceNote": "Ejercicio y explicación redactados para Olimpo (2026). Matemática estándar; no es un problema oficial IMO. Revisión mediante derivación y pruebas deterministas; no certificación formal ni revisión humana independiente."
+  },
+  {
+    "id": "olimpo-al-001",
+    "topic": "algebra",
+    "difficulty": "easy",
+    "title": "Tres números equilibrados",
+    "tags": [
+      "suma-de-cuadrados",
+      "minimo"
+    ],
+    "statement": "Tres números reales x, y, z suman 12. ¿Cuál es el menor valor posible de x^2 + y^2 + z^2? Indica también cuándo se alcanza.",
+    "answer": "48",
+    "keyIdea": "Resta el promedio a cada variable y suma cuadrados.",
+    "hints": [
+      "El promedio de las tres variables es 4.",
+      "Expande (x − 4)^2 + (y − 4)^2 + (z − 4)^2."
+    ],
+    "solutionType": "full",
+    "solution": "La suma (x − 4)^2 + (y − 4)^2 + (z − 4)^2 es no negativa. Al expandir y usar x + y + z = 12 resulta x^2 + y^2 + z^2 − 48 ≥ 0. El valor 48 se alcanza con x = y = z = 4; además esa es la única igualdad, pues los tres cuadrados deben ser cero.",
+    "provenance": {
+      "kind": "original",
+      "author": "tetsuo-ai",
+      "license": "MIT",
+      "review": "derivation-and-deterministic-checks",
+      "check": "olimpo-al-001"
+    },
+    "sourceNote": "Ejercicio y explicación redactados para Olimpo (2026). Matemática estándar; no es un problema oficial IMO. Revisión mediante derivación y pruebas deterministas; no certificación formal ni revisión humana independiente."
+  },
+  {
+    "id": "olimpo-al-002",
+    "topic": "algebra",
+    "difficulty": "medium",
+    "title": "Una recurrencia desplazada",
+    "tags": [
+      "sucesiones",
+      "induccion"
+    ],
+    "statement": "Una sucesión cumple u_0 = 2 y u_(n+1) = 2u_n + 3 para todo entero n ≥ 0. Obtén una fórmula para u_n y demuéstrala para todos esos índices.",
+    "answer": null,
+    "keyIdea": "Un desplazamiento constante convierte la recurrencia en geométrica.",
+    "hints": [
+      "Busca c tal que u_(n+1) + c = 2(u_n + c).",
+      "Con el valor de c obtenido, calcula el primer término de la sucesión desplazada."
+    ],
+    "solutionType": "full",
+    "solution": "Definimos v_n = u_n + 3. Entonces v_(n+1) = 2u_n + 6 = 2v_n y v_0 = 5. Por inducción v_n = 5·2^n: vale en n = 0 y multiplicar por 2 da el siguiente caso. Por tanto u_n = 5·2^n − 3 para todo n ≥ 0. La fórmula también verifica directamente el valor inicial y la recurrencia.",
+    "provenance": {
+      "kind": "original",
+      "author": "tetsuo-ai",
+      "license": "MIT",
+      "review": "derivation-and-deterministic-checks",
+      "check": "olimpo-al-002"
+    },
+    "sourceNote": "Ejercicio y explicación redactados para Olimpo (2026). Matemática estándar; no es un problema oficial IMO. Revisión mediante derivación y pruebas deterministas; no certificación formal ni revisión humana independiente."
+  },
+  {
+    "id": "olimpo-al-003",
+    "topic": "algebra",
+    "difficulty": "medium",
+    "title": "Tres pistas para un polinomio",
+    "tags": [
+      "polinomios",
+      "interpolacion"
+    ],
+    "statement": "Un polinomio real P tiene grado a lo sumo 2 y cumple P(0) = 1, P(1) = 3 y P(2) = 7. Calcula P(5) y explica por qué los datos lo determinan de manera única.",
+    "answer": "31",
+    "keyIdea": "Escribe los tres coeficientes y resuelve las ecuaciones.",
+    "hints": [
+      "Pon P(t) = at^2 + bt + c.",
+      "La diferencia entre los valores consecutivos permite aislar a."
+    ],
+    "solutionType": "full",
+    "solution": "Escribimos P(t) = at^2 + bt + c. De P(0) = 1 sale c = 1. Las otras condiciones dan a + b = 2 y 4a + 2b = 6. Restando dos veces la primera de la segunda, 2a = 2: a = 1 y b = 1. Por tanto P(t) = t^2 + t + 1 y P(5) = 31. El sistema fuerza los tres coeficientes, por lo que no hay otro polinomio de grado a lo sumo 2 que cumpla los datos.",
+    "provenance": {
+      "kind": "original",
+      "author": "tetsuo-ai",
+      "license": "MIT",
+      "review": "derivation-and-deterministic-checks",
+      "check": "olimpo-al-003"
+    },
+    "sourceNote": "Ejercicio y explicación redactados para Olimpo (2026). Matemática estándar; no es un problema oficial IMO. Revisión mediante derivación y pruebas deterministas; no certificación formal ni revisión humana independiente."
+  },
+  {
+    "id": "olimpo-al-004",
+    "topic": "algebra",
+    "difficulty": "hard",
+    "title": "Del producto a la suma",
+    "tags": [
+      "am-gm",
+      "desigualdades"
+    ],
+    "statement": "Sean a, b, c números reales positivos cuyo producto es 1. Demuestra que a^2 + b^2 + c^2 ≥ a + b + c y determina todos los casos de igualdad.",
+    "answer": null,
+    "keyIdea": "Combina una cota para la suma con otra para la suma de cuadrados.",
+    "hints": [
+      "AM–GM da a + b + c ≥ 3.",
+      "Usa (a − b)^2 + (b − c)^2 + (c − a)^2 ≥ 0 para comparar 3(a^2 + b^2 + c^2) con (a + b + c)^2."
+    ],
+    "solutionType": "full",
+    "solution": "Sea S = a + b + c y Q = a^2 + b^2 + c^2. Por AM–GM, S ≥ 3(abc)^(1/3) = 3. Además 3Q − S^2 = (a − b)^2 + (b − c)^2 + (c − a)^2 ≥ 0. Así Q ≥ S^2/3 ≥ S, pues S ≥ 3. Si Q = S, ambas desigualdades son igualdades: a = b = c y abc = 1 fuerzan a = b = c = 1. Estos valores sí dan igualdad.",
+    "provenance": {
+      "kind": "original",
+      "author": "tetsuo-ai",
+      "license": "MIT",
+      "review": "derivation-and-deterministic-checks",
+      "check": "olimpo-al-004"
+    },
+    "sourceNote": "Ejercicio y explicación redactados para Olimpo (2026). Matemática estándar; no es un problema oficial IMO. Revisión mediante derivación y pruebas deterministas; no certificación formal ni revisión humana independiente."
+  },
+  {
+    "id": "olimpo-ge-001",
+    "topic": "geometry",
+    "difficulty": "easy",
+    "title": "Un círculo dentro del triángulo",
+    "tags": [
+      "pitagoras",
+      "incirculo"
+    ],
+    "statement": "Un triángulo rectángulo tiene catetos de longitudes 9 y 12. Calcula el radio de su círculo inscrito y justifica la relación geométrica que utilices.",
+    "answer": "3",
+    "keyIdea": "El área es el inradio multiplicado por el semiperímetro.",
+    "hints": [
+      "Calcula la hipotenusa usando Pitágoras.",
+      "Une el incentro con los tres vértices; las tres alturas hacia los lados son el inradio."
+    ],
+    "solutionType": "full",
+    "solution": "La hipotenusa mide √(9^2 + 12^2) = 15. El área es 9·12/2 = 54 y el semiperímetro es (9 + 12 + 15)/2 = 18. Si I es el incentro y r el inradio, los triángulos con vértice I y bases en los tres lados suman área r(9 + 12 + 15)/2 = 18r. Así 18r = 54 y r = 3.",
+    "provenance": {
+      "kind": "original",
+      "author": "tetsuo-ai",
+      "license": "MIT",
+      "review": "derivation-and-deterministic-checks",
+      "check": "olimpo-ge-001"
+    },
+    "sourceNote": "Ejercicio y explicación redactados para Olimpo (2026). Matemática estándar; no es un problema oficial IMO. Revisión mediante derivación y pruebas deterministas; no certificación formal ni revisión humana independiente."
+  },
+  {
+    "id": "olimpo-ge-002",
+    "topic": "geometry",
+    "difficulty": "medium",
+    "title": "El punto de encuentro de dos medianas",
+    "tags": [
+      "vectores",
+      "baricentro"
+    ],
+    "statement": "En un triángulo no degenerado ABC, M es el punto medio de BC y N el punto medio de AC. Demuestra que las medianas AM y BN se cortan en un punto G que cumple AG = 2GM.",
+    "answer": null,
+    "keyIdea": "Escribe los puntos medios y un candidato a G como promedios vectoriales.",
+    "hints": [
+      "Los vectores de M y N son (B + C)/2 y (A + C)/2.",
+      "Prueba que G = (A + B + C)/3 está en ambas medianas."
+    ],
+    "solutionType": "full",
+    "solution": "Usamos vectores de posición. Sea G = (A + B + C)/3. Como M = (B + C)/2, se cumple G = A + (2/3)(M − A); por tanto G está en AM, a dos tercios del recorrido desde A. También N = (A + C)/2 y G = B + (2/3)(N − B), así G pertenece a BN. En un triángulo no degenerado las dos medianas no son la misma recta, por lo que su punto común es único. De las fracciones 2/3 y 1/3 sobre AM se obtiene AG = 2GM.",
+    "provenance": {
+      "kind": "original",
+      "author": "tetsuo-ai",
+      "license": "MIT",
+      "review": "derivation-and-deterministic-checks",
+      "check": "olimpo-ge-002"
+    },
+    "sourceNote": "Ejercicio y explicación redactados para Olimpo (2026). Matemática estándar; no es un problema oficial IMO. Revisión mediante derivación y pruebas deterministas; no certificación formal ni revisión humana independiente."
+  },
+  {
+    "id": "olimpo-ge-003",
+    "topic": "geometry",
+    "difficulty": "medium",
+    "title": "El rectángulo de perímetro fijo",
+    "tags": [
+      "area",
+      "optimizacion"
+    ],
+    "statement": "Un rectángulo tiene perímetro 30 y lados de longitud positiva. ¿Cuál es su área máxima? Da el resultado decimal exacto y describe el rectángulo que la alcanza.",
+    "answer": "56.25",
+    "keyIdea": "El área es una cuadrática que puede escribirse como constante menos un cuadrado.",
+    "hints": [
+      "Si un lado mide t, el otro mide 15 − t.",
+      "Completa el cuadrado en t(15 − t)."
+    ],
+    "solutionType": "full",
+    "solution": "Sean t y 15 − t los lados, con 0 < t < 15. El área es A = t(15 − t) = 225/4 − (t − 15/2)^2. El cuadrado es no negativo, de modo que A ≤ 225/4 = 56.25. La igualdad se da exactamente cuando ambos lados miden 7.5, es decir, cuando el rectángulo es un cuadrado.",
+    "provenance": {
+      "kind": "original",
+      "author": "tetsuo-ai",
+      "license": "MIT",
+      "review": "derivation-and-deterministic-checks",
+      "check": "olimpo-ge-003"
+    },
+    "sourceNote": "Ejercicio y explicación redactados para Olimpo (2026). Matemática estándar; no es un problema oficial IMO. Revisión mediante derivación y pruebas deterministas; no certificación formal ni revisión humana independiente."
+  },
+  {
+    "id": "olimpo-ge-004",
+    "topic": "geometry",
+    "difficulty": "hard",
+    "title": "Dos círculos tras una altura",
+    "tags": [
+      "semejanza",
+      "incirculo"
+    ],
+    "statement": "En el triángulo ABC el ángulo A es recto, AB = 8 y AC = 6. La altura desde A corta BC en H. Calcula la suma de los inradios de los triángulos ABH y ACH; expresa la respuesta como decimal exacto.",
+    "answer": "2.8",
+    "keyIdea": "Los dos triángulos pequeños son semejantes al grande y los inradios escalan como las longitudes.",
+    "hints": [
+      "BC mide 10 y el inradio del triángulo grande es (8 + 6 − 10)/2.",
+      "Las hipotenusas de ABH y ACH miden 8 y 6: compara cada una con la hipotenusa del triángulo grande."
+    ],
+    "solutionType": "full",
+    "solution": "Por Pitágoras BC = 10. El triángulo grande tiene área 24 y semiperímetro 12, luego inradio r = 2. Los triángulos ABH y ACH son semejantes a ABC: comparten un ángulo agudo con él y tienen un ángulo recto en H. Sus hipotenusas son AB = 8 y AC = 6, frente a BC = 10 en ABC; las razones de semejanza son 8/10 y 6/10. Una semejanza multiplica el inradio por su razón. Por tanto los inradios son 1.6 y 1.2 y su suma es 2.8.",
+    "provenance": {
+      "kind": "original",
+      "author": "tetsuo-ai",
+      "license": "MIT",
+      "review": "derivation-and-deterministic-checks",
+      "check": "olimpo-ge-004"
+    },
+    "sourceNote": "Ejercicio y explicación redactados para Olimpo (2026). Matemática estándar; no es un problema oficial IMO. Revisión mediante derivación y pruebas deterministas; no certificación formal ni revisión humana independiente."
+  },
+  {
+    "id": "olimpo-co-001",
+    "topic": "combinatorics",
+    "difficulty": "easy",
+    "title": "Luces separadas",
+    "tags": [
+      "conteo",
+      "combinaciones"
+    ],
+    "statement": "Una fila tiene ocho luces, cada una encendida o apagada. ¿Cuántas configuraciones tienen exactamente tres luces encendidas si ninguna pareja de luces encendidas es consecutiva?",
+    "answer": "20",
+    "keyIdea": "Comprime los huecos obligatorios entre las tres posiciones elegidas.",
+    "hints": [
+      "Nombra p_1 < p_2 < p_3 las posiciones encendidas.",
+      "Define q_1 = p_1, q_2 = p_2 − 1, q_3 = p_3 − 2."
+    ],
+    "solutionType": "full",
+    "solution": "La separación exige p_2 ≥ p_1 + 2 y p_3 ≥ p_2 + 2. Al definir q_i = p_i − (i − 1) obtenemos 1 ≤ q_1 < q_2 < q_3 ≤ 6. Recíprocamente, cualquier elección de tres posiciones distintas entre 1 y 6 recupera p_i = q_i + (i − 1), con los huecos requeridos y p_3 ≤ 8. Es una biyección; por tanto hay C(6, 3) = 20 configuraciones.",
+    "provenance": {
+      "kind": "original",
+      "author": "tetsuo-ai",
+      "license": "MIT",
+      "review": "derivation-and-deterministic-checks",
+      "check": "olimpo-co-001"
+    },
+    "sourceNote": "Ejercicio y explicación redactados para Olimpo (2026). Matemática estándar; no es un problema oficial IMO. Revisión mediante derivación y pruebas deterministas; no certificación formal ni revisión humana independiente."
+  },
+  {
+    "id": "olimpo-co-002",
+    "topic": "combinatorics",
+    "difficulty": "medium",
+    "title": "La intersección cerrada",
+    "tags": [
+      "caminos",
+      "conteo"
+    ],
+    "statement": "En una cuadrícula solo puedes dar pasos de una unidad hacia la derecha o hacia arriba. ¿Cuántos caminos van de (0, 0) a (5, 4) sin pasar por (2, 2)?",
+    "answer": "66",
+    "keyIdea": "Cuenta todos los caminos y resta los que atraviesan el punto prohibido.",
+    "hints": [
+      "Todo camino completo contiene cinco pasos a la derecha y cuatro hacia arriba.",
+      "Un camino que pasa por (2, 2) se divide de manera única en dos tramos."
+    ],
+    "solutionType": "full",
+    "solution": "Hay C(9, 4) = 126 caminos en total. Para llegar de (0, 0) a (2, 2) hay C(4, 2) = 6 opciones. Desde (2, 2) hasta (5, 4) hacen falta tres pasos a la derecha y dos arriba, con C(5, 2) = 10 opciones. La descomposición por el punto es única, así 6·10 = 60 caminos pasan por él. Los restantes son 126 − 60 = 66.",
+    "provenance": {
+      "kind": "original",
+      "author": "tetsuo-ai",
+      "license": "MIT",
+      "review": "derivation-and-deterministic-checks",
+      "check": "olimpo-co-002"
+    },
+    "sourceNote": "Ejercicio y explicación redactados para Olimpo (2026). Matemática estándar; no es un problema oficial IMO. Revisión mediante derivación y pruebas deterministas; no certificación formal ni revisión humana independiente."
+  },
+  {
+    "id": "olimpo-co-003",
+    "topic": "combinatorics",
+    "difficulty": "hard",
+    "title": "Una selección con divisibilidad",
+    "tags": [
+      "pigeonhole",
+      "potencias-de-dos"
+    ],
+    "statement": "Encuentra el menor entero k tal que toda selección de k números distintos de {1, 2, …, 10} contiene dos números, uno divisor del otro. Demuestra tanto que k basta como que k − 1 no basta.",
+    "answer": "6",
+    "keyIdea": "Agrupa cada número según su parte impar.",
+    "hints": [
+      "Escribe cada número como 2^a·u con u impar.",
+      "Las posibles partes impares son 1, 3, 5, 7 y 9. Para la cota inferior considera los cinco números más grandes del conjunto."
+    ],
+    "solutionType": "full",
+    "solution": "Cada entero de 1 a 10 se escribe de forma única como 2^a·u, donde u es uno de 1, 3, 5, 7, 9. Al elegir seis números, dos comparten la misma parte impar por el principio del palomar. Sus exponentes de 2 son distintos, así el de exponente menor divide al otro. Por tanto seis bastan. En cambio {6, 7, 8, 9, 10} no contiene tal pareja: el menor múltiplo de cada uno, distinto de sí mismo, es mayor que 10. Cinco no bastan y el mínimo es k = 6.",
+    "provenance": {
+      "kind": "original",
+      "author": "tetsuo-ai",
+      "license": "MIT",
+      "review": "derivation-and-deterministic-checks",
+      "check": "olimpo-co-003"
+    },
+    "sourceNote": "Ejercicio y explicación redactados para Olimpo (2026). Matemática estándar; no es un problema oficial IMO. Revisión mediante derivación y pruebas deterministas; no certificación formal ni revisión humana independiente."
+  },
+  {
+    "id": "olimpo-co-004",
+    "topic": "combinatorics",
+    "difficulty": "hard",
+    "title": "Canales de dos colores",
+    "tags": [
+      "pigeonhole",
+      "grafos",
+      "ramsey"
+    ],
+    "statement": "Seis estaciones están conectadas entre sí: cada pareja tiene exactamente un enlace, rojo o azul. Demuestra que existen tres estaciones cuyos tres enlaces mutuos tienen el mismo color.",
+    "answer": null,
+    "keyIdea": "Fija una estación y mira el color más repetido de sus cinco enlaces.",
+    "hints": [
+      "Entre cinco enlaces de dos colores, al menos tres comparten color.",
+      "Examina los enlaces entre las otras tres estaciones que acabas de elegir."
+    ],
+    "solutionType": "full",
+    "solution": "Fijamos una estación A. Entre sus cinco enlaces al menos tres tienen un mismo color; supongamos que son rojos y que llegan a B, C, D. Si alguno de BC, BD, CD es rojo, ese enlace y los dos enlaces correspondientes desde A forman un triángulo rojo. Si ninguno es rojo, los tres son azules y B, C, D forman un triángulo azul. Si el color repetido desde A fuese azul, el argumento es idéntico intercambiando colores. En todos los casos existe el triángulo requerido.",
+    "provenance": {
+      "kind": "original",
+      "author": "tetsuo-ai",
+      "license": "MIT",
+      "review": "derivation-and-deterministic-checks",
+      "check": "olimpo-co-004"
+    },
+    "sourceNote": "Ejercicio y explicación redactados para Olimpo (2026). Matemática estándar; no es un problema oficial IMO. Revisión mediante derivación y pruebas deterministas; no certificación formal ni revisión humana independiente."
+  }
+]

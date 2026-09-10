@@ -45,13 +45,13 @@ try {
     "--marketplace",
     "--json",
   ]);
-  for (const plugin of ["zeroday-hunter","iot-builder","ledger","llm-checker","stonks-copilot","paper-radar","inbox","pluma","forja","motor3d"]) {
+  for (const plugin of ["zeroday-hunter","iot-builder","ledger","llm-checker","stonks-copilot","paper-radar","inbox","pluma","forja","motor3d","olimpo"]) {
 
     run(["plugin", "validate", join(ROOT, "plugins", plugin), "--json"]);
   }
   run(["plugin", "marketplace", "add", ROOT, "--name", "agenc-plugins"]);
   run(["plugin", "marketplace", "list", "--json"]);
-  for (const plugin of ["zeroday-hunter","iot-builder","ledger","llm-checker","stonks-copilot","paper-radar","inbox","pluma","forja","motor3d"]) {
+  for (const plugin of ["zeroday-hunter","iot-builder","ledger","llm-checker","stonks-copilot","paper-radar","inbox","pluma","forja","motor3d","olimpo"]) {
 
     run([
       "plugin",
@@ -64,7 +64,7 @@ try {
     ]);
   }
   const installed = run(["plugin", "list", "--json"]);
-  for (const plugin of ["zeroday-hunter","iot-builder","ledger","llm-checker","stonks-copilot","paper-radar","inbox","pluma","forja","motor3d"]) {
+  for (const plugin of ["zeroday-hunter","iot-builder","ledger","llm-checker","stonks-copilot","paper-radar","inbox","pluma","forja","motor3d","olimpo"]) {
 
     if (!installed.includes(`${plugin}@agenc-plugins`)) {
       throw new Error(`installed plugin list does not contain ${plugin}@agenc-plugins`);
