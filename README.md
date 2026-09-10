@@ -1,6 +1,6 @@
 # AgenC Plugins
 
-The first-party plugin marketplace for AgenC. It contains seven packages:
+The first-party plugin marketplace for AgenC. It contains eight packages:
 
 - **Zero Day Hunter** — a security-research campaign skill.
 - **IoT Builder** — a guarded PlatformIO build/upload workflow.
@@ -18,6 +18,9 @@ The first-party plugin marketplace for AgenC. It contains seven packages:
   extraction of renewal dates, costs and cancellation windows from your own
   documents, a local urgency radar, cancellation drafts, and calendar export.
   Fully offline, built to work efficiently with local models.
+- **Pluma** — writing styles with a deterministic verifier: ten output
+  styles (voices and full forms) plus a prose linter that checks register,
+  structure, length and readability before anything is delivered.
 
 ## Plugin, skill, and MCP
 

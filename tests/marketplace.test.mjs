@@ -11,7 +11,7 @@ import {
 } from "../plugin-signing.mjs";
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
-const PLUGINS = ["zeroday-hunter", "iot-builder", "ledger", "llm-checker", "stonks-copilot", "paper-radar", "inbox"];
+const PLUGINS = ["zeroday-hunter", "iot-builder", "ledger", "llm-checker", "stonks-copilot", "paper-radar", "inbox", "pluma"];
 const PNG_MAGIC = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 
 test("publisher export is DER-SPKI base64 accepted by Core", () => {
