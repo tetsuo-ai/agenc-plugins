@@ -44,8 +44,7 @@ style's lint ruleset) and `style_lint` (draft + style + optional
 subject → stats, violations with fixes, score, pass). No state, no
 network.
 
-Core issue [tetsuo-ai/agenc-core#2078](https://github.com/tetsuo-ai/agenc-core/issues/2078):
-plugin-declared stdio MCP servers spawn without `PATH` until it ships;
-register the identical server with a one-line user-level config
-(`agenc mcp add-json`, `env_vars: ["PATH"]`) meanwhile. The output
-styles and the `/escribe` command work regardless.
+Use current Core's native plugin MCP integration; do not register a duplicate
+server to bypass the plugin sandbox. The linter is a style heuristic, not a
+grammar, factual-accuracy or quality guarantee. Its readability number is an
+approximation. Passing requires a score of at least 85 and zero error findings.

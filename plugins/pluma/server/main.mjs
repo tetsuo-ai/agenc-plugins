@@ -51,7 +51,7 @@ const tools = [
   },
   {
     name: "style_lint",
-    description: "Verify a draft against one style's deterministic ruleset: register (fillers, slang, hedges, contractions, exclamations/emoji, first-person opinion, vague quantities), structure (salutation/closing, required sections, CTA, hook), length bands and readability. Returns violations with severity, excerpt and concrete fix, plus a 0-100 score (pass ≥ 85).",
+    description: "Verify a draft against one style's deterministic ruleset: register (fillers, slang, hedges, contractions, exclamations/emoji, first-person opinion, vague quantities), structure (salutation/closing, required sections, CTA, hook), length bands and readability. Returns violations with severity, excerpt and concrete fix, plus a 0-100 score (pass requires ≥ 85 and no errors).",
     inputSchema: {
       type: "object",
       properties: {
@@ -86,6 +86,7 @@ async function handleMessage(message) {
   if (message === null || typeof message !== "object") return null;
   const { id, method, params } = message;
   const isNotification = id === undefined;
+  if (isNotification) return null;
   try {
     if (method === "initialize") {
       return reply(id, {
@@ -147,7 +148,7 @@ async function main() {
       try {
         message = JSON.parse(line);
       } catch {
-        process.stderr.write(`pluma: unparseable line: ${line.slice(0, 120)}\n`);
+        process.stderr.write("pluma: invalid JSON-RPC input\n");
         continue;
       }
       const response = await handleMessage(message);

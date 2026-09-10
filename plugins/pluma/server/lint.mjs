@@ -16,11 +16,11 @@ export const STYLE_RULESETS = {
   tecnico: { family: "tone", rules: ["noFirstPersonOpinion", "noVagueQuantifiers", "monospaceForCode"] },
   "carta-formal": {
     family: "form", tone: "formal",
-    rules: ["salutationPresent", "closingPresent", "minParagraphs:3", "wordBand:150:350", "noExclamations", "noEmoji", "noFillers"],
+    rules: ["salutationPresent", "closingPresent", "minParagraphs:3", "wordBand:150:300", "noExclamations", "noEmoji", "noFillers"],
   },
   "email-profesional": {
     family: "form", tone: "cercano",
-    rules: ["subjectActionable", "salutationPresent", "closingPresent", "wordBand:40:250"],
+    rules: ["subjectActionable", "salutationPresent", "closingPresent", "wordBand:80:200"],
   },
   discurso: {
     family: "form", tone: "cercano",
@@ -32,7 +32,7 @@ export const STYLE_RULESETS = {
   },
   "cover-letter": {
     family: "form", tone: "formal",
-    rules: ["salutationPresent", "closingPresent", "wordBand:150:380", "noClichePhrases", "achievementsWithNumbers"],
+    rules: ["salutationPresent", "closingPresent", "wordBand:150:350", "noClichePhrases", "achievementsWithNumbers"],
   },
 };
 
@@ -71,11 +71,13 @@ const SECTIONS_PROPUESTA = [
  * info, not violations.
  */
 export function lintText(text, styleKey, { subject } = {}) {
-  const ruleset = STYLE_RULESETS[styleKey];
+  const ruleset = Object.hasOwn(STYLE_RULESETS, styleKey) ? STYLE_RULESETS[styleKey] : undefined;
   if (ruleset === undefined) {
     return { error: `unknown style '${styleKey}'; known: ${Object.keys(STYLE_RULESETS).join(", ")}` };
   }
-  const raw = String(text ?? "");
+  if (typeof text !== "string" || !text.trim()) return { error: "text must be a non-empty string" };
+  if (text.length > 100000) return { error: "text exceeds 100000 characters; lint one document section at a time" };
+  const raw = text;
   const active = new Set(ruleset.rules);
   if (ruleset.tone !== undefined) {
     for (const rule of STYLE_RULESETS[ruleset.tone].rules) active.add(rule);
@@ -151,7 +153,7 @@ export function lintText(text, styleKey, { subject } = {}) {
   if (active.has("shortSentences") && stats.avgSentenceWords > 15) {
     violation("warn", "long-sentences", `average ${stats.avgSentenceWords} words/sentence`, "Split: one idea per sentence (target ≤ 15)");
   }
-  if (active.has("tightParagraphs") && stats.maxParagraphSentences > 4) {
+  if (active.has("tightParagraphs") && stats.maxParagraphSentences > 3) {
     violation("warn", "long-paragraph", `paragraph with ${stats.maxParagraphSentences} sentences`, "Break into ≤ 3 sentences or a list");
   }
   if (active.has("courtesyPresent") && !SALUTATIONS.test(raw) && !CLOSINGS.test(raw) && stats.words > 40) {
@@ -236,7 +238,7 @@ export function lintText(text, styleKey, { subject } = {}) {
   }
 
   const score = computeScore(violations);
-  return { style: styleKey, family: ruleset.family, stats, violations, score, pass: score >= 85 };
+  return { style: styleKey, family: ruleset.family, stats, violations, score, pass: score >= 85 && !violations.some((item) => item.severity === "error") };
 }
 
 function PASSIVE_COUNT_RULES(active) {
