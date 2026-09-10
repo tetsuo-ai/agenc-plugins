@@ -3,7 +3,7 @@
 Code writing styles with a deterministic verifier — pluma's discipline,
 applied to code. The ecosystem separates code-style prompting from
 linters; forja closes the loop: the model writes under a chosen
-discipline, the verifier proves the draft before delivery.
+discipline, the verifier supplies heuristic feedback before delivery.
 
 ## The disciplines (AgenC output styles)
 
@@ -39,8 +39,8 @@ clear 85/100 before delivery. `code_styles_list` exposes the library.
 `server/main.mjs` (NDJSON JSON-RPC): `code_styles_list`, `code_lint`.
 No state, no network.
 
-Core issue [tetsuo-ai/agenc-core#2078](https://github.com/tetsuo-ai/agenc-core/issues/2078):
-plugin-declared stdio MCP servers spawn without `PATH` until it ships;
-register the identical server with a one-line user-level `agenc
-mcp add-json` (env_vars: ["PATH"]) meanwhile. Output styles and the
-`/codigo` command work regardless.
+Use a current Core build with native plugin MCP support, not a duplicate
+unrestricted MCP registration. A pass requires score >=85 and zero errors.
+This linter does not compile or execute code, prove correctness/security, or
+cover every syntax form (including complex regex/templates). Always run the
+project's formatter, compiler and tests. Review suggestions before applying.

@@ -56,12 +56,17 @@ const FN_STARTERS = {
  * consistency checks run against it.
  */
 export function verifyCode(code, { style = "limpio", language = "js", original } = {}) {
-  const ruleset = CODE_STYLE_RULESETS[style];
+  const ruleset = Object.hasOwn(CODE_STYLE_RULESETS, style) ? CODE_STYLE_RULESETS[style] : undefined;
   if (ruleset === undefined) {
     return { error: `unknown style '${style}'; known: ${Object.keys(CODE_STYLE_RULESETS).join(", ")}` };
   }
   const lang = language === "py" || language === "python" ? "py" : "js";
-  const source = String(code ?? "");
+  if (typeof code !== "string" || !code.trim()) return { error: "code must be a non-empty string" };
+  if (code.length > 100000 || (typeof original === "string" && original.length > 100000)) return { error: "source exceeds 100000 characters; lint one module at a time" };
+  if (!["js", "ts", "javascript", "typescript", "py", "python"].includes(language)) return { error: "language must be js/ts or py" };
+  if (style === "minimal-diff" && typeof original !== "string") return { error: "minimal-diff requires original source for comparison" };
+  const source = code;
+  const structural = lang === "js" ? maskJsLiterals(source) : source;
   const violations = [];
   const violation = (severity, rule, excerpt, fix) =>
     violations.push({ severity, rule, excerpt: String(excerpt).slice(0, 120), fix });
@@ -116,7 +121,7 @@ export function verifyCode(code, { style = "limpio", language = "js", original }
   }
 
   // ── Debug leftovers ──────────────────────────────────────────────
-  const debugErrors = [...source.matchAll(DEBUG_ERROR)].length;
+  const debugErrors = [...structural.matchAll(DEBUG_ERROR)].length;
   if (debugErrors > 0) {
     violation("error", "debug-leftover", `${debugErrors} debug call(s)`, "Remove before delivering");
   }
@@ -292,14 +297,14 @@ export function verifyCode(code, { style = "limpio", language = "js", original }
     },
     violations,
     score,
-    pass: score >= 85,
+    pass: score >= 85 && !violations.some((item) => item.severity === "error"),
   };
 }
 
 // ── analysis helpers ────────────────────────────────────────────────
 
 function analyze(source, lang) {
-  const lines = source.split(/\r?\n/u);
+  const lines = (lang === "js" ? maskJsLiterals(source) : source).split(/\r?\n/u);
   const functions = [];
   const starters = FN_STARTERS[lang];
   for (const starter of starters) {
@@ -397,7 +402,7 @@ function collectImports(source, lang) {
       for (const group of [m[1], m[2], m[3]]) {
         if (group !== undefined) {
           for (const part of group.split(",")) {
-            const name = part.trim().split(/\s+as\s+/u)[0].trim();
+            const name = part.trim().split(/\s+as\s+/u).at(-1).trim();
             if (name.length > 0) names.push(name);
           }
         }
@@ -441,7 +446,8 @@ function letNeverReassigned(source) {
   for (const m of source.matchAll(/\blet\s+([A-Za-z_$][\w$]*)\s*=/gu)) {
     const name = m[1];
     const assigns = [...source.matchAll(new RegExp(`\\b${escapeRe(name)}\\s*=[^=]`, "gu"))].length;
-    if (assigns <= 1) never.push(name);
+    const updated = new RegExp(String.raw`\b${escapeRe(name)}\s*(?:\+\+|--|(?:\+|-|\*|\/|%|&&|\|\||\?\?|<<|>>|>>>|&|\||\^)=)|(?:\+\+|--)\s*\b${escapeRe(name)}\b`, "u").test(source);
+    if (assigns <= 1 && !updated) never.push(name);
   }
   return [...new Set(never)].slice(0, 5);
 }
@@ -465,7 +471,7 @@ function indentProfile(source) {
     .filter((p) => (style === "tab" ? p.includes("\t") : !p.includes("\t")))
     .map((p) => (style === "tab" ? 4 : p.length))
     .filter((w) => w > 0);
-  const width = widths.length > 0 ? mode(widths) : 0;
+  const width = widths.length > 0 ? widths.reduce((a, b) => { while (b) [a, b] = [b, a % b]; return a; }) : 0;
   return { style, width };
 }
 
@@ -518,4 +524,10 @@ function escapeRe(value) {
 function computeScore(violations) {
   const weights = { error: 12, warn: 5, info: 2 };
   return Math.max(0, 100 - violations.reduce((a, v) => a + (weights[v.severity] ?? 2), 0));
+}
+
+/** Position-preserving lexical mask for JS strings/comments; not a parser. */
+function maskJsLiterals(source) {
+  return source.replace(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\x60(?:\\.|[^\x60\\])*\x60|\/\/[^\n]*|\/\*[\s\S]*?\*\//gu,
+    (value) => value.replace(/[^\r\n]/gu, " "));
 }
