@@ -3,7 +3,7 @@
  * inbox MCP server — the Gmail copilot.
  *
  * Zero-dependency stdio MCP server (JSON-RPC 2.0, newline-delimited).
- * Read-only against Gmail (plus non-destructive label triage): OAuth2
+ * Read-only against Gmail: OAuth2
  * with a local loopback redirect, tokens stored only in the plugin data
  * directory. The differentiators run deterministically inside the tools:
  * a local sender-trust graph, a relationship-ranked digest, the social
@@ -34,12 +34,12 @@ const PROTOCOL_VERSION = "2025-06-18";
 const SERVER_INFO = { name: "inbox", version: "0.2.1" };
 
 const dataDir = resolveDataDir();
-mkdirSync(dataDir, { recursive: true });
+mkdirSync(dataDir, { recursive: true, mode: 0o700 });
 const apiBase = process.env.INBOX_API_BASE || undefined;
 const authBase = process.env.INBOX_AUTH_BASE || undefined;
 const oauth = makeOAuth({
   dataDir,
-  ...(authBase !== undefined ? { authBase, profileUrl: `${authBase.replace(/\/$/u, "")}/v3/userinfo` } : {}),
+  ...(authBase !== undefined ? { authBase, tokenUrl: `${authBase.replace(/\/$/u, "")}/oauth2/v4/token`, profileUrl: `${authBase.replace(/\/$/u, "")}/v3/userinfo` } : {}),
 });
 const gmail = makeGmail({
   accessToken: () => oauth.accessToken(),
@@ -102,6 +102,7 @@ async function analyzeMessages({ box = "in", days = 14, max = 40, query: extra }
         direction: record.direction,
         from,
         tos,
+        to: tos.join(", "),
         subject,
         date,
         text,
@@ -125,14 +126,14 @@ function graphTierMap(graph, address) {
 }
 
 async function threadsForLoops({ days, max = 60 }) {
-  const refs = await gmail.listAll({ query: `newer_than:${days}d in:inbox`, max });
+  const refs = await gmail.listAll({ query: `newer_than:${days}d {in:inbox in:sent}`, max });
   const threads = new Map();
   for (const ref of refs) {
     if (threads.has(ref.threadId)) continue;
     try {
       const thread = await gmail.getThread(ref.threadId);
       const messages = thread.messages ?? [];
-      const last = messages[messages.length - 1];
+      const last = [...messages].sort((a, b) => Number(a.internalDate ?? 0) - Number(b.internalDate ?? 0)).at(-1);
       if (last === undefined) continue;
       const from = emailAddress(header(last.payload, "From") ?? "");
       const lastIsMine = (last.labelIds ?? []).includes(ME_LABELS.sent);
@@ -207,8 +208,11 @@ const tools = [
     },
     handler: async ({ days, limit }) => {
       const window = clamp(days ?? 30, 1, 90);
-      const { graphRecords, analyzed } = await analyzeMessages({ box: "in", days: window, max: 60 });
-      const graph = buildGraph(graphRecords);
+      const [{ graphRecords, analyzed }, sent] = await Promise.all([
+        analyzeMessages({ box: "in", days: window, max: 60 }),
+        analyzeMessages({ box: "out", days: window, max: 40 }),
+      ]);
+      const graph = buildGraph([...graphRecords, ...sent.graphRecords]);
       const unread = analyzed
         .filter((message) => message.unread)
         .map((message) => ({ ...message, senderTier: graphTierMap(graph, message.from) }));
@@ -298,7 +302,7 @@ const tools = [
         inbox.analyzed.map((message) => ({
           ...message,
           senderTier: graphTierMap(graph, message.from),
-          answered: false,
+          answered: threads.some((thread) => thread.threadId === message.threadId && thread.messages.some((reply) => (reply.labelIds ?? []).includes("SENT") && Number(reply.internalDate) > Date.parse(message.date))),
         })),
         { now: new Date() },
       );
@@ -313,7 +317,7 @@ const tools = [
   },
   {
     name: "graph_stats",
-    description: "Your local sender-trust graph: tier counts, top contacts by exchange volume. Built from your own history — nothing leaves this machine.",
+    description: "Your local sender-trust graph: tier counts, top contacts by exchange volume. Built from your own history — computed locally; tool results are shared with the host chat model.",
     inputSchema: {
       type: "object",
       properties: { days: { type: "number", description: "Default 60" } },
@@ -390,6 +394,7 @@ const tools = [
           ? files.find((file) => file.filename === filename)
           : files[0];
       if (target === undefined) return text("No matching attachment on that message.");
+      if (target.sizeBytes > 25 * 1024 * 1024) return text("Attachment exceeds the 25 MiB vault limit.");
       if (target.attachmentId === null) return text(`Attachment ${target.filename} has no separate payload (inline).`);
       const payload = await gmail.getAttachment(messageId, target.attachmentId);
       const buffer = Buffer.from(payload.data, "base64");
@@ -417,30 +422,6 @@ const tools = [
     },
     handler: async (args) => structured({ results: vault.search(args), stats: vault.stats() }),
   },
-  {
-    name: "label_apply",
-    description: "Non-destructive triage: apply a label to a message (creates the label when missing). The only write the plugin performs — never send, never delete.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        messageId: { type: "string" },
-        label: { type: "string", description: "Label name, e.g. radar/renewals" },
-      },
-      required: ["messageId", "label"],
-    },
-    handler: async ({ messageId, label }) => {
-      const name = String(label).trim().replace(/^\/+|\/+$/gu, "");
-      if (name.length === 0) return text("Label name is required.");
-      const labelsResponse = await gmail.listLabels();
-      const existing = (labelsResponse.labels ?? []).find((entry) => entry.name === name);
-      const labelId = existing?.id;
-      if (labelId === undefined) {
-        return text(`Label '${name}' does not exist yet; create it in Gmail first (this plugin only applies existing labels).`);
-      }
-      await gmail.modifyLabels(messageId, { addLabelIds: [labelId] });
-      return structured({ messageId, applied: name });
-    },
-  },
 ];
 
 function summarizeGraph(graph) {
@@ -450,7 +431,7 @@ function summarizeGraph(graph) {
 }
 
 function clamp(value, min, max) {
-  return Math.min(max, Math.max(min, Number.isFinite(value) ? value : min));
+  return Math.floor(Math.min(max, Math.max(min, Number.isFinite(value) ? value : min)));
 }
 
 function text(value) {
@@ -470,6 +451,7 @@ async function handleMessage(message) {
   if (message === null || typeof message !== "object") return null;
   const { id, method, params } = message;
   const isNotification = id === undefined;
+  if (isNotification) return null;
   try {
     if (method === "initialize") {
       return reply(id, {
@@ -531,7 +513,7 @@ async function main() {
       try {
         message = JSON.parse(line);
       } catch {
-        process.stderr.write(`inbox: unparseable line: ${line.slice(0, 120)}\n`);
+        process.stderr.write("inbox: invalid JSON-RPC input\n");
         continue;
       }
       const response = await handleMessage(message);

@@ -3,8 +3,8 @@
 Connects Gmail through your **own** Google Cloud OAuth client (Desktop
 type) with a local loopback redirect: the consent happens in your
 browser, Google redirects to `localhost` on your machine, and the tokens
-live only in the plugin data directory. No third-party cloud sees your
-mail, ever. Read-only scopes plus label triage — the plugin never sends,
+live only in the plugin data directory. Parsing is local; mail read by the agent may reach your chat provider.
+Read-only scopes — the plugin never sends,
 never deletes, never unsubscribes for you.
 
 ## The layers no email reader reads
@@ -49,19 +49,16 @@ never deletes, never unsubscribes for you.
 Tools: `auth_store_credentials`, `auth_begin`, `auth_status`,
 `auth_disconnect`, `digest`, `search`, `read`, `loops_scan`,
 `graph_stats`, `cleanup_scan`, `documents_scan`, `vault_fetch`,
-`vault_search`, `label_apply`. API endpoints honor `INBOX_API_BASE` so
+`vault_search`. API endpoints honor `INBOX_API_BASE` so
 the entire flow (OAuth included) runs offline against a local mock —
 that is how it is tested.
 
-Core issue [tetsuo-ai/agenc-core#2078](https://github.com/tetsuo-ai/agenc-core/issues/2078):
-plugin-declared stdio MCP servers spawn without `PATH` until it ships;
-register the identical server as a user-level MCP server meanwhile:
+Use a current Core build with native plugin MCP support. Allow network access
+explicitly in the host permission settings for Google OAuth/Gmail requests;
+the plugin cannot grant itself network access. Do not register a duplicate
+unrestricted MCP server to bypass the plugin sandbox.
 
-```bash
-agenc mcp add-json inbox-gmail '{
-  "command": "node",
-  "args": ["<plugin-install-root>/server/main.mjs"],
-  "transport": "stdio",
-  "env_vars": ["PATH"]
-}'
-```
+OAuth uses PKCE and an ephemeral 127.0.0.1 listener. Tokens and vault files
+are owner-only. Gmail messages are read-only: this version does not apply
+labels, because Google requires broader mail permissions for that operation.
+Test overrides are INBOX_API_BASE / INBOX_AUTH_BASE, for isolated fixtures only.

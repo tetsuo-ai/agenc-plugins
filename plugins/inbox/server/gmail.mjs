@@ -1,7 +1,7 @@
 /**
  * Minimal Gmail API client over plain fetch: search/list, message fetch
- * (format=full so the MIME tree is pre-parsed), labels, label modify, and
- * attachment download. Read-only plus label mutations — never send, never
+ * (format=full so the MIME tree is pre-parsed), labels and
+ * attachment download. Read-only — never send, never
  * delete. Base URLs injectable for offline testing.
  */
 
@@ -21,6 +21,8 @@ export function makeGmail({
     }
     const response = await fetchImpl(url.href, {
       method,
+      redirect: "error",
+      signal: AbortSignal.timeout(30000),
       headers: {
         authorization: `Bearer ${token}`,
         ...(body !== undefined ? { "content-type": "application/json" } : {}),
@@ -28,8 +30,7 @@ export function makeGmail({
       ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
     });
     if (!response.ok) {
-      const detail = await response.text().catch(() => "");
-      throw new Error(`Gmail API ${path} failed: HTTP ${response.status} ${detail.slice(0, 200)}`);
+      throw new Error(`Gmail API request failed: HTTP ${response.status}`);
     }
     if (response.status === 204) return {};
     return await response.json();
@@ -44,7 +45,9 @@ export function makeGmail({
     },
 
     async listAll({ query, max = 100 } = {}) {
+      max = Math.floor(Math.min(500, Math.max(1, Number.isFinite(max) ? max : 100)));
       const out = [];
+      const seen = new Set();
       let pageToken;
       do {
         const page = await call("messages", {
@@ -52,16 +55,18 @@ export function makeGmail({
         });
         out.push(...(page.messages ?? []));
         pageToken = page.nextPageToken;
+        if (pageToken && seen.has(pageToken)) throw new Error("Gmail returned a repeated page token");
+        seen.add(pageToken);
       } while (pageToken !== undefined && out.length < max);
       return out.slice(0, max);
     },
 
     async getMessage(id, { format = "full" } = {}) {
-      return await call(`messages/${id}`, { query: { format } });
+      return await call(`messages/${encodeURIComponent(id)}`, { query: { format } });
     },
 
     async getThread(id) {
-      return await call(`threads/${id}`);
+      return await call(`threads/${encodeURIComponent(id)}`);
     },
 
     async getProfile() {
@@ -72,16 +77,8 @@ export function makeGmail({
       return await call("labels");
     },
 
-    /** Non-destructive triage: only add/remove labels. */
-    async modifyLabels(messageId, { addLabelIds = [], removeLabelIds = [] } = {}) {
-      return await call(`messages/${messageId}/modify`, {
-        method: "POST",
-        body: { addLabelIds, removeLabelIds },
-      });
-    },
-
     async getAttachment(messageId, attachmentId) {
-      return await call(`messages/${messageId}/attachments/${attachmentId}`);
+      return await call(`messages/${encodeURIComponent(messageId)}/attachments/${encodeURIComponent(attachmentId)}`);
     },
   };
 }
