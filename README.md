@@ -1,6 +1,7 @@
 # AgenC Plugins
 
-The first-party plugin marketplace for AgenC. It contains nine packages:
+The first-party plugin marketplace for AgenC. It contains ten packages:
+
 
 - **Zero Day Hunter** — a security-research campaign skill.
 - **IoT Builder** — a guarded PlatformIO build/upload workflow.
@@ -25,6 +26,12 @@ The first-party plugin marketplace for AgenC. It contains nine packages:
   defensive, functional and solid disciplines plus the minimal-diff surgery
   protocol, checked by a structural code linter (including measured
   consistency with the file being edited).
+
+- **Motor3D** — browser 3D and games with verified scaffolds and a
+  deterministic verifier: modern three.js/canvas2d/WebGPU patterns retrieved
+  (not recalled), an API-era table that kills the classic hallucinations,
+  performance heuristics, and a self-checking HTML harness.
+
 
 ## Plugin, skill, and MCP
 
