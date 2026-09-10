@@ -1,6 +1,6 @@
 # AgenC Plugins
 
-The first-party plugin marketplace for AgenC. It contains six packages:
+The first-party plugin marketplace for AgenC. It contains seven packages:
 
 - **Zero Day Hunter** — a security-research campaign skill.
 - **IoT Builder** — a guarded PlatformIO build/upload workflow.
@@ -14,6 +14,10 @@ The first-party plugin marketplace for AgenC. It contains six packages:
   graph, the social commitments layer, an attachment vault, newsletter
   archaeology, and a document bridge that feeds Paper Radar from your mailbox.
   Read-only: never sends, never deletes.
+- **Paper Radar** — the administrative memory: deterministic Spanish/English
+  extraction of renewal dates, costs and cancellation windows from your own
+  documents, a local urgency radar, cancellation drafts, and calendar export.
+  Fully offline, built to work efficiently with local models.
 
 ## Plugin, skill, and MCP
 
