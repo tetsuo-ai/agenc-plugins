@@ -1,8 +1,8 @@
 {
   "publisher": "tetsuo-ai",
-  "signature": "R5p2ks3cWKhJweCq2doGZfYRYG2exFTyi2UVuvaSqUqbdDB2RYcT6dSUV/bon1If59ZNj4CNMFYS3HDmhgwtCQ==",
+  "signature": "agxrVyeKvyBSES1pQsv8XRj7Bt5uFjbYhn7DF/HXhMxO/Hlov2yOHHiPbRItdqBM6qYutJu2NlwRDkM5AK1ZCw==",
   "files": {
-    "assets/logo.png": "sha256:65dcdf1eb0e4028ba33ca797eb4db5516d134ce23da9988e53a14cd46bdb3b77",
+    "assets/logo.png": "sha256:d280f852448e90ab9d47a5836ac54529b0177647aab433a817982f9b6133b0f8",
     "commands/escribe.md": "sha256:e42c3ec8f606ba076e81fe70ca28749366ad413184c26d4f89bd951c91859974",
     "outputStyles/carta-formal.md": "sha256:ce241b819ef35a883c8a875087840ab919a5f9d726333e8304169ae856ee2e14",
     "outputStyles/cercano.md": "sha256:8da2a9de20b4c8f869144126df53240c25503bfb2d709d590e0333e62471fcd2",
@@ -16,7 +16,7 @@
     "outputStyles/tecnico.md": "sha256:f51308e3da297d0337cedf38d17e7f288926612f03a648705ddd8b13156dafe4",
     "README.md": "sha256:5b169e4b8ae1c98eeedb450ae1f1ab19ac22205ef5ac74d3b892b8acf93df2f0",
     "server/lint.mjs": "sha256:949384dea7c984b826f8c76c54d0dc259ca47a006aabde2251ede0a02e090f8c",
-    "server/main.mjs": "sha256:9b0f4314496a1fdc4bec16c7da591d9a4c4cf42ec2ad44139e8ad458bb8de598",
+    "server/main.mjs": "sha256:d9294227fb6993ca66c5254d4b8c3ee32447d50d63038f5e1e1bf5fdb981b833",
     "skills/escritura/SKILL.md": "sha256:5f98a3e06e513ffd7d09e8b025e5018fb1d59a4291b6db7ed5a8a140c3e3a6c6"
   }
 }

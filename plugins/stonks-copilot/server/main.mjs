@@ -25,7 +25,7 @@ import {
 } from "./theses.mjs";
 
 const PROTOCOL_VERSION = "2025-06-18";
-const SERVER_INFO = { name: "stonks-copilot", version: "0.2.1" };
+const SERVER_INFO = { name: "stonks-copilot", version: "0.2.2" };
 
 const dataDir = resolveDataDir();
 const chartFiles = makeDataFiles(dataDir, "charts");
