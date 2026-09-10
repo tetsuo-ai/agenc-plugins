@@ -169,6 +169,16 @@ To validate against a current Core checkout:
 AGENC_BIN='/path/to/agenc-core/runtime/bin/agenc' npm run validate:core
 ```
 
+Exercise the new plugins through compiled Core's actual native MCP sandbox:
+
+```bash
+AGENC_CORE_RUNTIME='/path/to/agenc-core/runtime' npm run validate:built
+```
+
+This uses disposable storage, verifies package signatures, and retains default
+network denial. Inbox OAuth/Gmail flows are tested with synthetic credentials
+against a loopback fixture by `npm test`; real accounts still require user consent.
+
 That test uses a temporary `AGENC_HOME`, validates the catalog and all five
 plugins, registers the local marketplace, installs each package, and checks the
 resulting inventory. It does not modify the operator's AgenC configuration.
