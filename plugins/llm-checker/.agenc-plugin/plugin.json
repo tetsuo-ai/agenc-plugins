@@ -1,6 +1,6 @@
 {
   "name": "llm-checker",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Work out which local LLM this machine can run, from measured hardware and a real memory budget.",
   "author": {
     "name": "tetsuo-ai"

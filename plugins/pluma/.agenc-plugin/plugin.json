@@ -1,6 +1,6 @@
 {
   "name": "pluma",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Writing styles with a deterministic verifier: a library of voices (formal, warm, concise, persuasive, technical) and document forms (formal letter, professional email, speech, proposal, cover letter) as AgenC output styles — plus a prose linter that verifies every draft against its style's ruleset before delivery. The model writes; the linter judges.",
   "author": {
     "name": "tetsuo-ai"
