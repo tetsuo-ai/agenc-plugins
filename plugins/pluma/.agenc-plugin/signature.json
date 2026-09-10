@@ -1,6 +1,6 @@
 {
   "publisher": "tetsuo-ai",
-  "signature": "h/meN1+4DHL9nrD9dFHty9N8QKl/0Ss03D9OqQM6OlVGOh8zeHcJmoDooxDEI/KkaTbeTYqdejYQXDCB52UQAQ==",
+  "signature": "EE3yQ05Y12MFlQKx1L1/92aq8zaYsvaOk3RBeEg8xTgIjfCYZQyxkXzzMmLoyNyHB7mV/mVuKccgx/bQOHA2DQ==",
   "files": {
     "assets/logo.png": "sha256:d280f852448e90ab9d47a5836ac54529b0177647aab433a817982f9b6133b0f8",
     "commands/escribe.md": "sha256:f4618d4476bfe9b195eec79a435779ff792b4de352a63613256b6ae0a7d3ae54",
@@ -16,7 +16,7 @@
     "outputStyles/tecnico.md": "sha256:47a16bae5ddd8d44789f628ea2ebf63e95de71d67e7f0c0cf288d779af12bad4",
     "README.md": "sha256:aaa2c3fed447a732f312c52a6d66eb99df94a5da06968ed5707cf732264e5634",
     "server/lint.mjs": "sha256:c1ff193738af0993705e0c25067ca76ce5259a4b5504701d165791febc724644",
-    "server/main.mjs": "sha256:36efdbb7c38e0abb99fac4c4eae64c78e3ab744ecfcb05f5a61c64f53f3d25ef",
+    "server/main.mjs": "sha256:40aee88aa7222f6764d29b4e769ecd849d386bc0417c933b25b18934da63ab40",
     "skills/escritura/SKILL.md": "sha256:f59ffa9a5bc1b5c48c67911ddf3d117aed66f0e233f23d62fb967731dbbd5f6d"
   }
 }

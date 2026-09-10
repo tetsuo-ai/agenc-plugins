@@ -31,7 +31,7 @@ import { makeVault } from "./vault.mjs";
 import { documentRows, eventRows } from "./bridge.mjs";
 
 const PROTOCOL_VERSION = "2025-06-18";
-const SERVER_INFO = { name: "inbox", version: "0.2.4" };
+const SERVER_INFO = { name: "inbox", version: "0.2.5" };
 
 const dataDir = resolveDataDir();
 mkdirSync(dataDir, { recursive: true, mode: 0o700 });

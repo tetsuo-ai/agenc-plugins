@@ -70,7 +70,7 @@ test("olimpo: unsafe stores fail closed and original exercises cannot be overwri
 test("olimpo: all nine MCP tools work through real stdio",async()=>{
   await withMcp("olimpo",async({call,tool,child})=>{
     const init=await call("initialize",{protocolVersion:"2025-06-18"});
-    assert.equal(init.result.serverInfo.version,"0.2.4");
+    assert.equal(init.result.serverInfo.version,"0.2.5");
     assert.equal((await call("tools/list")).result.tools.length,9);
     assert.equal((await tool("problems_list",{limit:100})).count,16);
     assert.ok((await tool("problem_search",{query:"vieta"})).problems.some(p=>p.id==="olimpo-nt-004"));

@@ -1,9 +1,13 @@
 ---
+name: olympus
+aliases: [olimpo]
 description: Original math practice with progressive hints and worked solutions
 argument-hint: "<practice|explain|search> [topic|id|technique]"
 ---
 
 Follow `olimpiada`. Discover tools with `system.searchTools` ("olimpo").
+
+Invoke `/olympus` with the actions below. `/olimpo` remains a compatibility alias.
 
 - `practice [topic]`: use `study_plan` or `problem_random`; statement, attempt,
   hints on request, solution last.

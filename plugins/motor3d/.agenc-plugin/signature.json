@@ -1,6 +1,6 @@
 {
   "publisher": "tetsuo-ai",
-  "signature": "P9Bc0/BYXxMyS9r5VAA3lyyMHBboNDpRTugAIze3Wi/nFIa93odbY4lCEGbaasYijfwcnNxbW2iygNhEDE8hAQ==",
+  "signature": "swd//jZJoM9VBbB+rJ49qtfD0XcWq5QeDw2IyL/wGNy46/60soIVeKvLJf0cpDYv03Y7Yhrav+5/Y/KUh16KCA==",
   "files": {
     "assets/logo.png": "sha256:287cb704f60c6a84d5cdc3cccf82c2f37e97733b8fb461e83740a4661756e4a1",
     "commands/motor3d.md": "sha256:c1d3ebd618ab8ee505943faf9af1b8f24f99e0318b5178dda0ed6d9a052f91d1",
@@ -13,7 +13,7 @@
     "scaffolds/three-raycast-picking.js": "sha256:0cfbaec6dd073637d4737c94044cca7b7994bbc9c0520c43d6d33eb1822b1397",
     "scaffolds/webgpu-init.js": "sha256:423ad996b0b24b2649eacaa570d495a08c43339cc7f50c1d4e4426760f3ab513",
     "server/lint3d.mjs": "sha256:29878dd60e11c1caa5829075f05fcf02a58ef5482332074da2764ba6eff72224",
-    "server/main.mjs": "sha256:517ee265576e7b9ca45d1a0db620dd3da1908267ccf3e2a919e2dfe608cf53d7",
+    "server/main.mjs": "sha256:32ed0cae725bb76de8cf47853c0f14b463bf2df475218ecd395b129d606cfb59",
     "server/overlay.mjs": "sha256:7a0a326f5427a5a477486d53b99fe31751941e9c03b6f2f3e7812318bb0ffb88",
     "skills/motor3d/SKILL.md": "sha256:35b44a97900918a37c308ad585a6ae4907713df89d9b36a5f2dd390fb6db39f0"
   }
