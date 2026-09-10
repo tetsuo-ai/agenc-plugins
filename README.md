@@ -1,6 +1,6 @@
 # AgenC Plugins
 
-The first-party plugin marketplace for AgenC. It contains five packages:
+The first-party plugin marketplace for AgenC. It contains six packages:
 
 - **Zero Day Hunter** — a security-research campaign skill.
 - **IoT Builder** — a guarded PlatformIO build/upload workflow.
@@ -9,6 +9,10 @@ The first-party plugin marketplace for AgenC. It contains five packages:
 - **Stonks Copilot** — agent-native investing copilot: 50/50 stock analysis,
   portfolio X-Ray with real N-PORT fund overlap, SVG charts, and a decision
   journal that flags when your stated thesis breaks.
+- **Paper Radar** — the administrative memory: deterministic Spanish/English
+  extraction of renewal dates, costs and cancellation windows from your own
+  documents, a local urgency radar, cancellation drafts, and calendar export.
+  Fully offline, built to work efficiently with local models.
 
 ## Plugin, skill, and MCP
 

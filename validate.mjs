@@ -17,7 +17,7 @@ import {
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const MARKETPLACE_PATH = join(ROOT, ".agenc-plugin", "marketplace.json");
-const EXPECTED_PLUGINS = ["zeroday-hunter", "iot-builder", "ledger", "llm-checker", "stonks-copilot"];
+const EXPECTED_PLUGINS = ["zeroday-hunter", "iot-builder", "ledger", "llm-checker", "stonks-copilot", "paper-radar"];
 const EXPECTED_PLUGIN_VERSION = "0.2.1";
 const EXPECTED_LOGO_PATH = "./assets/logo.png";
 const LOGO_PAYLOAD_PATH = "assets/logo.png";
@@ -274,6 +274,28 @@ const stonksJournalSkill = readFileSync(
 for (const required of ["thesis_create", "thesis_scan", "thesis_list", "metrics_registry"]) {
   assert.ok(stonksJournalSkill.includes(required), `Stonks Copilot journal skill is missing ${required}`);
 }
+const paperManifest = readJson(
+  join(ROOT, "plugins", "paper-radar", ".agenc-plugin", "plugin.json"),
+);
+assert.ok(
+  paperManifest.mcpServers?.["paper-ledger"]?.command === "node",
+  "Paper Radar must declare its stdio paper-ledger MCP server",
+);
+const paperIngestSkill = readFileSync(
+  join(ROOT, "plugins", "paper-radar", "skills", "paper-ingest", "SKILL.md"),
+  "utf8",
+);
+for (const required of ["ingest_extract", "ledger_upsert", "pdftotext", "noticeWindows"]) {
+  assert.ok(paperIngestSkill.includes(required), `Paper Radar ingest skill is missing ${required}`);
+}
+const paperRadarSkill = readFileSync(
+  join(ROOT, "plugins", "paper-radar", "skills", "paper-radar", "SKILL.md"),
+  "utf8",
+);
+for (const required of ["cancel_draft", "ics_export", "cost_report", "radar"]) {
+  assert.ok(paperRadarSkill.includes(required), `Paper Radar skill is missing ${required}`);
+}
+
 const stonksAnalyzerSkill = readFileSync(
   join(ROOT, "plugins", "stonks-copilot", "skills", "stock-analyzer", "SKILL.md"),
   "utf8",
