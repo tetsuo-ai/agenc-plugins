@@ -1,6 +1,6 @@
 {
   "publisher": "tetsuo-ai",
-  "signature": "Evf1wI3IIGw/C2j9VgEIxAhP08zThluWi4gNg6rvgSM4i8EA8bYp6JrMBQ8n//FcS28/e+xQLXo2It8/FqpAAg==",
+  "signature": "vG7LD62vUYaHBDmDbWpLq067g7gtcV7UsSOlOQeoKaQenWOm+QWNn3n7JRCkYvL33FjyWHgVzpIMrATLZQtKDA==",
   "files": {
     "assets/logo.png": "sha256:5337cceed7f4e5d1bf9ecbbacf7faa7fee8bbd0d4ca87a7efee222d8b114ac98",
     "commands/inbox.md": "sha256:15a90d3b5ca3e8a3ab37de1d47d7eeda313c3797319b6df865fd5fadd56ef035",
@@ -11,7 +11,7 @@
     "server/gmail.mjs": "sha256:3cb191f48b6a974d79d0d562497bd3b4512a5a09cf29ab95f5e51aaefefc4c35",
     "server/graph.mjs": "sha256:6059c18b9e210c7e0256978e3bb341ac4ed1603a4cfd4966a81509c929c187f6",
     "server/loops.mjs": "sha256:5a805bf953b01a612d894702a73155a352226a294b0692d60ac14bce1c71564c",
-    "server/main.mjs": "sha256:7285e2b453a2a36082db9f5e40e831df63b927f354d4459a3065f45c0b862c1e",
+    "server/main.mjs": "sha256:af75cb7fb62b1c55d792600fbadacd58eb0c0425c68cbfe92d28e8ca6482dd38",
     "server/mime.mjs": "sha256:c80984a817c996f413c0b998a9153786574a80312f88ec46a4df237c688e6e5b",
     "server/oauth.mjs": "sha256:7c60979c639e3c6d3d9b009432f30766617ddf4ab80d9911c8f339f6005b6322",
     "server/vault.mjs": "sha256:735a9faf0cfb7eb5ad8722fd54b4d23125f5430c717d3be11294a79fbaee8095",

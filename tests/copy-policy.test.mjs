@@ -48,6 +48,22 @@ test("functional JSON data keeps multilingual input without exempting punctuatio
   assert.equal(manifestCopyIssues({ title: "input\u2014output" }, "fixture", { language: false }).length, 1);
 });
 
+test("skill display labels are English without renaming their stable directories", () => {
+  for (const [plugin, directory, label] of [
+    ["forja", "calidad", "Code Quality"],
+    ["pluma", "escritura", "Writing"],
+    ["olimpo", "olimpiada", "Olympiad Practice"],
+  ]) {
+    const manifest = JSON.parse(readFileSync(join(ROOT, "plugins", plugin, ".agenc-plugin/plugin.json"), "utf8"));
+    assert.ok(manifest.skills.includes(`./skills/${directory}`));
+    const markdown = readFileSync(join(ROOT, "plugins", plugin, "skills", directory, "SKILL.md"), "utf8");
+    assert.equal(/^name:\s*(.+)$/mu.exec(markdown)?.[1], label);
+  }
+  for (const name of ["calidad", "escritura", "olimpiada", "cercano"]) {
+    assert.equal(frontmatterCopyIssues(`---\nname: ${name}\ndescription: A writing style\n---\nText`, "SKILL.md").length, 1);
+  }
+});
+
 test("plugin payloads satisfy the authored-copy policy", () => {
   assert.deepEqual(repositoryCopyIssues(ROOT), []);
 });

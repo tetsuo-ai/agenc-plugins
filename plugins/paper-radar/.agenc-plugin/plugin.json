@@ -1,6 +1,6 @@
 {
   "name": "paper-radar",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "The administrative memory: drop contracts, policies, warranties and IDs in any language; paper-radar extracts renewal dates, costs and cancellation windows deterministically, keeps a private local ledger, warns before notice windows close, drafts cancellations, and exports deadlines to your calendar. Fully offline - designed to work efficiently with local models.",
   "author": {
     "name": "tetsuo-ai"

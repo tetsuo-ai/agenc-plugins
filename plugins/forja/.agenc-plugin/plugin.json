@@ -1,6 +1,6 @@
 {
   "name": "forja",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Five code-writing disciplines with an offline structural linter. Check function length, nesting, naming, duplication, and consistency with existing files before running the project's compiler and tests.",
   "author": {
     "name": "tetsuo-ai"
