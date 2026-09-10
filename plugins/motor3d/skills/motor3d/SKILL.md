@@ -2,59 +2,53 @@
 name: motor3d
 description: Browser 3D and game development with verified scaffolds and a deterministic verifier. Retrieves correct modern three.js/canvas2d/WebGPU patterns instead of writing from memory, kills the classic API hallucinations (THREE.Geometry, outputEncoding, core OrbitControls), catches per-frame allocation and lifecycle bugs, and delivers a self-checking harness the user opens to SEE errors and FPS. Built for small local models.
 when_to_use: The user asks for anything 3D in the browser, three.js, WebGL/WebGPU, a canvas game, shaders, or says their scene is slow/black/not rendering.
-argument-hint: <pedido 3d o juego>
+argument-hint: <3d or game request>
 ---
 
-# Motor3D — el andamio correcto, no de memoria
+# 3D Engine: correct scaffolds instead of recall
 
-Los modelos chicos escriben three.js MAL por recall, no por comprensión:
-alucinan APIs eliminadas, allocan en el loop, olvidan resize/dispose/DPR.
-Este skill mueve la verdad fuera del modelo:
+Small models can misuse three.js because of recall errors: removed APIs,
+allocations inside the loop, or missing resize/dispose/DPR handling.
+This skill supplies reference implementations outside the model.
 
-## Protocolo
+## Protocol
 
-1. **Nunca de memoria** — `scaffolds_list`, elegí el más cercano,
-   `scaffold_get` y adaptá SOLO los TODO. El scaffold ES la base
-   correcta; reescribirlo de memoria reintroduce el problema.
-2. **Adaptá** — contenido, parámetros, mecánica. Conservá la estructura:
-   import map pineado, resize handler, delta clamp, dispose.
-3. **Verificá** — `lint3d` con el código final. Reglas:
-   - `api-era:*` (error): API eliminada/renombrada — corregí SIEMPRE
-     con el fix que te da.
-   - perf (warn/error): allocation por frame, resize, dispose,
-     DPR, delta, instancing — corregí y relinteá.
-   - `info`: decisión tuya — pero decíselo al usuario.
-4. **Iterá hasta pass** (score ≥ 85 y cero errores), máximo dos vueltas; lo que siga
-   en rojo es una decisión del usuario: mostrala.
-5. **Entregá con harness** — `harness_build` con el código final: HTML
-   autocontenido con overlay de errores y contador de FPS. El usuario
-   lo abre y VE si funciona — nada de canvas negro silencioso. Si el
-   usuario ya tiene su HTML, entregá el harness igual como versión de
-   prueba.
+1. **Retrieve first**: use `scaffolds_list`, choose the closest match, then
+   `scaffold_get` and adapt ONLY the TODO marks. Rewriting the base from
+   memory reintroduces the same errors.
+2. **Adapt** content, parameters, and mechanics. Preserve the pinned import
+   map, resize handler, delta clamp, and disposal structure.
+3. **Verify** the final code with `lint3d`:
+   - `api-era:*` errors identify removed or renamed APIs. Always apply the fix.
+   - Performance warnings/errors cover per-frame allocations, resize,
+     disposal, DPR, delta, and instancing. Fix them and lint again.
+   - Explain any `info` finding you choose to leave unchanged.
+4. **Iterate until pass** (score ≥ 85 and zero errors), at most twice.
+   Present any remaining failures as unresolved choices for the user.
+5. **Deliver a harness**: run `harness_build` on the final code to provide
+   self-contained HTML with an error overlay and FPS counter. The user can
+   open it to inspect failures. If they already have HTML, also deliver the
+   harness as a separate test version.
 
-## Las trampas clásicas (memorizá las categorías, no las APIs)
+## Common pitfalls
 
-- **Era de API**: three cambió mucho; si dudás de una API, lint3d lo
-  responde — no la recuerdes, verificá.
-- **Loop de render**: cero `new` dentro; dt SIEMPRE con clamp.
-- **Ciclo de vida**: resize + dispose no son opcionales.
-- **Móvil**: pixel ratio con tope 2, touch-action: none.
-- **Canvas 2D**: `canvas.width` × dpr + `setTransform` — sino se ve
-  borroso.
-- **WebGPU**: `getCurrentTexture()` NUNCA se cachea (es nueva por frame).
+- **API versions**: verify uncertain APIs with `lint3d`, not memory.
+- **Render loop**: no `new` inside the loop; always clamp dt.
+- **Lifecycle**: resize and disposal are required.
+- **Mobile**: cap pixel ratio at 2 and use `touch-action: none`.
+- **Canvas 2D**: scale `canvas.width` by dpr and use `setTransform` to avoid blur.
+- **WebGPU**: never cache `getCurrentTexture()` across frames.
 
-## Límites
+## Boundaries
 
-- El linter usa heurísticas de texto, no prueba corrección ni seguridad.
-- El servidor es offline; los HTML de Three.js descargan Three.js 0.170.0
-  de jsDelivr y el ejemplo GLTF usa un modelo externo. Para uso offline,
-  serví copias locales. Probá render e interacción en el navegador objetivo.
-- Instalación MCP nativa: no duplicar el servidor en configuración de usuario.
-
-- Los scaffolds son puntos de partida verificados, no tu juego: la
-  mecánica la ponés vos con el usuario.
-- Si el usuario pide algo que ningún scaffold cubre (shaders propios,
-  física), partí del más cercano, sé explícito sobre lo que no está
-  verificado y lint3d igual.
-- Los tools son entradas deferidas: buscalos con tu tool search
-  (`system.searchTools`) "motor3d" antes del primer uso.
+- The linter uses text heuristics; it does not prove correctness or security.
+- The server is offline. Three.js HTML downloads Three.js 0.170.0 from
+  jsDelivr, and the GLTF example uses an external model. Serve local copies
+  for offline use. Test rendering and interaction in the target browser.
+- Use the native MCP installation; do not duplicate the server in user config.
+- Scaffolds are verified starting points, not finished games. Develop the
+  mechanics with the user.
+- For custom shaders or physics without a matching scaffold, adapt the
+  closest one, identify what remains unverified, and still run `lint3d`.
+- Tools are deferred. Search for "motor3d" with `system.searchTools` before
+  first use.

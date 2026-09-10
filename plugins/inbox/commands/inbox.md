@@ -1,5 +1,5 @@
 ---
-description: Gmail copilot — relationship-ranked digest, open loops, document bridge and newsletter cleanup
+description: Gmail copilot - relationship-ranked digest, open loops, document bridge and newsletter cleanup
 argument-hint: "<digest|loops|cleanup|documents|search <q>|setup> [args]"
 ---
 

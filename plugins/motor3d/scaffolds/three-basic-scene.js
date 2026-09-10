@@ -1,19 +1,19 @@
 import { withErrorOverlay } from "../server/overlay.mjs";
-// Scaffold: three-basic-scene — escena Three.js moderna y correcta.
-// Import map con versión pineada, renderer con pixel ratio, resize
-// correcto, loop con delta clampeado, dispose al descargar.
-// Reemplaza TODO lo marcado. No borres el overlay de errores: es tu
-// feedback inmediato si algo rompe.
+// Scaffold: three-basic-scene - escena Three.js moderna y correcta.
+// Pinned import map, renderer pixel ratio, correct resizing,
+// a clamped-delta loop, and disposal on unload.
+// Replace the TODO marks. Keep the error overlay for immediate
+// feedback when something fails.
 
 export default {
   "name": "three-basic-scene",
   "framework": "three",
-  "description": "Escena mínima moderna: renderer, cámara, resize, rAF con delta clamp, dispose. La base correcta de todo.",
+  "description": "Minimal modern scene: renderer, camera, resize, clamped-delta rAF, and disposal. A reliable starting point.",
   "html": withErrorOverlay(`<!doctype html>
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<title>TODO: título</title>
+<title>TODO: title</title>
 <style>
   html, body { margin: 0; height: 100%; overflow: hidden; background: #0f172a; }
   canvas { display: block; }
@@ -53,7 +53,7 @@ scene.background = new THREE.Color(0x0f172a);
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
 camera.position.set(0, 1.5, 5);
 
-// TODO: tu contenido de escena
+// TODO: your scene content
 const mesh = new THREE.Mesh(
   new THREE.BoxGeometry(1, 1, 1),
   new THREE.MeshStandardMaterial({ color: 0x38bdf8 }),
@@ -71,11 +71,11 @@ function onResize() {
 window.addEventListener("resize", onResize);
 
 const clock = new THREE.Clock();
-const MAX_DELTA = 0.1; // s: clamp para tab-descansos
+const MAX_DELTA = 0.1; // seconds: clamp after inactive tabs
 
 function animate() {
   const dt = Math.min(clock.getDelta(), MAX_DELTA);
-  // TODO: actualizar con dt (NO crear objetos aquí)
+  // TODO: update with dt (do not create objects here)
   mesh.rotation.y += dt * 0.8;
   renderer.render(scene, camera);
   requestAnimationFrame(animate);
@@ -92,8 +92,8 @@ window.addEventListener("beforeunload", () => {
 </body>
 </html>`),
   "notes": [
-    "setPixelRatio ANTES de setSize, con tope 2: DPR 3 quema fill-rate móvil.",
-    "El clamp de delta evita saltos gigantes al volver de una pestaña inactiva.",
-    "Luces: en three moderno la intensidad de DirectionalLight es física (≈2-3 se ve bien).",
+    "Call setPixelRatio before setSize and cap it at 2; DPR 3 can exhaust mobile fill rate.",
+    "Clamping delta prevents large jumps when returning to an inactive tab.",
+    "Modern three.js uses physical DirectionalLight intensity; about 2-3 is a useful starting point.",
   ],
 }

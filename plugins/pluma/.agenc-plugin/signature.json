@@ -1,22 +1,22 @@
 {
   "publisher": "tetsuo-ai",
-  "signature": "agxrVyeKvyBSES1pQsv8XRj7Bt5uFjbYhn7DF/HXhMxO/Hlov2yOHHiPbRItdqBM6qYutJu2NlwRDkM5AK1ZCw==",
+  "signature": "5ZEMTy36ojXehW4KnYBtOg3P6FWxg9JurO2lFSezU3pZS3xCoCQUryrsshTks7U0hDf+9EuaXc7wyPdiJxb+DQ==",
   "files": {
     "assets/logo.png": "sha256:d280f852448e90ab9d47a5836ac54529b0177647aab433a817982f9b6133b0f8",
-    "commands/escribe.md": "sha256:e42c3ec8f606ba076e81fe70ca28749366ad413184c26d4f89bd951c91859974",
-    "outputStyles/carta-formal.md": "sha256:ce241b819ef35a883c8a875087840ab919a5f9d726333e8304169ae856ee2e14",
-    "outputStyles/cercano.md": "sha256:8da2a9de20b4c8f869144126df53240c25503bfb2d709d590e0333e62471fcd2",
-    "outputStyles/cover-letter.md": "sha256:ac0c62faa394b0304870021ab98a66cbf2c7e767fd6424fec891d966bcd5eddb",
-    "outputStyles/directo.md": "sha256:8b7669887d1c3ed38100d75b7a330dad390403d13a7aebe29eff7ccfeb065110",
-    "outputStyles/discurso.md": "sha256:3c9a92af5d67e37ab4a1262fbe097d79d1b60c2e76c370523e03be6278561413",
-    "outputStyles/email-profesional.md": "sha256:24790c912b9c6b128c42fa2357414dee2abe82f1822d75e29d6b47583803ffd2",
-    "outputStyles/formal.md": "sha256:5e4c289c4c6d11edda320de3b4039b2387d7a4a10f69e839d0ed2665d61bd8c3",
-    "outputStyles/persuasivo.md": "sha256:1705c6b08b4c4c2459080cbe84910aa5d76e8c48a31752d3d53e53c479fed3c5",
-    "outputStyles/propuesta.md": "sha256:ddffb11954c880da1dc4d1e95dc2c6d85871ed25ed826e0d22ccfb677cb60e9f",
-    "outputStyles/tecnico.md": "sha256:f51308e3da297d0337cedf38d17e7f288926612f03a648705ddd8b13156dafe4",
-    "README.md": "sha256:5b169e4b8ae1c98eeedb450ae1f1ab19ac22205ef5ac74d3b892b8acf93df2f0",
-    "server/lint.mjs": "sha256:949384dea7c984b826f8c76c54d0dc259ca47a006aabde2251ede0a02e090f8c",
-    "server/main.mjs": "sha256:d9294227fb6993ca66c5254d4b8c3ee32447d50d63038f5e1e1bf5fdb981b833",
-    "skills/escritura/SKILL.md": "sha256:5f98a3e06e513ffd7d09e8b025e5018fb1d59a4291b6db7ed5a8a140c3e3a6c6"
+    "commands/escribe.md": "sha256:f4618d4476bfe9b195eec79a435779ff792b4de352a63613256b6ae0a7d3ae54",
+    "outputStyles/carta-formal.md": "sha256:b2d284a05c06bed102c458c0e231f1cf1bd8e76a60dfe910ae3ed6b87d32515e",
+    "outputStyles/cercano.md": "sha256:8dcda60fe741af96509c4fc8b89822e00c12064e48e6b41b7e7262ad130dafe5",
+    "outputStyles/cover-letter.md": "sha256:050c5156243ecab4ea41fa1016c68906a685815767a5fab4c7f8147090970d71",
+    "outputStyles/directo.md": "sha256:f9d0fa5b0b0bd8e584411b71aa4ca6ccc10b4a9d31b8e37ee68655935cc70186",
+    "outputStyles/discurso.md": "sha256:6b484588e55dde2b963dca8afec37510d4b82a756bed8db5d3022d4cfce13413",
+    "outputStyles/email-profesional.md": "sha256:ee2820b890d95c363a318cb11aa5780f43b33261384ce74d13a361286dc28df7",
+    "outputStyles/formal.md": "sha256:03d2e1184a8445bf3fc3b0a3515d04ba8aaf7dd3f9f64bcc3aa44107d3e518df",
+    "outputStyles/persuasivo.md": "sha256:5214233e71c5cd6b76781a30b95732c22961410d49691f5c4638e02fd6e2bef2",
+    "outputStyles/propuesta.md": "sha256:1117debf3c54a8f67f4bd2fa19a6edb42a5c55b84a4a816efccddebb182b42ee",
+    "outputStyles/tecnico.md": "sha256:47a16bae5ddd8d44789f628ea2ebf63e95de71d67e7f0c0cf288d779af12bad4",
+    "README.md": "sha256:aaa2c3fed447a732f312c52a6d66eb99df94a5da06968ed5707cf732264e5634",
+    "server/lint.mjs": "sha256:c1ff193738af0993705e0c25067ca76ce5259a4b5504701d165791febc724644",
+    "server/main.mjs": "sha256:d1ddb2848477213d6ddffccfcd5538ba76126425eab465e35fe4118ea5417f07",
+    "skills/escritura/SKILL.md": "sha256:aae17099c4c1e47ba3e99d4935c6da5e0149199b48a49d2b41d3c1897dd5fb5a"
   }
 }

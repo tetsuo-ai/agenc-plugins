@@ -30,7 +30,7 @@ agenc plugin install ./plugins/zeroday-hunter --scope user
   caps with logged abandon criteria.
 - Confirmed bugs are codified as **variant queries** (`.zdh/queries/`) that run
   repo-wide and double as regression tests for the fix.
-- **Watch mode** audits only `baseline..HEAD` against the stored threat model — cheap
+- **Watch mode** audits only `baseline..HEAD` against the stored threat model - cheap
   continuous delta auditing instead of full rescans.
 
 ## Layout
@@ -51,7 +51,7 @@ agenc plugin install ./plugins/zeroday-hunter --scope user
 ## Field-tested
 
 Validated end-to-end against the `minilang` demo parser: found and **confirmed an
-uncontrolled-recursion stack-exhaustion DoS** (CWE-674) — ASan-verified PoC
+uncontrolled-recursion stack-exhaustion DoS** (CWE-674) - ASan-verified PoC
 (parens/blocks/unary shapes), crash reproduced on a release build, fixed by a depth-cap
 patch that makes the same PoC fail gracefully (crash pre-patch / clean post-patch).
 

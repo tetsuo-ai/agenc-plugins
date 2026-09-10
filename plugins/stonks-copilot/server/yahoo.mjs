@@ -1,5 +1,5 @@
 /**
- * Yahoo Finance v8 chart client for daily OHLCV bars — keyless JSON used
+ * Yahoo Finance v8 chart client for daily OHLCV bars - keyless JSON used
  * by most open-source finance tooling. Treated as an unofficial API: the
  * plugin reads it read-only with a descriptive user agent and cache TTLs,
  * and Stooq remains the fallback when Yahoo throttles.

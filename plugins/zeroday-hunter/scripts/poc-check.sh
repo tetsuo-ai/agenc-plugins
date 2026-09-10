@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# poc-check.sh — deterministic PoC verifier for zeroday-hunter campaigns.
+# poc-check.sh - deterministic PoC verifier for zeroday-hunter campaigns.
 #
 # A finding is CONFIRMED only when this script exits 0. It runs a command and
 # greps its output for a deterministic signal (ASan report, assertion, canary
@@ -45,7 +45,7 @@ fi
 if [ -n "$EXPECT_EXIT" ] && [ "$rc" != "$EXPECT_EXIT" ]; then
   confirmed=0
 fi
-# timeout(1) returns 124 on expiry — a hang is not a crash
+# timeout(1) returns 124 on expiry - a hang is not a crash
 if [ "$rc" = "124" ]; then
   confirmed=0
   echo "NOTE: command timed out after ${TIMEOUT}s" >&2

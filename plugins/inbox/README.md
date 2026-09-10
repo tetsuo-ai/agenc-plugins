@@ -1,31 +1,31 @@
-# Inbox — the Gmail copilot
+# Inbox - the Gmail copilot
 
 Connects Gmail through your **own** Google Cloud OAuth client (Desktop
 type) with a local loopback redirect: the consent happens in your
 browser, Google redirects to `localhost` on your machine, and the tokens
 live only in the plugin data directory. Parsing is local; mail read by the agent may reach your chat provider.
-Read-only scopes — the plugin never sends,
+Read-only scopes - the plugin never sends,
 never deletes, never unsubscribes for you.
 
 ## The layers no email reader reads
 
-- **Digest by relationship** — a local sender-trust graph built from your
+- **Digest by relationship** - a local sender-trust graph built from your
   own exchange history (bidirectional volume, replies, recency; bulk
   detection from List-Unsubscribe and sender patterns) ranks unread mail:
   humans first, security/transactional alerts when they matter,
   newsletters never. Every row carries its deterministic reasons
   ("frequent contact", "asks a question", "mentions Sep 30").
-- **Loops** — the commitments living in your mail: waiting-on threads
+- **Loops** - the commitments living in your mail: waiting-on threads
   (you asked, they went silent) with aging; reply debt (humans awaiting
   your answer); your outbound promises paired with detected dates
-  ("te envío el informe antes del viernes"), as candidates you confirm.
-- **Attachment vault** — explicit per-file downloads, content-hashed and
-  indexed by sender/date/name: "the PDF María sent in March" is one
+  ("I will send the report before Friday"), as candidates you confirm.
+- **Attachment vault** - explicit per-file downloads, content-hashed and
+  indexed by sender/date/name: "the PDF Alex sent in March" is one
   `vault_search`.
-- **Newsletter archaeology** — per-sender volume with List-Unsubscribe
+- **Newsletter archaeology** - per-sender volume with List-Unsubscribe
   evidence into an evidence-backed kill-list. The plugin reports; you
   unsubscribe.
-- **paper-radar bridge** — renewal notices, policies and invoices found
+- **paper-radar bridge** - renewal notices, policies and invoices found
   in mail become `ingestText` purpose-built for paper-radar's
   `ingest_extract`, with PDF attachments fetched into the vault for its
   pdftotext flow. The administrative memory feeds itself.
@@ -45,12 +45,12 @@ never deletes, never unsubscribes for you.
 
 ## MCP server
 
-`server/main.mjs` — zero-dependency stdio MCP server (NDJSON JSON-RPC).
+`server/main.mjs` - zero-dependency stdio MCP server (NDJSON JSON-RPC).
 Tools: `auth_store_credentials`, `auth_begin`, `auth_status`,
 `auth_disconnect`, `digest`, `search`, `read`, `loops_scan`,
 `graph_stats`, `cleanup_scan`, `documents_scan`, `vault_fetch`,
 `vault_search`. API endpoints honor `INBOX_API_BASE` so
-the entire flow (OAuth included) runs offline against a local mock —
+the entire flow (OAuth included) runs offline against a local mock -
 that is how it is tested.
 
 Use a current Core build with native plugin MCP support. Allow network access

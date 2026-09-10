@@ -1,46 +1,43 @@
-# Forja
+# Forge
 
-Code writing styles with a deterministic verifier — pluma's discipline,
-applied to code. The ecosystem separates code-style prompting from
-linters; forja closes the loop: the model writes under a chosen
-discipline, the verifier supplies heuristic feedback before delivery.
+Code-writing styles with a deterministic verifier. The agent writes under a
+chosen discipline, checks the draft, and uses heuristic feedback before
+delivery.
 
-## The disciplines (AgenC output styles)
+## The disciplines
 
-- **limpio** — small single-purpose functions (≤ 25 lines), early
-  returns, intention-revealing names, no magic numbers, no leftovers.
-- **defensivo** — guard clauses at every boundary, fail fast with
-  actionable errors, no swallowed catches, explicit switch defaults.
-- **funcional** — pure functions by default, const discipline,
-  map/filter/reduce over mutation, errors as values when expected.
-- **solid** — one responsibility per class (≤ 200 lines / ≤ 10 public
-  methods), injected dependencies, composition over inheritance.
-- **minimal-diff** — the surgery protocol for editing existing code:
-  smallest coherent change, and the host file's conventions (tabs vs
-  spaces and width, quotes, naming, semicolons) are the spec.
+- **clean**: small, single-purpose functions, early returns, clear names,
+  named constants, and no debug leftovers.
+- **defensive**: guard clauses at boundaries, actionable errors, explicit
+  defaults, and no swallowed exceptions.
+- **functional**: pure functions, immutable data, composition, and isolated
+  side effects.
+- **solid**: one responsibility per class, injected dependencies, and
+  composition over inheritance.
+- **minimal-diff**: the smallest complete change to an existing file,
+  matching its indentation, quotes, naming, and semicolons.
 
-Each file carries the craft: rules plus before/after examples.
+Each output style includes rules and examples. The installation ID remains
+`forja`, and saved output-style IDs and paths are unchanged. Open
+`/output-style` and select the installed plugin style matching the
+`outputStyleName` returned by `code_styles_list`. Exact style IDs include
+an installation namespace. New linter requests can use the English labels
+above; legacy IDs remain accepted.
 
-## The verifier (forja-lint MCP server)
+## The verifier
 
-`code_lint` runs heuristic structural analysis (JS/TS and Python —
-stated as heuristics, no AST, zero dependencies) with base rules
-(function-length bands, nesting depth, parameter counts, long
-lines/files, duplicate blocks, naming-mix detection, debug leftovers,
-empty catches, dead imports, else-after-return, TODO markers) plus
-per-style discipline — and for minimal-diff, **measured consistency
-with the original file**: indentation style and width, quote style,
-naming convention and semicolon endings must match the file being
-edited, not your preferences. Violations carry concrete fixes; drafts
-clear 85/100 before delivery. `code_styles_list` exposes the library.
+The `forja-lint` MCP server exposes `code_styles_list` and `code_lint`.
+Checks cover function length, nesting, parameter counts, long lines and
+files, duplicate blocks, naming, debug leftovers, empty catches, unused
+imports, TODO markers, and style-specific rules. For edits, pass `original`
+so minimal-diff can compare the draft with the existing file's conventions.
 
-## MCP server
+Passing requires a score of at least 85 and no error findings. Findings
+include concrete suggestions. The server uses newline-delimited JSON-RPC
+with no state, network access, or external dependencies.
 
-`server/main.mjs` (NDJSON JSON-RPC): `code_styles_list`, `code_lint`.
-No state, no network.
-
-Use a current Core build with native plugin MCP support, not a duplicate
-unrestricted MCP registration. A pass requires score >=85 and zero errors.
-This linter does not compile or execute code, prove correctness/security, or
-cover every syntax form (including complex regex/templates). Always run the
-project's formatter, compiler and tests. Review suggestions before applying.
+Use Core's native plugin MCP support, not a duplicate unrestricted server.
+The JS/TS and Python checks are heuristics without an AST. They do not
+compile or execute code, prove security or correctness, or cover every
+syntax form. Always run the project's formatter, compiler, and tests.
+Review suggestions before applying them.

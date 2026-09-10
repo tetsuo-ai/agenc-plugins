@@ -1,15 +1,15 @@
 {
   "publisher": "tetsuo-ai",
-  "signature": "WP9nl1QR0sjJgkcZuuQgla7K6Dw3YHULo5SYll/MmSTUi6TtV3rsvQHY1ignPfAd/R0MWBbZVcN1sz5mCu7xCA==",
+  "signature": "YacvA07NaaFABavnFUjuwtPbDFJ70SWoxa5f+E3qKBYdFNr/DwfkouEdq/+aRR5goX0RL8Na+XFGN2cXT+HPBA==",
   "files": {
     "assets/logo.png": "sha256:23336c94ed99cf0dcf4b6cddc2643d87d956362ccd5b2bde75d35aa69f16664b",
-    "commands/paper.md": "sha256:b4c796e61317075f34dea424f1315e57fdd5d52d8e5d629f4cb6d0c90b8c342f",
-    "README.md": "sha256:33b584fac324a76cbba27f1c5208323bdb34b4fd9e331397f1ecee0deaa26c23",
-    "server/extract.mjs": "sha256:9876f677287612106d34a845042d18f806a22a0c7f9de54b8165dc2a315012b0",
-    "server/ledger.mjs": "sha256:74ae507c59e7cf633c93fda9996e144434cfe42cb37a7322ae28be8bd74662bd",
-    "server/main.mjs": "sha256:cd66f8afd2e279d389ad835fdbc05b2ab60ff63fb52ddf679dad69ab969ccf51",
-    "server/stores.mjs": "sha256:aef335b640e4959eafd2c4df6d2c5ca52d589dc451a7e289729d840de6e444c1",
-    "skills/paper-ingest/SKILL.md": "sha256:e96967986bcce22fb624c0427ac82ef5c97671d4e7ccf6054c00fa7f260649a8",
-    "skills/paper-radar/SKILL.md": "sha256:78bec52af14fbc1ac23c4e2cb027938b6832f85dd763ee6cee6a94e2d4989add"
+    "commands/paper.md": "sha256:85258c5b490916724e00dde1ed1235aa071144ef3516b0d612a4a0364c55d211",
+    "README.md": "sha256:1dd2e6dfcf5f1414b0706b699ac8a4a18066f1c9b1e26fdedc7bb3682a24909c",
+    "server/extract.mjs": "sha256:c1868966e64ce351b9c823b19a0bb487d7857f8a3eff586960455c99d560a28f",
+    "server/ledger.mjs": "sha256:dc2f8a0894cef2782f7f1477d87e9c5f59b1bf5dc49bfd994c503cfb7f61c822",
+    "server/main.mjs": "sha256:6b55c00e79f4c4f8ac63c182bda9a62e0d7938af845ed7399581bb52490ea3ad",
+    "server/stores.mjs": "sha256:3ac1331e33a5815884a4db1288b3d1a891526925db9fbfac8461a8105838d3c7",
+    "skills/paper-ingest/SKILL.md": "sha256:f6aad9250e1c89d63ea7c503621f5c5d295219c548285a667ca91b4b8db556b3",
+    "skills/paper-radar/SKILL.md": "sha256:344ee0a31924a4d02eee2044441750b0cdb7e22e10a6e8bccb2512a16c94a79f"
   }
 }

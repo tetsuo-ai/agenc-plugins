@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# zdh-triage.sh — dedup and cluster sanitizer crashes by (signal, top frame).
+# zdh-triage.sh - dedup and cluster sanitizer crashes by (signal, top frame).
 #
 # Usage: zdh-triage.sh <crash-dir>
 #
@@ -37,4 +37,4 @@ sort "$tmp" | awk -F'\t' '{ key=$1"\t"$2; cnt[key]++; ex[key]=ex[key]==""?$3:ex[
   | sort -rn | column -t -s $'\t'
 
 echo "---"
-echo "next: for each cluster answer — bug in the harness, or bug in the project? — then zdh-init a hypothesis record."
+echo "next: for each cluster answer - bug in the harness, or bug in the project? - then zdh-init a hypothesis record."

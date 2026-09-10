@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# zdh-init.sh — scaffold a zeroday-hunter campaign state directory.
+# zdh-init.sh - scaffold a zeroday-hunter campaign state directory.
 #
 # Usage: zdh-init.sh <repo> <bug-class> [max-cost-usd]
 #
@@ -46,7 +46,7 @@ started: "$(date -Iseconds)"
 EOF
 
 cat > "$DIR/logs/bad-attempts.md" <<'EOF'
-# Bad attempts & FP kills — read before every action, never repeat these.
+# Bad attempts & FP kills - read before every action, never repeat these.
 
 | ts | gate | attempt/pattern | why it failed |
 | --- | --- | --- | --- |

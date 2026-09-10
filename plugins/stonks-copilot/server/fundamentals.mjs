@@ -2,7 +2,7 @@
  * Fundamental analysis over SEC EDGAR XBRL company facts. Extracts annual
  * (10-K) series for a resilient set of US-GAAP tags, derives ratios and
  * growth, and produces a scored snapshot comparable to the technical one.
- * Pure — the network fetch lives in edgar.mjs.
+ * Pure - the network fetch lives in edgar.mjs.
  */
 
 const REVENUE_TAGS = [

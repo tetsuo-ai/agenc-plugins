@@ -3,20 +3,20 @@
     "id": "olimpo-nt-001",
     "topic": "number-theory",
     "difficulty": "easy",
-    "title": "Dos expresiones, un divisor",
+    "title": "Two expressions, one divisor",
     "tags": [
-      "euclides",
+      "euclid",
       "bezout"
     ],
-    "statement": "Sea n un entero positivo. Calcula el máximo común divisor de 13n + 5 y 8n + 3, y demuestra que tu respuesta vale para cualquier n.",
+    "statement": "Let n be a positive integer. Find the greatest common divisor of 13n + 5 and 8n + 3, and prove that your answer holds for every n.",
     "answer": "1",
-    "keyIdea": "Busca una combinación entera de las dos expresiones que sea constante.",
+    "keyIdea": "Find an integer combination of the two expressions that is constant.",
     "hints": [
-      "Multiplica la primera expresión por 8 y la segunda por 13.",
-      "Resta los dos resultados. ¿Qué debe dividir cualquier divisor común?"
+      "Multiply the first expression by 8 and the second by 13.",
+      "Subtract the two results. What must every common divisor divide?"
     ],
     "solutionType": "full",
-    "solution": "Sea d un divisor común positivo. Entonces d divide 8(13n + 5) − 13(8n + 3) = 1. Por tanto d = 1. Como 1 divide ambos números, su máximo común divisor es 1 para todo entero positivo n.",
+    "solution": "Let d be a positive common divisor. Then d divides 8(13n + 5) − 13(8n + 3) = 1, so d = 1. Since 1 divides both numbers, their greatest common divisor is 1 for every positive integer n.",
     "provenance": {
       "kind": "original",
       "author": "tetsuo-ai",
@@ -24,26 +24,26 @@
       "review": "derivation-and-deterministic-checks",
       "check": "olimpo-nt-001"
     },
-    "sourceNote": "Ejercicio y explicación redactados para Olimpo (2026). Matemática estándar; no es un problema oficial IMO. Revisión mediante derivación y pruebas deterministas; no certificación formal ni revisión humana independiente."
+    "sourceNote": "Exercise and explanation written for Olympus (2026). Standard mathematics, not an official IMO problem. Reviewed through derivation and deterministic tests; no formal certification or independent human review."
   },
   {
     "id": "olimpo-nt-002",
     "topic": "number-theory",
     "difficulty": "easy",
-    "title": "Una potencia larga, un ciclo corto",
+    "title": "A large power, a short cycle",
     "tags": [
-      "congruencias",
-      "periodicidad"
+      "congruences",
+      "periodicity"
     ],
-    "statement": "Sin desarrollar la potencia completa, encuentra el resto de dividir 3^2026 entre 7. Justifica la reducción del exponente.",
+    "statement": "Without expanding the full power, find the remainder when 3^2026 is divided by 7. Justify reducing the exponent.",
     "answer": "4",
-    "keyIdea": "Las potencias de 3 módulo 7 vuelven a 1 después de seis pasos.",
+    "keyIdea": "The powers of 3 modulo 7 return to 1 after six steps.",
     "hints": [
-      "Calcula los restos de las seis primeras potencias de 3.",
-      "Escribe 2026 como 6q + r y usa que 3^6 deja resto 1."
+      "Compute the remainders of the first six powers of 3.",
+      "Write 2026 as 6q + r and use the fact that 3^6 has remainder 1."
     ],
     "solutionType": "full",
-    "solution": "Los restos de 3^1, 3^2, …, 3^6 módulo 7 son 3, 2, 6, 4, 5, 1. Como 2026 = 6·337 + 4, tenemos 3^2026 = (3^6)^337·3^4 ≡ 1^337·4 ≡ 4 (mod 7). El resto pedido es 4.",
+    "solution": "The remainders of 3^1, 3^2, …, 3^6 modulo 7 are 3, 2, 6, 4, 5, 1. Since 2026 = 6·337 + 4, we have 3^2026 = (3^6)^337·3^4 ≡ 1^337·4 ≡ 4 (mod 7). The required remainder is 4.",
     "provenance": {
       "kind": "original",
       "author": "tetsuo-ai",
@@ -51,26 +51,26 @@
       "review": "derivation-and-deterministic-checks",
       "check": "olimpo-nt-002"
     },
-    "sourceNote": "Ejercicio y explicación redactados para Olimpo (2026). Matemática estándar; no es un problema oficial IMO. Revisión mediante derivación y pruebas deterministas; no certificación formal ni revisión humana independiente."
+    "sourceNote": "Exercise and explanation written for Olympus (2026). Standard mathematics, not an official IMO problem. Reviewed through derivation and deterministic tests; no formal certification or independent human review."
   },
   {
     "id": "olimpo-nt-003",
     "topic": "number-theory",
     "difficulty": "medium",
-    "title": "Fracciones que se encuentran",
+    "title": "Fractions that meet",
     "tags": [
-      "divisores",
-      "factorizacion"
+      "divisors",
+      "factorization"
     ],
-    "statement": "¿Cuántos pares ordenados (x, y) de enteros positivos satisfacen 1/x + 1/y = 1/6? Explica por qué no quedan pares fuera de tu cuenta.",
+    "statement": "How many ordered pairs (x, y) of positive integers satisfy 1/x + 1/y = 1/6? Explain why your count includes every pair.",
     "answer": "9",
-    "keyIdea": "Completa un producto después de eliminar denominadores.",
+    "keyIdea": "Complete a product after clearing the denominators.",
     "hints": [
-      "Multiplica la igualdad por 6xy.",
-      "Transforma xy − 6x − 6y = 0 en una igualdad para (x − 6)(y − 6)."
+      "Multiply the equation by 6xy.",
+      "Transform xy − 6x − 6y = 0 into an equation for (x − 6)(y − 6)."
     ],
     "solutionType": "full",
-    "solution": "Al multiplicar por 6xy obtenemos xy − 6x − 6y = 0, equivalente a (x − 6)(y − 6) = 36. Además 1/x < 1/6 y 1/y < 1/6, pues el otro sumando es positivo; así x, y > 6. Cada divisor positivo d de 36 da exactamente un par x = 6 + d, y = 6 + 36/d. Como 36 = 2^2·3^2 tiene (2 + 1)(2 + 1) = 9 divisores positivos, hay 9 pares ordenados. La transformación es reversible, así la cuenta es exhaustiva.",
+    "solution": "Multiplying by 6xy gives xy − 6x − 6y = 0, equivalent to (x − 6)(y − 6) = 36. Also 1/x < 1/6 and 1/y < 1/6 because the other term is positive, so x, y > 6. Each positive divisor d of 36 gives exactly one pair x = 6 + d, y = 6 + 36/d. Since 36 = 2^2·3^2 has (2 + 1)(2 + 1) = 9 positive divisors, there are 9 ordered pairs. The transformation is reversible, so the count is exhaustive.",
     "provenance": {
       "kind": "original",
       "author": "tetsuo-ai",
@@ -78,27 +78,27 @@
       "review": "derivation-and-deterministic-checks",
       "check": "olimpo-nt-003"
     },
-    "sourceNote": "Ejercicio y explicación redactados para Olimpo (2026). Matemática estándar; no es un problema oficial IMO. Revisión mediante derivación y pruebas deterministas; no certificación formal ni revisión humana independiente."
+    "sourceNote": "Exercise and explanation written for Olympus (2026). Standard mathematics, not an official IMO problem. Reviewed through derivation and deterministic tests; no formal certification or independent human review."
   },
   {
     "id": "olimpo-nt-004",
     "topic": "number-theory",
     "difficulty": "hard",
-    "title": "Un salto que no puede terminar",
+    "title": "A descent that cannot end",
     "tags": [
       "vieta-jumping",
-      "descenso-infinito"
+      "infinite-descent"
     ],
-    "statement": "Determina cuántos pares ordenados (x, y) de enteros positivos cumplen x^2 + y^2 = 3xy. Justifica tu respuesta mediante un descenso a otro par más pequeño.",
+    "statement": "Determine how many ordered pairs (x, y) of positive integers satisfy x^2 + y^2 = 3xy. Justify your answer by descending to a smaller pair.",
     "answer": "0",
-    "keyIdea": "La segunda raíz de una cuadrática entera produce el descenso.",
+    "keyIdea": "The second root of a quadratic with integer coefficients gives the descent.",
     "hints": [
-      "Supón que existe una solución con x + y mínimo y ordénala con x ≥ y.",
-      "La otra raíz de t^2 − 3yt + y^2 es x' = 3y − x. Usa xx' = y^2.",
-      "Evalúa la cuadrática en t = y para situar y entre sus raíces."
+      "Assume a solution with the smallest possible x + y exists, and order it so x ≥ y.",
+      "The other root of t^2 − 3yt + y^2 is x' = 3y − x. Use xx' = y^2.",
+      "Evaluate the quadratic at t = y to locate y between its roots."
     ],
     "solutionType": "full",
-    "solution": "Supongamos que existe una solución positiva y elijamos una con x + y mínimo; por simetría x ≥ y. La cuadrática F(t) = t^2 − 3yt + y^2 tiene raíces x y x' = 3y − x. Por Vieta, x' es entero y xx' = y^2 > 0, de modo que x' > 0. Como F(y) = −y^2 < 0 y la parábola abre hacia arriba, y está estrictamente entre las raíces. Dado x ≥ y, resulta 0 < x' < y < x. La pareja (x', y) también satisface la ecuación y tiene suma menor, contradicción. Por tanto no existe ningún par positivo: la cantidad es 0.",
+    "solution": "Suppose a positive solution exists and choose one with the smallest possible x + y; by symmetry, x ≥ y. The quadratic F(t) = t^2 − 3yt + y^2 has roots x and x' = 3y − x. By Vieta's formulas, x' is an integer and xx' = y^2 > 0, so x' > 0. Since F(y) = −y^2 < 0 and the parabola opens upward, y lies strictly between the roots. With x ≥ y, this gives 0 < x' < y < x. The pair (x', y) also satisfies the equation and has a smaller sum, a contradiction. Thus no positive pair exists: the count is 0.",
     "provenance": {
       "kind": "original",
       "author": "tetsuo-ai",
@@ -106,26 +106,26 @@
       "review": "derivation-and-deterministic-checks",
       "check": "olimpo-nt-004"
     },
-    "sourceNote": "Ejercicio y explicación redactados para Olimpo (2026). Matemática estándar; no es un problema oficial IMO. Revisión mediante derivación y pruebas deterministas; no certificación formal ni revisión humana independiente."
+    "sourceNote": "Exercise and explanation written for Olympus (2026). Standard mathematics, not an official IMO problem. Reviewed through derivation and deterministic tests; no formal certification or independent human review."
   },
   {
     "id": "olimpo-al-001",
     "topic": "algebra",
     "difficulty": "easy",
-    "title": "Tres números equilibrados",
+    "title": "Three balanced numbers",
     "tags": [
-      "suma-de-cuadrados",
-      "minimo"
+      "sum-of-squares",
+      "minimum"
     ],
-    "statement": "Tres números reales x, y, z suman 12. ¿Cuál es el menor valor posible de x^2 + y^2 + z^2? Indica también cuándo se alcanza.",
+    "statement": "Three real numbers x, y, z sum to 12. What is the smallest possible value of x^2 + y^2 + z^2? State when it is attained.",
     "answer": "48",
-    "keyIdea": "Resta el promedio a cada variable y suma cuadrados.",
+    "keyIdea": "Subtract the mean from each variable and add the squares.",
     "hints": [
-      "El promedio de las tres variables es 4.",
-      "Expande (x − 4)^2 + (y − 4)^2 + (z − 4)^2."
+      "The mean of the three variables is 4.",
+      "Expand (x − 4)^2 + (y − 4)^2 + (z − 4)^2."
     ],
     "solutionType": "full",
-    "solution": "La suma (x − 4)^2 + (y − 4)^2 + (z − 4)^2 es no negativa. Al expandir y usar x + y + z = 12 resulta x^2 + y^2 + z^2 − 48 ≥ 0. El valor 48 se alcanza con x = y = z = 4; además esa es la única igualdad, pues los tres cuadrados deben ser cero.",
+    "solution": "The sum (x − 4)^2 + (y − 4)^2 + (z − 4)^2 is nonnegative. Expanding and using x + y + z = 12 gives x^2 + y^2 + z^2 − 48 ≥ 0. The value 48 is attained when x = y = z = 4. This is the only equality case because all three squares must be zero.",
     "provenance": {
       "kind": "original",
       "author": "tetsuo-ai",
@@ -133,26 +133,26 @@
       "review": "derivation-and-deterministic-checks",
       "check": "olimpo-al-001"
     },
-    "sourceNote": "Ejercicio y explicación redactados para Olimpo (2026). Matemática estándar; no es un problema oficial IMO. Revisión mediante derivación y pruebas deterministas; no certificación formal ni revisión humana independiente."
+    "sourceNote": "Exercise and explanation written for Olympus (2026). Standard mathematics, not an official IMO problem. Reviewed through derivation and deterministic tests; no formal certification or independent human review."
   },
   {
     "id": "olimpo-al-002",
     "topic": "algebra",
     "difficulty": "medium",
-    "title": "Una recurrencia desplazada",
+    "title": "A shifted recurrence",
     "tags": [
-      "sucesiones",
-      "induccion"
+      "sequences",
+      "induction"
     ],
-    "statement": "Una sucesión cumple u_0 = 2 y u_(n+1) = 2u_n + 3 para todo entero n ≥ 0. Obtén una fórmula para u_n y demuéstrala para todos esos índices.",
+    "statement": "A sequence satisfies u_0 = 2 and u_(n+1) = 2u_n + 3 for every integer n ≥ 0. Find a formula for u_n and prove it for all such indices.",
     "answer": null,
-    "keyIdea": "Un desplazamiento constante convierte la recurrencia en geométrica.",
+    "keyIdea": "A constant shift turns the recurrence into a geometric sequence.",
     "hints": [
-      "Busca c tal que u_(n+1) + c = 2(u_n + c).",
-      "Con el valor de c obtenido, calcula el primer término de la sucesión desplazada."
+      "Find c such that u_(n+1) + c = 2(u_n + c).",
+      "Using that value of c, calculate the first term of the shifted sequence."
     ],
     "solutionType": "full",
-    "solution": "Definimos v_n = u_n + 3. Entonces v_(n+1) = 2u_n + 6 = 2v_n y v_0 = 5. Por inducción v_n = 5·2^n: vale en n = 0 y multiplicar por 2 da el siguiente caso. Por tanto u_n = 5·2^n − 3 para todo n ≥ 0. La fórmula también verifica directamente el valor inicial y la recurrencia.",
+    "solution": "Define v_n = u_n + 3. Then v_(n+1) = 2u_n + 6 = 2v_n and v_0 = 5. By induction, v_n = 5·2^n: it holds for n = 0, and multiplying by 2 gives the next case. Therefore u_n = 5·2^n − 3 for every n ≥ 0. The formula also directly satisfies the initial value and the recurrence.",
     "provenance": {
       "kind": "original",
       "author": "tetsuo-ai",
@@ -160,26 +160,26 @@
       "review": "derivation-and-deterministic-checks",
       "check": "olimpo-al-002"
     },
-    "sourceNote": "Ejercicio y explicación redactados para Olimpo (2026). Matemática estándar; no es un problema oficial IMO. Revisión mediante derivación y pruebas deterministas; no certificación formal ni revisión humana independiente."
+    "sourceNote": "Exercise and explanation written for Olympus (2026). Standard mathematics, not an official IMO problem. Reviewed through derivation and deterministic tests; no formal certification or independent human review."
   },
   {
     "id": "olimpo-al-003",
     "topic": "algebra",
     "difficulty": "medium",
-    "title": "Tres pistas para un polinomio",
+    "title": "Three clues for a polynomial",
     "tags": [
-      "polinomios",
-      "interpolacion"
+      "polynomials",
+      "interpolation"
     ],
-    "statement": "Un polinomio real P tiene grado a lo sumo 2 y cumple P(0) = 1, P(1) = 3 y P(2) = 7. Calcula P(5) y explica por qué los datos lo determinan de manera única.",
+    "statement": "A real polynomial P has degree at most 2 and satisfies P(0) = 1, P(1) = 3, and P(2) = 7. Calculate P(5) and explain why the data determine it uniquely.",
     "answer": "31",
-    "keyIdea": "Escribe los tres coeficientes y resuelve las ecuaciones.",
+    "keyIdea": "Write down the three coefficients and solve the equations.",
     "hints": [
-      "Pon P(t) = at^2 + bt + c.",
-      "La diferencia entre los valores consecutivos permite aislar a."
+      "Set P(t) = at^2 + bt + c.",
+      "Differences between consecutive values help isolate a."
     ],
     "solutionType": "full",
-    "solution": "Escribimos P(t) = at^2 + bt + c. De P(0) = 1 sale c = 1. Las otras condiciones dan a + b = 2 y 4a + 2b = 6. Restando dos veces la primera de la segunda, 2a = 2: a = 1 y b = 1. Por tanto P(t) = t^2 + t + 1 y P(5) = 31. El sistema fuerza los tres coeficientes, por lo que no hay otro polinomio de grado a lo sumo 2 que cumpla los datos.",
+    "solution": "Write P(t) = at^2 + bt + c. From P(0) = 1, we get c = 1. The other conditions give a + b = 2 and 4a + 2b = 6. Subtracting twice the first equation from the second gives 2a = 2, so a = 1 and b = 1. Hence P(t) = t^2 + t + 1 and P(5) = 31. The system determines all three coefficients, so no other polynomial of degree at most 2 satisfies the data.",
     "provenance": {
       "kind": "original",
       "author": "tetsuo-ai",
@@ -187,26 +187,26 @@
       "review": "derivation-and-deterministic-checks",
       "check": "olimpo-al-003"
     },
-    "sourceNote": "Ejercicio y explicación redactados para Olimpo (2026). Matemática estándar; no es un problema oficial IMO. Revisión mediante derivación y pruebas deterministas; no certificación formal ni revisión humana independiente."
+    "sourceNote": "Exercise and explanation written for Olympus (2026). Standard mathematics, not an official IMO problem. Reviewed through derivation and deterministic tests; no formal certification or independent human review."
   },
   {
     "id": "olimpo-al-004",
     "topic": "algebra",
     "difficulty": "hard",
-    "title": "Del producto a la suma",
+    "title": "From product to sum",
     "tags": [
       "am-gm",
-      "desigualdades"
+      "inequalities"
     ],
-    "statement": "Sean a, b, c números reales positivos cuyo producto es 1. Demuestra que a^2 + b^2 + c^2 ≥ a + b + c y determina todos los casos de igualdad.",
+    "statement": "Let a, b, c be positive real numbers with product 1. Prove that a^2 + b^2 + c^2 ≥ a + b + c and determine every equality case.",
     "answer": null,
-    "keyIdea": "Combina una cota para la suma con otra para la suma de cuadrados.",
+    "keyIdea": "Combine a bound on the sum with a bound on the sum of squares.",
     "hints": [
-      "AM–GM da a + b + c ≥ 3.",
-      "Usa (a − b)^2 + (b − c)^2 + (c − a)^2 ≥ 0 para comparar 3(a^2 + b^2 + c^2) con (a + b + c)^2."
+      "AM–GM gives a + b + c ≥ 3.",
+      "Use (a − b)^2 + (b − c)^2 + (c − a)^2 ≥ 0 to compare 3(a^2 + b^2 + c^2) with (a + b + c)^2."
     ],
     "solutionType": "full",
-    "solution": "Sea S = a + b + c y Q = a^2 + b^2 + c^2. Por AM–GM, S ≥ 3(abc)^(1/3) = 3. Además 3Q − S^2 = (a − b)^2 + (b − c)^2 + (c − a)^2 ≥ 0. Así Q ≥ S^2/3 ≥ S, pues S ≥ 3. Si Q = S, ambas desigualdades son igualdades: a = b = c y abc = 1 fuerzan a = b = c = 1. Estos valores sí dan igualdad.",
+    "solution": "Let S = a + b + c and Q = a^2 + b^2 + c^2. By AM–GM, S ≥ 3(abc)^(1/3) = 3. Also 3Q − S^2 = (a − b)^2 + (b − c)^2 + (c − a)^2 ≥ 0. Thus Q ≥ S^2/3 ≥ S because S ≥ 3. If Q = S, both inequalities are equalities: a = b = c and abc = 1 force a = b = c = 1. These values do give equality.",
     "provenance": {
       "kind": "original",
       "author": "tetsuo-ai",
@@ -214,26 +214,26 @@
       "review": "derivation-and-deterministic-checks",
       "check": "olimpo-al-004"
     },
-    "sourceNote": "Ejercicio y explicación redactados para Olimpo (2026). Matemática estándar; no es un problema oficial IMO. Revisión mediante derivación y pruebas deterministas; no certificación formal ni revisión humana independiente."
+    "sourceNote": "Exercise and explanation written for Olympus (2026). Standard mathematics, not an official IMO problem. Reviewed through derivation and deterministic tests; no formal certification or independent human review."
   },
   {
     "id": "olimpo-ge-001",
     "topic": "geometry",
     "difficulty": "easy",
-    "title": "Un círculo dentro del triángulo",
+    "title": "A circle inside a triangle",
     "tags": [
-      "pitagoras",
-      "incirculo"
+      "pythagoras",
+      "incircle"
     ],
-    "statement": "Un triángulo rectángulo tiene catetos de longitudes 9 y 12. Calcula el radio de su círculo inscrito y justifica la relación geométrica que utilices.",
+    "statement": "A right triangle has legs of lengths 9 and 12. Find the radius of its incircle and justify the geometric relationship you use.",
     "answer": "3",
-    "keyIdea": "El área es el inradio multiplicado por el semiperímetro.",
+    "keyIdea": "The area equals the inradius multiplied by the semiperimeter.",
     "hints": [
-      "Calcula la hipotenusa usando Pitágoras.",
-      "Une el incentro con los tres vértices; las tres alturas hacia los lados son el inradio."
+      "Calculate the hypotenuse using the Pythagorean theorem.",
+      "Join the incenter to all three vertices. The three altitudes to the sides equal the inradius."
     ],
     "solutionType": "full",
-    "solution": "La hipotenusa mide √(9^2 + 12^2) = 15. El área es 9·12/2 = 54 y el semiperímetro es (9 + 12 + 15)/2 = 18. Si I es el incentro y r el inradio, los triángulos con vértice I y bases en los tres lados suman área r(9 + 12 + 15)/2 = 18r. Así 18r = 54 y r = 3.",
+    "solution": "The hypotenuse is √(9^2 + 12^2) = 15. The area is 9·12/2 = 54 and the semiperimeter is (9 + 12 + 15)/2 = 18. If I is the incenter and r the inradius, the three triangles with vertex I and bases on the sides have total area r(9 + 12 + 15)/2 = 18r. Hence 18r = 54 and r = 3.",
     "provenance": {
       "kind": "original",
       "author": "tetsuo-ai",
@@ -241,26 +241,26 @@
       "review": "derivation-and-deterministic-checks",
       "check": "olimpo-ge-001"
     },
-    "sourceNote": "Ejercicio y explicación redactados para Olimpo (2026). Matemática estándar; no es un problema oficial IMO. Revisión mediante derivación y pruebas deterministas; no certificación formal ni revisión humana independiente."
+    "sourceNote": "Exercise and explanation written for Olympus (2026). Standard mathematics, not an official IMO problem. Reviewed through derivation and deterministic tests; no formal certification or independent human review."
   },
   {
     "id": "olimpo-ge-002",
     "topic": "geometry",
     "difficulty": "medium",
-    "title": "El punto de encuentro de dos medianas",
+    "title": "Where two medians meet",
     "tags": [
-      "vectores",
-      "baricentro"
+      "vectors",
+      "centroid"
     ],
-    "statement": "En un triángulo no degenerado ABC, M es el punto medio de BC y N el punto medio de AC. Demuestra que las medianas AM y BN se cortan en un punto G que cumple AG = 2GM.",
+    "statement": "In a nondegenerate triangle ABC, M is the midpoint of BC and N is the midpoint of AC. Prove that the medians AM and BN meet at a point G satisfying AG = 2GM.",
     "answer": null,
-    "keyIdea": "Escribe los puntos medios y un candidato a G como promedios vectoriales.",
+    "keyIdea": "Express the midpoints and a candidate for G as vector averages.",
     "hints": [
-      "Los vectores de M y N son (B + C)/2 y (A + C)/2.",
-      "Prueba que G = (A + B + C)/3 está en ambas medianas."
+      "The position vectors of M and N are (B + C)/2 and (A + C)/2.",
+      "Show that G = (A + B + C)/3 lies on both medians."
     ],
     "solutionType": "full",
-    "solution": "Usamos vectores de posición. Sea G = (A + B + C)/3. Como M = (B + C)/2, se cumple G = A + (2/3)(M − A); por tanto G está en AM, a dos tercios del recorrido desde A. También N = (A + C)/2 y G = B + (2/3)(N − B), así G pertenece a BN. En un triángulo no degenerado las dos medianas no son la misma recta, por lo que su punto común es único. De las fracciones 2/3 y 1/3 sobre AM se obtiene AG = 2GM.",
+    "solution": "Use position vectors and set G = (A + B + C)/3. Since M = (B + C)/2, we have G = A + (2/3)(M − A). Thus G lies on AM, two-thirds of the way from A. Similarly, N = (A + C)/2 and G = B + (2/3)(N − B), so G also lies on BN. In a nondegenerate triangle the medians are distinct lines, so their common point is unique. The fractions 2/3 and 1/3 along AM give AG = 2GM.",
     "provenance": {
       "kind": "original",
       "author": "tetsuo-ai",
@@ -268,26 +268,26 @@
       "review": "derivation-and-deterministic-checks",
       "check": "olimpo-ge-002"
     },
-    "sourceNote": "Ejercicio y explicación redactados para Olimpo (2026). Matemática estándar; no es un problema oficial IMO. Revisión mediante derivación y pruebas deterministas; no certificación formal ni revisión humana independiente."
+    "sourceNote": "Exercise and explanation written for Olympus (2026). Standard mathematics, not an official IMO problem. Reviewed through derivation and deterministic tests; no formal certification or independent human review."
   },
   {
     "id": "olimpo-ge-003",
     "topic": "geometry",
     "difficulty": "medium",
-    "title": "El rectángulo de perímetro fijo",
+    "title": "A rectangle with fixed perimeter",
     "tags": [
       "area",
-      "optimizacion"
+      "optimization"
     ],
-    "statement": "Un rectángulo tiene perímetro 30 y lados de longitud positiva. ¿Cuál es su área máxima? Da el resultado decimal exacto y describe el rectángulo que la alcanza.",
+    "statement": "A rectangle has perimeter 30 and positive side lengths. What is its maximum area? Give the exact decimal value and describe the rectangle that attains it.",
     "answer": "56.25",
-    "keyIdea": "El área es una cuadrática que puede escribirse como constante menos un cuadrado.",
+    "keyIdea": "The area is a quadratic that can be written as a constant minus a square.",
     "hints": [
-      "Si un lado mide t, el otro mide 15 − t.",
-      "Completa el cuadrado en t(15 − t)."
+      "If one side has length t, the other has length 15 − t.",
+      "Complete the square in t(15 − t)."
     ],
     "solutionType": "full",
-    "solution": "Sean t y 15 − t los lados, con 0 < t < 15. El área es A = t(15 − t) = 225/4 − (t − 15/2)^2. El cuadrado es no negativo, de modo que A ≤ 225/4 = 56.25. La igualdad se da exactamente cuando ambos lados miden 7.5, es decir, cuando el rectángulo es un cuadrado.",
+    "solution": "Let the sides be t and 15 − t, where 0 < t < 15. The area is A = t(15 − t) = 225/4 − (t − 15/2)^2. The square is nonnegative, so A ≤ 225/4 = 56.25. Equality holds exactly when both sides are 7.5, meaning the rectangle is a square.",
     "provenance": {
       "kind": "original",
       "author": "tetsuo-ai",
@@ -295,26 +295,26 @@
       "review": "derivation-and-deterministic-checks",
       "check": "olimpo-ge-003"
     },
-    "sourceNote": "Ejercicio y explicación redactados para Olimpo (2026). Matemática estándar; no es un problema oficial IMO. Revisión mediante derivación y pruebas deterministas; no certificación formal ni revisión humana independiente."
+    "sourceNote": "Exercise and explanation written for Olympus (2026). Standard mathematics, not an official IMO problem. Reviewed through derivation and deterministic tests; no formal certification or independent human review."
   },
   {
     "id": "olimpo-ge-004",
     "topic": "geometry",
     "difficulty": "hard",
-    "title": "Dos círculos tras una altura",
+    "title": "Two circles after an altitude",
     "tags": [
-      "semejanza",
-      "incirculo"
+      "similarity",
+      "incircle"
     ],
-    "statement": "En el triángulo ABC el ángulo A es recto, AB = 8 y AC = 6. La altura desde A corta BC en H. Calcula la suma de los inradios de los triángulos ABH y ACH; expresa la respuesta como decimal exacto.",
+    "statement": "In triangle ABC, angle A is right, AB = 8, and AC = 6. The altitude from A meets BC at H. Find the sum of the inradii of triangles ABH and ACH, expressed as an exact decimal.",
     "answer": "2.8",
-    "keyIdea": "Los dos triángulos pequeños son semejantes al grande y los inradios escalan como las longitudes.",
+    "keyIdea": "Both smaller triangles are similar to the original, and inradii scale like lengths.",
     "hints": [
-      "BC mide 10 y el inradio del triángulo grande es (8 + 6 − 10)/2.",
-      "Las hipotenusas de ABH y ACH miden 8 y 6: compara cada una con la hipotenusa del triángulo grande."
+      "BC is 10 and the original triangle has inradius (8 + 6 − 10)/2.",
+      "The hypotenuses of ABH and ACH are 8 and 6. Compare each with the hypotenuse of the original triangle."
     ],
     "solutionType": "full",
-    "solution": "Por Pitágoras BC = 10. El triángulo grande tiene área 24 y semiperímetro 12, luego inradio r = 2. Los triángulos ABH y ACH son semejantes a ABC: comparten un ángulo agudo con él y tienen un ángulo recto en H. Sus hipotenusas son AB = 8 y AC = 6, frente a BC = 10 en ABC; las razones de semejanza son 8/10 y 6/10. Una semejanza multiplica el inradio por su razón. Por tanto los inradios son 1.6 y 1.2 y su suma es 2.8.",
+    "solution": "By the Pythagorean theorem, BC = 10. The original triangle has area 24 and semiperimeter 12, so its inradius is r = 2. Triangles ABH and ACH are similar to ABC: each shares an acute angle with it and has a right angle at H. Their hypotenuses are AB = 8 and AC = 6, compared with BC = 10 in ABC, giving similarity ratios 8/10 and 6/10. A similarity multiplies the inradius by its ratio. Thus the two inradii are 1.6 and 1.2, and their sum is 2.8.",
     "provenance": {
       "kind": "original",
       "author": "tetsuo-ai",
@@ -322,26 +322,26 @@
       "review": "derivation-and-deterministic-checks",
       "check": "olimpo-ge-004"
     },
-    "sourceNote": "Ejercicio y explicación redactados para Olimpo (2026). Matemática estándar; no es un problema oficial IMO. Revisión mediante derivación y pruebas deterministas; no certificación formal ni revisión humana independiente."
+    "sourceNote": "Exercise and explanation written for Olympus (2026). Standard mathematics, not an official IMO problem. Reviewed through derivation and deterministic tests; no formal certification or independent human review."
   },
   {
     "id": "olimpo-co-001",
     "topic": "combinatorics",
     "difficulty": "easy",
-    "title": "Luces separadas",
+    "title": "Separated lights",
     "tags": [
-      "conteo",
-      "combinaciones"
+      "counting",
+      "combinations"
     ],
-    "statement": "Una fila tiene ocho luces, cada una encendida o apagada. ¿Cuántas configuraciones tienen exactamente tres luces encendidas si ninguna pareja de luces encendidas es consecutiva?",
+    "statement": "A row has eight lights, each either on or off. How many configurations have exactly three lights on, with no two lit lights consecutive?",
     "answer": "20",
-    "keyIdea": "Comprime los huecos obligatorios entre las tres posiciones elegidas.",
+    "keyIdea": "Compress the mandatory gaps between the three selected positions.",
     "hints": [
-      "Nombra p_1 < p_2 < p_3 las posiciones encendidas.",
+      "Call the lit positions p_1 < p_2 < p_3.",
       "Define q_1 = p_1, q_2 = p_2 − 1, q_3 = p_3 − 2."
     ],
     "solutionType": "full",
-    "solution": "La separación exige p_2 ≥ p_1 + 2 y p_3 ≥ p_2 + 2. Al definir q_i = p_i − (i − 1) obtenemos 1 ≤ q_1 < q_2 < q_3 ≤ 6. Recíprocamente, cualquier elección de tres posiciones distintas entre 1 y 6 recupera p_i = q_i + (i − 1), con los huecos requeridos y p_3 ≤ 8. Es una biyección; por tanto hay C(6, 3) = 20 configuraciones.",
+    "solution": "The separation condition requires p_2 ≥ p_1 + 2 and p_3 ≥ p_2 + 2. Defining q_i = p_i − (i − 1) gives 1 ≤ q_1 < q_2 < q_3 ≤ 6. Conversely, choosing any three distinct positions from 1 to 6 recovers p_i = q_i + (i − 1), with the required gaps and p_3 ≤ 8. This is a bijection, so there are C(6, 3) = 20 configurations.",
     "provenance": {
       "kind": "original",
       "author": "tetsuo-ai",
@@ -349,26 +349,26 @@
       "review": "derivation-and-deterministic-checks",
       "check": "olimpo-co-001"
     },
-    "sourceNote": "Ejercicio y explicación redactados para Olimpo (2026). Matemática estándar; no es un problema oficial IMO. Revisión mediante derivación y pruebas deterministas; no certificación formal ni revisión humana independiente."
+    "sourceNote": "Exercise and explanation written for Olympus (2026). Standard mathematics, not an official IMO problem. Reviewed through derivation and deterministic tests; no formal certification or independent human review."
   },
   {
     "id": "olimpo-co-002",
     "topic": "combinatorics",
     "difficulty": "medium",
-    "title": "La intersección cerrada",
+    "title": "The closed intersection",
     "tags": [
-      "caminos",
-      "conteo"
+      "paths",
+      "counting"
     ],
-    "statement": "En una cuadrícula solo puedes dar pasos de una unidad hacia la derecha o hacia arriba. ¿Cuántos caminos van de (0, 0) a (5, 4) sin pasar por (2, 2)?",
+    "statement": "On a grid, you may move one unit right or one unit up at each step. How many paths go from (0, 0) to (5, 4) without passing through (2, 2)?",
     "answer": "66",
-    "keyIdea": "Cuenta todos los caminos y resta los que atraviesan el punto prohibido.",
+    "keyIdea": "Count all paths and subtract those through the forbidden point.",
     "hints": [
-      "Todo camino completo contiene cinco pasos a la derecha y cuatro hacia arriba.",
-      "Un camino que pasa por (2, 2) se divide de manera única en dos tramos."
+      "Every complete path has five right steps and four up steps.",
+      "A path through (2, 2) splits uniquely into two parts."
     ],
     "solutionType": "full",
-    "solution": "Hay C(9, 4) = 126 caminos en total. Para llegar de (0, 0) a (2, 2) hay C(4, 2) = 6 opciones. Desde (2, 2) hasta (5, 4) hacen falta tres pasos a la derecha y dos arriba, con C(5, 2) = 10 opciones. La descomposición por el punto es única, así 6·10 = 60 caminos pasan por él. Los restantes son 126 − 60 = 66.",
+    "solution": "There are C(9, 4) = 126 paths in total. From (0, 0) to (2, 2), there are C(4, 2) = 6 choices. From (2, 2) to (5, 4), three right steps and two up steps give C(5, 2) = 10 choices. Splitting at the point is unique, so 6·10 = 60 paths pass through it. The remaining count is 126 − 60 = 66.",
     "provenance": {
       "kind": "original",
       "author": "tetsuo-ai",
@@ -376,26 +376,26 @@
       "review": "derivation-and-deterministic-checks",
       "check": "olimpo-co-002"
     },
-    "sourceNote": "Ejercicio y explicación redactados para Olimpo (2026). Matemática estándar; no es un problema oficial IMO. Revisión mediante derivación y pruebas deterministas; no certificación formal ni revisión humana independiente."
+    "sourceNote": "Exercise and explanation written for Olympus (2026). Standard mathematics, not an official IMO problem. Reviewed through derivation and deterministic tests; no formal certification or independent human review."
   },
   {
     "id": "olimpo-co-003",
     "topic": "combinatorics",
     "difficulty": "hard",
-    "title": "Una selección con divisibilidad",
+    "title": "A selection with divisibility",
     "tags": [
       "pigeonhole",
-      "potencias-de-dos"
+      "powers-of-two"
     ],
-    "statement": "Encuentra el menor entero k tal que toda selección de k números distintos de {1, 2, …, 10} contiene dos números, uno divisor del otro. Demuestra tanto que k basta como que k − 1 no basta.",
+    "statement": "Find the smallest integer k such that every selection of k distinct numbers from {1, 2, …, 10} contains two numbers with one dividing the other. Prove both that k suffices and that k − 1 does not.",
     "answer": "6",
-    "keyIdea": "Agrupa cada número según su parte impar.",
+    "keyIdea": "Group each number by its odd part.",
     "hints": [
-      "Escribe cada número como 2^a·u con u impar.",
-      "Las posibles partes impares son 1, 3, 5, 7 y 9. Para la cota inferior considera los cinco números más grandes del conjunto."
+      "Write each number as 2^a·u with u odd.",
+      "The possible odd parts are 1, 3, 5, 7, and 9. For the lower bound, consider the five largest numbers in the set."
     ],
     "solutionType": "full",
-    "solution": "Cada entero de 1 a 10 se escribe de forma única como 2^a·u, donde u es uno de 1, 3, 5, 7, 9. Al elegir seis números, dos comparten la misma parte impar por el principio del palomar. Sus exponentes de 2 son distintos, así el de exponente menor divide al otro. Por tanto seis bastan. En cambio {6, 7, 8, 9, 10} no contiene tal pareja: el menor múltiplo de cada uno, distinto de sí mismo, es mayor que 10. Cinco no bastan y el mínimo es k = 6.",
+    "solution": "Every integer from 1 to 10 has a unique representation 2^a·u, where u is one of 1, 3, 5, 7, 9. Among six chosen numbers, two share an odd part by the pigeonhole principle. Their powers of 2 are different, so the number with the smaller exponent divides the other. Thus six suffice. In contrast, {6, 7, 8, 9, 10} has no such pair: the smallest positive multiple of each number other than itself exceeds 10. Five do not suffice, and the minimum is k = 6.",
     "provenance": {
       "kind": "original",
       "author": "tetsuo-ai",
@@ -403,27 +403,27 @@
       "review": "derivation-and-deterministic-checks",
       "check": "olimpo-co-003"
     },
-    "sourceNote": "Ejercicio y explicación redactados para Olimpo (2026). Matemática estándar; no es un problema oficial IMO. Revisión mediante derivación y pruebas deterministas; no certificación formal ni revisión humana independiente."
+    "sourceNote": "Exercise and explanation written for Olympus (2026). Standard mathematics, not an official IMO problem. Reviewed through derivation and deterministic tests; no formal certification or independent human review."
   },
   {
     "id": "olimpo-co-004",
     "topic": "combinatorics",
     "difficulty": "hard",
-    "title": "Canales de dos colores",
+    "title": "Links in two colors",
     "tags": [
       "pigeonhole",
-      "grafos",
+      "graphs",
       "ramsey"
     ],
-    "statement": "Seis estaciones están conectadas entre sí: cada pareja tiene exactamente un enlace, rojo o azul. Demuestra que existen tres estaciones cuyos tres enlaces mutuos tienen el mismo color.",
+    "statement": "Six stations are connected to one another: every pair has exactly one link, either red or blue. Prove that three stations have all three of their mutual links in the same color.",
     "answer": null,
-    "keyIdea": "Fija una estación y mira el color más repetido de sus cinco enlaces.",
+    "keyIdea": "Fix one station and examine the most common color among its five links.",
     "hints": [
-      "Entre cinco enlaces de dos colores, al menos tres comparten color.",
-      "Examina los enlaces entre las otras tres estaciones que acabas de elegir."
+      "Among five links in two colors, at least three share a color.",
+      "Examine the links among the other three stations you just selected."
     ],
     "solutionType": "full",
-    "solution": "Fijamos una estación A. Entre sus cinco enlaces al menos tres tienen un mismo color; supongamos que son rojos y que llegan a B, C, D. Si alguno de BC, BD, CD es rojo, ese enlace y los dos enlaces correspondientes desde A forman un triángulo rojo. Si ninguno es rojo, los tres son azules y B, C, D forman un triángulo azul. Si el color repetido desde A fuese azul, el argumento es idéntico intercambiando colores. En todos los casos existe el triángulo requerido.",
+    "solution": "Fix a station A. At least three of its five links share a color; suppose they are red and lead to B, C, D. If any of BC, BD, CD is red, that link and the two corresponding links from A form a red triangle. Otherwise all three are blue, so B, C, D form a blue triangle. If the repeated color from A is blue, the same argument works with the colors exchanged. In every case, the required triangle exists.",
     "provenance": {
       "kind": "original",
       "author": "tetsuo-ai",
@@ -431,6 +431,6 @@
       "review": "derivation-and-deterministic-checks",
       "check": "olimpo-co-004"
     },
-    "sourceNote": "Ejercicio y explicación redactados para Olimpo (2026). Matemática estándar; no es un problema oficial IMO. Revisión mediante derivación y pruebas deterministas; no certificación formal ni revisión humana independiente."
+    "sourceNote": "Exercise and explanation written for Olympus (2026). Standard mathematics, not an official IMO problem. Reviewed through derivation and deterministic tests; no formal certification or independent human review."
   }
 ]

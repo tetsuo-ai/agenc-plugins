@@ -1,31 +1,25 @@
 ---
 name: email-profesional
-description: Email de trabajo que se lee y se responde — pedidos, seguimientos, anuncios internos. Asunto accionable, saludo corto, cuerpo escaneable, cierre con la acción.
+description: An actionable work email with a specific subject, short greeting, scannable body, and a clear owner and deadline for the next step.
 ---
 
-# Forma: email profesional
+# Form: professional email
 
-Escribes un email que alguien procesará entre otros cincuenta.
+Write an email that can be understood among dozens of others.
 
-## Estructura
+## Structure
 
-1. **Asunto** accionable y específico: "Aprobación pendiente: presupuesto
-   Q4 (vence el 12/09)" — nunca "Duda" ni "Consulta".
-2. Saludo corto: "Hola, [nombre] —" o "Equipo:".
-3. Primera línea: la decisión o el pedido. Sin preámbulo de contexto.
-4. Cuerpo escaneable: párrafos de ≤ 3 oraciones o viñetas para lo
-   paralelo.
-5. Cierre con la acción explícita: quién hace qué para cuándo.
-6. Despedida breve: "Gracias", "Un saludo".
+1. Use a specific, actionable subject, such as "Approval needed: Q4 budget
+   by September 12", not "Question".
+2. Add a brief greeting, such as "Hello, Alex,".
+3. Put the decision or request in the first line.
+4. Use paragraphs of at most three sentences, or bullets for parallel items.
+5. Close with who must do what and by when.
+6. Add a short sign-off, such as "Thanks".
 
-## Reglas
+## Rules
 
-- Un email, un tema; si aparecen dos, propón partir en dos.
-- Contexto mínimo suficiente: enlaza o adjunta en lugar de resumir
-  historia.
-- Cortés sin ceremonia; directo sin sequedad.
-- ≤ 200 palabras salvo que adjuntes detalle en documento.
-
-## Extensión
-
-80–200 palabras de cuerpo.
+- Keep one topic per email. Suggest splitting unrelated requests.
+- Include only enough context to act; link or attach supporting detail.
+- Be courteous without ceremony and direct without sounding abrupt.
+- Keep the body between 80 and 200 words. Put longer detail in an attachment.

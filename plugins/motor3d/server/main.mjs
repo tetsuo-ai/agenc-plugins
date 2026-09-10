@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * motor3d MCP server — verified scaffolds + deterministic verifier for
+ * motor3d MCP server - verified scaffolds + deterministic verifier for
  * browser 3D/games. Built for small local models: the scaffolds carry
  * the correct modern patterns (retrieval over recall), the API-era
  * table kills the classic hallucinations (THREE.Geometry, outputEncoding,
@@ -14,7 +14,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { lint3d, detectFramework } from "./lint3d.mjs";
 
 const PROTOCOL_VERSION = "2025-06-18";
-const SERVER_INFO = { name: "motor3d", version: "0.2.2" };
+const SERVER_INFO = { name: "motor3d", version: "0.2.3" };
 const SCAFFOLDS_DIR = join(dirname(fileURLToPath(import.meta.url)), "..", "scaffolds");
 
 const scaffoldCache = new Map();
@@ -42,13 +42,13 @@ const tools = [
           description: s.description,
           notes: s.notes,
         })),
-        hint: "NUNCA escribas three.js/WebGPU de memoria: tomá el scaffold más cercano y adaptá los TODO. Después lint3d.",
+        hint: "Never write three.js/WebGPU from memory. Retrieve the closest scaffold, adapt the TODO marks, then run lint3d.",
       });
     },
   },
   {
     name: "scaffold_get",
-    description: "One complete scaffold by name — full runnable HTML with the correct modern patterns. Adapt the TODO marks; do not rewrite from scratch.",
+    description: "One complete scaffold by name - full runnable HTML with the correct modern patterns. Adapt the TODO marks; do not rewrite from scratch.",
     inputSchema: {
       type: "object",
       properties: { name: { type: "string" } },
@@ -58,14 +58,14 @@ const tools = [
       const all = await scaffolds();
       const scaffold = all.get(String(name));
       if (scaffold === undefined) {
-        return text(`No scaffold '${name}'. Disponibles: ${[...all.keys()].join(", ")}`);
+        return text(`No scaffold '${name}'. Available: ${[...all.keys()].join(", ")}`);
       }
       return structured(scaffold);
     },
   },
   {
     name: "lint3d",
-    description: "Deterministic verifier for browser 3D/game code: API-era table (removed/renamed three.js APIs — the classic hallucinations), per-frame allocation detection, missing resize/dispose/pixel-ratio, DPR-blind canvas2d, unclamped delta, cached WebGPU textures, touch-action, audio-gesture, instancing advice. Violations with fixes; pass requires score ≥ 85 and no errors.",
+    description: "Deterministic verifier for browser 3D/game code: API-era table (removed/renamed three.js APIs - the classic hallucinations), per-frame allocation detection, missing resize/dispose/pixel-ratio, DPR-blind canvas2d, unclamped delta, cached WebGPU textures, touch-action, audio-gesture, instancing advice. Violations with fixes; pass requires score ≥ 85 and no errors.",
     inputSchema: {
       type: "object",
       properties: {

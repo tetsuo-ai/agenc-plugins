@@ -1,50 +1,40 @@
-# Pluma
+# Quill
 
-Writing styles with a deterministic verifier. Two halves that the
-ecosystem keeps separate — prompt-level style libraries and prose
-linters (Vale, write-good) — combined into one write → lint → fix loop
-inside the agent.
+Writing styles with a deterministic verifier. A style library and a prose
+linter share one write, lint, and revise loop inside the agent.
 
-## The library (AgenC output styles)
+## The library
 
-Ten curated styles, selectable session-wide with `/output-style`:
+Ten styles offer these English linter labels:
 
-- **Voices**: `formal` (usted, no contractions, measured courtesy),
-  `cercano` (warm human, tuteo, zero ceremony), `directo` (conclusion
-  first, ≤15-word sentences, no filler), `persuasivo` (benefit first,
-  proof for every claim, exactly one CTA), `tecnico` (impersonal,
-  quantified, no vague quantities, monospace for code).
-- **Forms** (structure + voice): `carta-formal` (protocol structure,
-  one request, 150–300 words), `email-profesional` (actionable subject,
-  scannable body, action close), `discurso` (hook, one idea force,
-  anaphora/triads, spoken-rhythm sentences), `propuesta` (six required
-  sections with numbers and next steps), `cover-letter` (named
-  greeting, measured achievements, proactive close, 150–350 words).
+- Voices: `formal` (measured courtesy), `warm` (natural and personable),
+  `concise` (conclusion first), `persuasive` (benefit, evidence, one action),
+  and `technical` (precise and quantified).
+- Forms: `formal-letter`, `professional-email`, `speech`, `proposal`,
+  and `cover-letter`. Each defines structure, register, length guidance,
+  and examples.
 
-Each file carries the craft: structure, rules, and before/after
-examples.
+The installation ID remains `pluma`. Saved output-style IDs and file paths
+are unchanged. Open `/output-style` and select the installed plugin style
+matching the `outputStyleName` returned by `styles_list`. Exact style IDs
+include an installation namespace. New linter requests can use the English labels above;
+legacy linter IDs remain accepted.
 
-## The verifier (pluma-lint MCP server)
+## The verifier
 
-The model writes; the linter judges — deterministically, in Spanish and
-English: fillers and weasel phrases, slang, hedges, vague quantifiers,
-English contractions, exclamations/emoji by register, first-person
-opinion in technical prose, decorative intensifiers, passive-heavy
-writing, long sentences/paragraphs, missing salutation/closing, missing
-proposal sections, missing CTA or opening hook, word-count bands,
-readability (Fernández Huerta/Flesch family). Every violation ships
-with an excerpt and a concrete fix; the draft must clear 85/100 before
-delivery. Zero dependencies, fully offline — the loop runs the same on
-small local models.
+The `pluma-lint` MCP server checks English and Spanish drafts for fillers,
+slang, hedges, vague quantities, contractions, register, passive-heavy prose,
+sentence and paragraph length, greetings and closings, proposal sections,
+calls to action, opening hooks, and approximate readability. Findings include
+excerpts and concrete suggestions. Passing requires a score of at least 85
+and no error findings.
 
-## MCP server
+`styles_list` returns the library and its rules. `style_lint` accepts a draft,
+style, and optional email subject. It returns statistics, findings, score,
+and pass status. The server uses newline-delimited JSON-RPC with no state,
+network access, or external dependencies.
 
-`server/main.mjs` (NDJSON JSON-RPC): `styles_list` (library with each
-style's lint ruleset) and `style_lint` (draft + style + optional
-subject → stats, violations with fixes, score, pass). No state, no
-network.
-
-Use current Core's native plugin MCP integration; do not register a duplicate
-server to bypass the plugin sandbox. The linter is a style heuristic, not a
-grammar, factual-accuracy or quality guarantee. Its readability number is an
-approximation. Passing requires a score of at least 85 and zero error findings.
+Use Core's native plugin MCP integration, not a duplicate unrestricted
+registration. The checks are heuristics, not a grammar, factual-accuracy, or
+quality guarantee. Preserve facts when revising; never invent details to
+satisfy a rule.

@@ -25,7 +25,7 @@ import {
 } from "./theses.mjs";
 
 const PROTOCOL_VERSION = "2025-06-18";
-const SERVER_INFO = { name: "stonks-copilot", version: "0.2.2" };
+const SERVER_INFO = { name: "stonks-copilot", version: "0.2.3" };
 
 const dataDir = resolveDataDir();
 const chartFiles = makeDataFiles(dataDir, "charts");
@@ -238,7 +238,7 @@ const tools = [
   },
   {
     name: "xray",
-    description: "Portfolio forensics: merges direct holdings with fund constituents (N-PORT) into effective exposure per underlying — overlap, duplicated fund exposure, concentration (HHI, top-10), fund vs stock split, and estimated annual fee drag when expense ratios were imported.",
+    description: "Portfolio forensics: merges direct holdings with fund constituents (N-PORT) into effective exposure per underlying - overlap, duplicated fund exposure, concentration (HHI, top-10), fund vs stock split, and estimated annual fee drag when expense ratios were imported.",
     inputSchema: {
       type: "object",
       properties: {
@@ -382,7 +382,7 @@ const tools = [
           value: cost !== null && cost > 0 ? (value - cost) / cost : 0,
         });
       }
-      const svg = treemapSvg(items, { title: `Portfolio — ${holdings.positions.length} positions` });
+      const svg = treemapSvg(items, { title: `Portfolio - ${holdings.positions.length} positions` });
       if (svg === null) return text("No priced positions to draw a treemap.");
       const file = chartFiles.write("portfolio-treemap.svg", svg);
       return structured({ path: file, items: items.length, prices, warnings });
@@ -431,7 +431,7 @@ const tools = [
   },
   {
     name: "thesis_scan",
-    description: "Re-evaluate theses against current data. A break means a cited metric no longer satisfies its predicate — the stated reason for holding no longer holds. Scans one symbol or all.",
+    description: "Re-evaluate theses against current data. A break means a cited metric no longer satisfies its predicate - the stated reason for holding no longer holds. Scans one symbol or all.",
     inputSchema: {
       type: "object",
       properties: { symbol: { type: "string", description: "Optional: scan only this symbol" } },

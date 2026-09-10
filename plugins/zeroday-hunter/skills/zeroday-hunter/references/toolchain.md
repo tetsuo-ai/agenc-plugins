@@ -15,7 +15,7 @@ grep -rn "\b<symbol>\s*(" --include='*.c' --include='*.h' <repo> | grep -v '^\s*
 # universal-ctags index for accurate definition lookup
 ctags -R --fields=+n -f .zdh/tags <repo>
 
-# tree-sitter / joern / codeql when available — prefer them over grep on big targets
+# tree-sitter / joern / codeql when available - prefer them over grep on big targets
 joern --script slice.sc --param symbol=<symbol>      # precise CPG slicing
 codeql database analyze db cpp-security-and-quality.qls
 ```
@@ -28,13 +28,13 @@ CFLAGS="-g -O1 -fsanitize=address,undefined -fno-omit-frame-pointer" \
 CXXFLAGS="$CFLAGS" LDFLAGS="-fsanitize=address,undefined" ./configure && make -j
 cmake -B build -DCMAKE_C_FLAGS="-g -O1 -fsanitize=address,undefined" && cmake --build build
 
-# keep a clean release build too — some FPs only exist in debug/sanitized builds;
+# keep a clean release build too - some FPs only exist in debug/sanitized builds;
 # confirm reachability on the release build before reporting
 ```
 
 ASan options worth setting at runtime:
 `ASAN_OPTIONS=abort_on_error=1:symbolize=1:detect_leaks=0` (leaks are not vulns here).
-UBSan unsigned-overflow is *not* a finding by itself — chase the downstream effect.
+UBSan unsigned-overflow is *not* a finding by itself - chase the downstream effect.
 
 ## Fuzzing
 
@@ -57,7 +57,7 @@ minimize with `afl-tmin` / `-minimize_crash=1` *before* writing the hypothesis r
 
 ```bash
 # run the real service locally, real config; seed victim + attacker fixtures
-# oracle-first probing: boolean diffs and timing, scripted — never eyeballed
+# oracle-first probing: boolean diffs and timing, scripted - never eyeballed
 curl -s -o /dev/null -w '%{http_code} %{size_download} %{time_total}\n' ...
 
 # headless confirmation for JS execution (XSS rung)
@@ -67,7 +67,7 @@ node -e "/* puppeteer: visit URL, hook console/dialog, assert marker fired */"
 ## Debugging & dynamic tracing
 
 Interactive REPL tools (gdb, netcat, radare2) are essential but this environment runs
-one-shot commands — use **batch wrappers** so every session is scriptable and its output
+one-shot commands - use **batch wrappers** so every session is scriptable and its output
 capturable for the evidence log (EnIGMA's lesson: interactive access matters; make it
 non-interactive yourself):
 
@@ -80,7 +80,7 @@ python3 -c 'import socket; ...'            # when you need real protocol control
 ```
 
 Output discipline: pipe long output to a file, then read it in ~100-line windows
-(`sed -n '1,100p'`); whole-file dumps destroy focus — retrieve, don't dump.
+(`sed -n '1,100p'`); whole-file dumps destroy focus - retrieve, don't dump.
 
 ## Payload generators
 
@@ -93,7 +93,7 @@ Output discipline: pipe long output to a file, then read it in ~100-line windows
 ## Isolation rules
 
 - All builds, PoCs, crashes, and corpuses live under `.zdh/<campaign-id>/` or the
-  campaign worktree — never in the target repo's tree (keeps `git status` clean and the
+  campaign worktree - never in the target repo's tree (keeps `git status` clean and the
   baseline diff honest).
 - Network access only where the sandbox policy allows it; callback servers for
   SSRF/deserialization detection bind localhost unless the user approves otherwise.

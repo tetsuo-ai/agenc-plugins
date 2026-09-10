@@ -1,5 +1,5 @@
 /**
- * MIME tree walking over Gmail's format=full payload structures —
+ * MIME tree walking over Gmail's format=full payload structures -
  * zero-dependency body extraction (text/plain preferred, HTML stripped),
  * quoted-printable decoding, and attachment metadata. Pure functions.
  */

@@ -1,7 +1,7 @@
 /**
- * Forja contract tests: the deterministic code verifier against JS/TS
- * and Python fixtures — base rules, per-style discipline, minimal-diff
- * consistency with the original — plus the MCP server as a real child
+ * Forge contract tests: the deterministic code verifier against JS/TS
+ * and Python fixtures ; base rules, per-style discipline, minimal-diff
+ * consistency with the original ; plus the MCP server as a real child
  * process. Fully offline.
  */
 import assert from "node:assert/strict";
@@ -51,7 +51,7 @@ test("verify: base rules catch the classics", () => {
   assert.ok(messyFound.includes("long-lines"), "long line caught");
 });
 
-test("verify: function bands by style — limpio stricter than base", () => {
+test("verify: function bands by style: clean stricter than base", () => {
   const fn = longFunction(30); // 32 lines total
   const limpio = verifyCode(fn, { style: "limpio", language: "js" });
   assert.ok(rules(limpio).includes("fn-long"), "30-line fn warns under limpio (≤25 target)");
@@ -61,7 +61,7 @@ test("verify: function bands by style — limpio stricter than base", () => {
   assert.ok(rules(huge).includes("fn-too-long"), "70-line fn errors everywhere");
 });
 
-test("verify: limpio wants early returns and real names", () => {
+test("verify: clean wants early returns and real names", () => {
   const nested = "function f(a) {\n  if (a) {\n    if (a.x) {\n      return 1;\n    }\n  }\n  return 0;\n}\n";
   const result = verifyCode(nested, { style: "limpio", language: "js" });
   assert.ok(rules(result).includes("nested-guard"), "if-inside-if flagged");
@@ -69,7 +69,7 @@ test("verify: limpio wants early returns and real names", () => {
   assert.ok(rules(cryptic).includes("cryptic-name") || rules(cryptic).includes("magic-number"), `naming/magic caught (${rules(cryptic)})`);
 });
 
-test("verify: defensivo — swallowed defaults and switch default", () => {
+test("verify: defensive: swallowed defaults and switch default", () => {
   const sloppy = [
     "function cfg(raw) {",
     "  return { retries: raw.retries ?? 3, deep: raw.deep ?? true, wide: raw.wide ?? false, mode: raw.mode ?? \"x\" };",
@@ -86,7 +86,7 @@ test("verify: defensivo — swallowed defaults and switch default", () => {
   assert.ok(found.includes("switch-no-default"), `switch without default (${found})`);
 });
 
-test("verify: funcional — const discipline and transform preference", () => {
+test("verify: functional: const discipline and transform preference", () => {
   const imperative = [
     "let label = \"total\";",
     "for (const i of items) {",
@@ -104,7 +104,7 @@ test("verify: funcional — const discipline and transform preference", () => {
   assert.ok(found.includes("mutation-heavy"), `append-heavy code flagged (${found})`);
 });
 
-test("verify: solid — god class, constructed deps, god switch", () => {
+test("verify: solid: god class, constructed deps, god switch", () => {
   const god = [
     "class Mega {",
     "  constructor() {",
@@ -166,7 +166,7 @@ test("verify: minimal-diff measures consistency with the original file", () => {
   assert.ok(found.includes("quote-mismatch"), `quote drift measured (${found})`);
 });
 
-test("verify: python — def extents, print leftovers, except-pass", () => {
+test("verify: python: def extents, print leftovers, except-pass", () => {
   const py = [
     "import os",
     "",
@@ -198,7 +198,7 @@ test("verify: unknown style is actionable; scores and stats present", () => {
   assert.equal(clean.stats.functions, 1);
 });
 
-test("mcp server: catalog and lint round-trips — as a real child process", async () => {
+test("mcp server: catalog and lint round-trips: as a real child process", async () => {
   const dataDir = mkdtempSync(join(tmpdir(), "forja-mcp-"));
   const child = spawn(process.execPath, [SERVER], {
     env: { ...process.env, AGENC_PLUGIN_DATA: dataDir },
@@ -236,12 +236,18 @@ test("mcp server: catalog and lint round-trips — as a real child process", asy
   try {
     const init = await call("initialize", { protocolVersion: "2025-06-18", clientInfo: { name: "t", version: "0" } });
     assert.equal(init.result.serverInfo.name, "forja");
+    assert.equal(init.result.serverInfo.title, "Forge");
     const catalog = await call("tools/list");
     assert.deepEqual(catalog.result.tools.map((t) => t.name).sort(), ["code_lint", "code_styles_list"]);
+
+    const lintSchema = catalog.result.tools.find((entry) => entry.name === "code_lint").inputSchema;
+    assert.ok(lintSchema.properties.style.enum.includes("clean"));
+    assert.ok(lintSchema.properties.style.enum.includes("limpio"), "legacy requests remain schema-valid");
 
     const list = await tool("code_styles_list", {});
     assert.equal(list.styles.length, Object.keys(CODE_STYLE_RULESETS).length);
     const md = list.styles.find((s) => s.key === "minimal-diff");
+    assert.equal(list.styles.find((entry) => entry.key === "clean").outputStyleName, "limpio");
     assert.ok(md.lintRules.includes("matchOriginal"));
     assert.ok(md.description.length > 20);
 

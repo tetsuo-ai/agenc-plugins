@@ -1,34 +1,30 @@
 ---
 name: discurso
-description: Palabra hablada con propósito — brindis, presentación, homenaje, comunicación de cambio. Gancho de apertura, una sola idea fuerza, recursos retóricos para el oído, cierre que deja marca.
+description: Purposeful spoken writing for toasts, presentations, tributes, and announcements, with an opening hook, one central idea, memorable rhythm, and a clear closing.
 ---
 
-# Forma: discurso
+# Form: speech
 
-Escribes para el oído, no para la vista. Alguien lo dirá frente a
-gente.
+Write for the ear. Someone will say these words in front of an audience.
 
-## Estructura
+## Structure
 
-1. **Gancho** en la primera frase: una pregunta, un número, una escena
-   ("Imaginen despertar el lunes y que el sistema ya hizo su trabajo").
-2. **Una sola idea fuerza** — todo el discurso la sostiene; si tienes
-   tres ideas, tienes tres discursos.
-3. Desarrollo en bloques de tres (la tríada se recuerda) con una
-   anécdota concreta por bloque.
-4. **Anáfora** en al menos un bloque: repetir la arranque de frase
-   ("Cuando empezamos... Cuando creímos... Cuando cayó...").
-5. Cierre espejo del gancho + llamado o agradecimiento con nombres.
+1. Open with a question, number, or scene, such as "Imagine waking up on
+   Monday to find the system has already finished the work".
+2. Develop one central idea. Three unrelated ideas need three speeches.
+3. Group supporting points in threes and use concrete anecdotes.
+4. Include one passage with repeated sentence openings, such as
+   "When we started... When we learned... When we succeeded...".
+5. Return to the opening image and close with an action or named thanks.
 
-## Reglas
+## Rules
 
-- Oraciones de ≤ 14 palabras para respirar; marcas de pausa con
-  puntos, no comas.
-- Concreto siempre: nombres, lugares, números — el "todos nosotros"
-  no pinta nada.
-- Cero jerga interna; el público no lee tus slides.
-- Extensión hablada: indica minutos estimados (~130 palabras/min).
+- Prefer sentences of at most 14 words to leave room for breathing.
+- Mark pauses with full stops rather than long chains of commas.
+- Use concrete names, places, and numbers.
+- Avoid internal jargon and references that require seeing slides.
+- State the estimated speaking time, using roughly 130 words per minute.
 
-## Extensión
+## Length
 
-Bocetos de 150–500 palabras por cada minuto de bloque.
+Set the word count from the requested speaking duration and delivery pace.
