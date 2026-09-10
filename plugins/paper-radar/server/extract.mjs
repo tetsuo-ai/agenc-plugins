@@ -255,6 +255,7 @@ export function extractAmounts(text) {
 
 function parseAmountValue(raw) {
   const cleaned = raw.replace(/\s/gu, "");
+  if (/^\d{1,3}(?:[.,]\d{3})+$/u.test(cleaned)) return Number(cleaned.replace(/[.,]/gu, ""));
   const lastComma = cleaned.lastIndexOf(",");
   const lastDot = cleaned.lastIndexOf(".");
   let normalized;
@@ -393,8 +394,10 @@ export function nextOccurrence(anchorIso, period, fromIso = todayIso()) {
   const step = steps[period];
   if (step === undefined) return null;
   let cursor = new Date(anchor);
+  let count = 0;
   while (cursor.getTime() < from) {
-    cursor = advance(cursor, step);
+    count += 1;
+    cursor = advance(new Date(anchor), { ...step, amount: step.amount * count });
     if (cursor.getTime() < anchor) return null; // overflow guard
   }
   return cursor.toISOString().slice(0, 10);
@@ -414,7 +417,8 @@ function advance(date, step) {
     const day = next.getUTCDate();
     next.setUTCDate(1);
     next.setUTCFullYear(next.getUTCFullYear() + step.amount);
-    next.setUTCDate(day);
+    const lastDay = new Date(Date.UTC(next.getUTCFullYear(), next.getUTCMonth() + 1, 0)).getUTCDate();
+    next.setUTCDate(Math.min(day, lastDay));
   }
   return next;
 }

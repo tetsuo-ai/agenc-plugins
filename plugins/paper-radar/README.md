@@ -1,5 +1,10 @@
 # Paper Radar
 
+Privacy: this plugin's parser and storage are offline. A hosted chat provider
+can still receive document text and tool results through the host agent; use
+a local chat model for an entirely offline workflow. Treat extracted dates as
+candidates, not legal determinations of cancellation rights.
+
 The administrative memory: the plugin that remembers what expires, renews,
 and auto-bills — extracted from the documents you already have, not from
 typing dates into an app.

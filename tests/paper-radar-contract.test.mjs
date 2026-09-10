@@ -6,7 +6,7 @@
  */
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import test from "node:test";
@@ -24,6 +24,7 @@ import {
   todayIso,
 } from "../plugins/paper-radar/server/extract.mjs";
 import { normalizeEntry, radarRows } from "../plugins/paper-radar/server/ledger.mjs";
+import { makeStores } from "../plugins/paper-radar/server/stores.mjs";
 
 const SERVER = join(
   dirname(fileURLToPath(import.meta.url)),
@@ -173,6 +174,32 @@ test("date math: occurrences, deltas and offsets", () => {
   assert.equal(addDaysIso("2026-09-30", -30), "2026-08-31");
 });
 
+test("regression: original month-end and leap-day anchors do not drift", () => {
+  assert.equal(nextOccurrence("2026-01-31", "monthly", "2026-03-01"), "2026-03-31");
+  assert.equal(nextOccurrence("2024-02-29", "annual", "2025-01-01"), "2025-02-28");
+  assert.equal(nextOccurrence("2024-02-29", "annual", "2028-01-01"), "2028-02-29");
+  assert.match(normalizeEntry({ title: "Invalid date", anchorDate: "2026-02-31" }).error, /ISO date/);
+  assert.equal(extractAmounts("Annual premium USD 1,299")[0].value, 1299);
+});
+
+test("regression: notice deadline in the horizon cannot be hidden by a later renewal", () => {
+  const rows = radarRows([{ id: "future", title: "Renewal", period: "annual", anchorDate: "2026-12-01", noticeDays: 90 }], { now: new Date("2026-09-01"), horizonDays: 30 });
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].noticeDeadline, "2026-09-02");
+});
+
+test("regression: malformed ledger is preserved, new state is owner-only", () => {
+  const root = mkdtempSync(join(tmpdir(), "paper-stores-"));
+  try {
+    const stores = makeStores(root);
+    stores.saveLedger([]);
+    if (process.platform !== "win32") assert.equal(statSync(join(root, "ledger.json")).mode & 0o777, 0o600);
+    writeFileSync(join(root, "ledger.json"), "{broken");
+    assert.throws(() => stores.loadLedger(), /preserving/);
+    assert.equal(readFileSync(join(root, "ledger.json"), "utf8"), "{broken");
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
 /** Drive the real stdio server: handshake, ingestion, ledger, radar, drafts, ICS. */
 async function withServer(run) {
   const dataDir = mkdtempSync(join(tmpdir(), "paper-radar-mcp-"));
@@ -310,5 +337,25 @@ test("mcp server: full offline journey — extract → upsert → radar → canc
     notify("notifications/initialized");
     await new Promise((resolve) => setTimeout(resolve, 80));
     assert.ok(responses.every((m) => m.id !== undefined), "no response to notifications");
+  });
+});
+
+test("regression: cost period persists, currencies stay separate, calendar UIDs are unique", { timeout: 15000 }, async () => {
+  await withServer(async ({ tool }) => {
+    assert.match(await tool("ingest_extract", { text: "short" }), /Text too short/);
+    const a = await tool("ledger_upsert", { title: "Annual agreement paid monthly", category: "software", period: "annual", anchorDate: todayIso(), cost: 10, costPeriod: "month", currency: "EUR" });
+    assert.equal(a.entry.costPeriod, "month");
+    assert.equal((await tool("cost_report", {})).annualTotal, 120);
+    await tool("ledger_upsert", { title: "Weekly subscription", category: "software", period: "weekly", anchorDate: todayIso(), cost: 5, currency: "USD" });
+    const report = await tool("cost_report", {});
+    assert.equal(report.annualTotal, null);
+    assert.deepEqual(report.totalsByCurrency.map((row) => [row.currency, row.annual]), [["EUR", 120], ["USD", 260]]);
+    const calendar = await tool("ics_export", { years: 2 });
+    const uids = readFileSync(calendar.path, "utf8").match(/^UID:.+$/gm);
+    assert.ok(uids.length > 100, "weekly exports cover the full two years");
+    assert.equal(new Set(uids).size, uids.length);
+    const updated = await tool("ledger_upsert", { id: a.id, status: "cancelled" });
+    assert.equal(updated.entry.costPeriod, "month");
+    assert.equal(updated.entry.title, a.entry.title);
   });
 });
