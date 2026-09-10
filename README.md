@@ -110,9 +110,10 @@ d3cd019ab546d8512619fabc80cb4b363c66d1a70bfa25a35bbef5aacf3836c3
 ```
 
 The keyring keeps the legacy `publicKey` and adds both keys in `publicKeys`.
-Rollover-capable Core verifies either key; older Core ignores the new list and
-continues verifying the four unchanged legacy plugins. Stonks now requires the
-new key. Upgrade Core before installing it, and independently verify both
+Rollover-capable Core verifies either key. All ten plugins in the 0.2.2 profile-logo
+release use the September key; older Core with only the legacy key can still
+verify previously published legacy packages, but not these new versions.
+Upgrade Core before installing 0.2.2, and independently verify both
 fingerprints before updating an explicit local publisher entry. An explicit
 old-only pin is never silently overridden by the new built-in root. Publishing
 the hosted keyring does not automatically update client trust.
@@ -173,8 +174,24 @@ the signed plugin files, including their logos, from the pinned GitHub commit.
 This repository is private to npm (`"private": true`): catalog deployment does
 not require an npm publication, a Core/Desktop binary release, or an Apple
 distribution certificate. Never upload the private signing key. Validate the
-catalog against compatible Core before deployment, preserve the legacy plugins
-and signing key, and keep a rollback copy of the previous hosted artifacts.
+catalog against compatible Core before deployment, preserve historical packages
+and the legacy public key, and keep a rollback copy of the previous hosted artifacts.
+
+### Profile-logo release (0.2.2)
+
+All ten available plugins ship the approved profile artwork as 512 × 512,
+8-bit RGBA PNGs. Their manifests and signatures include the new assets.
+Refresh the catalog and install or update from its latest pinned source to
+receive them; publication does not automatically install plugins or enable
+permissions on existing clients. Olimpo remains unreleased.
+
+For an existing install, use the latest catalog source explicitly: a bare
+`plugin update` can reuse the SHA recorded at installation. The remote smoke
+check supports `AGENC_PREVIOUS_PLUGIN_SHA=<full-old-sha>` to exercise the signed
+upgrade from that release to the new catalog source. It checks the installed
+version and exact logo bytes against this checkout. Set `AGENC_HOSTED_CATALOG`
+and `AGENC_PUBLISHERS_PATH` to downloaded production artifacts for a post-deploy
+check; otherwise it checks the locally built `public/` artifacts.
 
 ## Validate
 
@@ -252,8 +269,9 @@ npm test
 
 The signer refuses a private key that does not match either checked-in public
 key. Select a single plugin with `--plugin`; omit it only when deliberately
-re-signing the whole catalog. The September rollover signs Stonks only, leaving
-the four existing signatures and legacy public key unchanged.
+re-signing the whole catalog. The 0.2.2 profile-logo release deliberately signs
+all ten updated packages with the existing September key; both published trust
+roots remain unchanged.
 Each signature covers the canonical plugin manifest plus the exact set of all
 other payload files. CI verifies the declared file map, publisher, and Ed25519
 signature; a missing public key is a hard failure.

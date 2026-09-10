@@ -1,8 +1,8 @@
 {
   "publisher": "tetsuo-ai",
-  "signature": "gvmKSRP4rIHcdwgwVXu5ltu7Hq/F4L3pWFbX4daPzDRD+poTacrKTyUbl8U+oEy1WZfjrmBBaO2w+HbMO1h7Aw==",
+  "signature": "r4v57xX0fmLf8KDBGj6C0njVUgdD4uHBhZttLhj60rMYjf391SDsBpG1xGIPLfos11HG0xN8k88/TUiiXZIGCw==",
   "files": {
-    "assets/logo.png": "sha256:3243f0c9c416283de5c5ed12b5eb22d44953b70d99a5b1a24c981dc15dec5ed9",
+    "assets/logo.png": "sha256:5337cceed7f4e5d1bf9ecbbacf7faa7fee8bbd0d4ca87a7efee222d8b114ac98",
     "commands/inbox.md": "sha256:cf8fa489573eb953addd21972133a572f5143c9251c0da30b275138545715ac0",
     "README.md": "sha256:f29473e3c6e1e5d8e94b62197cd9da4f751a23017f9a4214d1136ca117b7feca",
     "server/bridge.mjs": "sha256:db2d0ca11999dfa1f076054d9ecad805b1f523357f66ca9565b580259a583eb6",
@@ -11,7 +11,7 @@
     "server/gmail.mjs": "sha256:01c29b6ecc2604a49599faa989c2c178b3af5afcfaf9584907b1bf30d3f1c0e6",
     "server/graph.mjs": "sha256:bdc9e3ffaf948011d9c0d33f335be70ecb5f3de069dbccabf0675ce216e56edd",
     "server/loops.mjs": "sha256:4b48bdb9f0126fd9dce0f31ea25830d7d0fb0a8d6072afec6a6212c016f18180",
-    "server/main.mjs": "sha256:687514d056a2cd450e4dcbad4132bfdfefa38cfb1f26887ccae44befc06c63eb",
+    "server/main.mjs": "sha256:25a5cad7f3fdc6eed359bf756cb88fd95d3eb3f3e666204c01371d6833a750ed",
     "server/mime.mjs": "sha256:4a4e13962aba03f765a5d1da31096345d861a9f5f076fedc846a635d87b96d33",
     "server/oauth.mjs": "sha256:7c60979c639e3c6d3d9b009432f30766617ddf4ab80d9911c8f339f6005b6322",
     "server/vault.mjs": "sha256:4a159beda2af8ca4a8684dd7c2f052f67b5a97310261615865462315ad4778e9",

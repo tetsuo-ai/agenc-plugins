@@ -19,7 +19,7 @@ const ROOT = dirname(fileURLToPath(import.meta.url));
 const MARKETPLACE_PATH = join(ROOT, ".agenc-plugin", "marketplace.json");
 const EXPECTED_PLUGINS = ["zeroday-hunter","iot-builder","ledger","llm-checker","stonks-copilot","paper-radar","inbox","pluma","forja","motor3d","olimpo"];
 
-const EXPECTED_PLUGIN_VERSION = "0.2.1";
+const EXPECTED_PLUGIN_VERSION = "0.2.2";
 const EXPECTED_LOGO_PATH = "./assets/logo.png";
 const LOGO_PAYLOAD_PATH = "assets/logo.png";
 const PNG_MAGIC = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
