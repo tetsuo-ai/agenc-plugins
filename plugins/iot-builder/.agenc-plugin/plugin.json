@@ -1,6 +1,6 @@
 {
   "name": "iot-builder",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Build and safely upload configured PlatformIO projects to an explicitly selected board.",
   "author": { "name": "tetsuo-ai" },
   "homepage": "https://agenc.tech",

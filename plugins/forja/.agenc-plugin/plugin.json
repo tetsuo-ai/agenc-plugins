@@ -1,6 +1,6 @@
 {
   "name": "forja",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Code writing styles with a deterministic verifier: writing disciplines (clean, defensive, functional, solid) and the minimal-diff surgery protocol for editing existing code as AgenC output styles — plus a structural code linter that verifies every draft (function bands, nesting, naming, duplicates, consistency with the host file) before delivery. The model writes; the linter judges.",
   "author": {
     "name": "tetsuo-ai"

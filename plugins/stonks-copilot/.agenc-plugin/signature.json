@@ -1,8 +1,8 @@
 {
   "publisher": "tetsuo-ai",
-  "signature": "1fS2HfmjnVunhsQRGQBgs7Vzk39nxg0M/fAN276dtqawzBHmr/k7Y317bBh5zhEouFgOQjdmIl0+LThovHQKBw==",
+  "signature": "M/v4+QOUGmrdTBFIWUb37uViUTdfpKsh81JCcioHbPZ7J02IdsVMW0s9XVhaExQKkFjNyZT0KDMdewk8UCMqDw==",
   "files": {
-    "assets/logo.png": "sha256:eac2b38979a943690a5fb0153f2c13412181d65032ce3103bb14695cad511f6e",
+    "assets/logo.png": "sha256:0b9cc73d1d0dfb5bee6bfc24dcdeaf8e85b73dd52b0e12a3bb621aa810c5eae8",
     "commands/stock.md": "sha256:7eed6b78c25d09c3c5ce43708643088bb01c43c869313b0b69ffe9d32b55c421",
     "commands/thesis.md": "sha256:f5ebd9bfc7de54e434fab90c43a81b1a2e2cfd849ebd0fcbd2afce088cc0e9b8",
     "commands/xray.md": "sha256:a77d137536d084642d53f91c216a39d5fc2dc5bf9b460aadcb4a31ca4877aebb",
@@ -14,7 +14,7 @@
     "server/fundamentals.mjs": "sha256:3b81ca9346693fc57a43ead638321cfad812f47ac0c1357a643d35f2c17c882b",
     "server/http.mjs": "sha256:68bcb195b06927e0994ee8e6cf3d0ae66c33a9c75aedcd07e443e6268c5b80c1",
     "server/indicators.mjs": "sha256:c2b188a007e483584d3ae5c4e26fa8c81ca8949dbc57927a3e16b9b602334312",
-    "server/main.mjs": "sha256:2a317423f6df20bdcf9654e78404ca51b43865434f1064738241b37586d39a64",
+    "server/main.mjs": "sha256:7d3ec7b40efb69d20274e107774f90c84940806ea77440a1a540578d920db7a2",
     "server/nport.mjs": "sha256:b9702f58ef787832e4a5f8e0c10c15b47d47e1bbfc561bd00be29fcdd3a265ae",
     "server/portfolio.mjs": "sha256:824c46f0d340bde44872e9e89bf367aab431a5a2ad6344927a700337b9f34da0",
     "server/stooq.mjs": "sha256:9464fe7d8bf1b3774ad9e8c12a2f4539aa4e34709108fc2a1f7c8e7e849c048b",
