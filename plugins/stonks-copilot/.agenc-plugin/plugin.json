@@ -1,6 +1,6 @@
 {
   "name": "stonks-copilot",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Research stocks with technical indicators and SEC fundamentals, inspect portfolio exposure, and check investment theses against cited metrics. Includes local charts and explicit data-quality warnings.",
   "author": {
     "name": "tetsuo-ai"

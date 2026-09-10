@@ -1,6 +1,6 @@
 {
   "name": "motor3d",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Browser 3D and game development with verified scaffolds and a deterministic verifier: correct modern three.js/canvas2d/WebGPU patterns retrieved instead of recalled, an API-era table that kills the classic hallucinations (THREE.Geometry, outputEncoding, core OrbitControls), performance heuristics (per-frame allocations, missing resize/dispose/DPR), and a self-checking HTML harness with error overlay and FPS counter. Built for small local models.",
   "author": {
     "name": "tetsuo-ai"
