@@ -45,7 +45,13 @@ file and SEES failures — no more black canvas guessing.
 `server/main.mjs` (NDJSON JSON-RPC, zero-dep): `scaffolds_list`,
 `scaffold_get`, `lint3d`, `harness_build`. Fully offline.
 
-Core issue [tetsuo-ai/agenc-core#2078](https://github.com/tetsuo-ai/agenc-core/issues/2078):
-until it ships, register the identical server with the one-line
-user-level `agenc mcp add-json` (`env_vars: ["PATH"]`). The skill and
-`/motor3d` command work regardless.
+The server runs offline in AgenC's native MCP sandbox. Generated Three.js HTML
+fetches pinned Three.js 0.170.0 from jsDelivr; the asset example also fetches
+a public demonstration GLTF. Self-host those assets for offline browser use.
+No extra user-level MCP registration is required.
+
+The verifier is a conservative text heuristic, not an AST, a security audit,
+or proof of correct rendering. Score >= 85 and zero errors are both required;
+comments, strings, custom loop wrappers, shaders and application-specific
+logic still need review. Always run the generated page in the target browser.
+WebGPU requires a supporting browser/GPU; unsupported devices show a fallback.

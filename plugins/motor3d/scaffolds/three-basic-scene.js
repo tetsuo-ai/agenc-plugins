@@ -1,3 +1,4 @@
+import { withErrorOverlay } from "../server/overlay.mjs";
 // Scaffold: three-basic-scene — escena Three.js moderna y correcta.
 // Import map con versión pineada, renderer con pixel ratio, resize
 // correcto, loop con delta clampeado, dispose al descargar.
@@ -8,7 +9,7 @@ export default {
   "name": "three-basic-scene",
   "framework": "three",
   "description": "Escena mínima moderna: renderer, cámara, resize, rAF con delta clamp, dispose. La base correcta de todo.",
-  "html": `<!doctype html>
+  "html": withErrorOverlay(`<!doctype html>
 <html lang="es">
 <head>
 <meta charset="utf-8">
@@ -89,7 +90,7 @@ window.addEventListener("beforeunload", () => {
 });
 </script>
 </body>
-</html>`,
+</html>`),
   "notes": [
     "setPixelRatio ANTES de setSize, con tope 2: DPR 3 quema fill-rate móvil.",
     "El clamp de delta evita saltos gigantes al volver de una pestaña inactiva.",

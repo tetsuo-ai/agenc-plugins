@@ -1,6 +1,7 @@
 # AgenC Plugins
 
-The first-party plugin marketplace for AgenC. It contains six packages:
+The first-party plugin marketplace for AgenC. It contains ten packages:
+
 
 - **Zero Day Hunter** — a security-research campaign skill.
 - **IoT Builder** — a guarded PlatformIO build/upload workflow.
@@ -9,10 +10,28 @@ The first-party plugin marketplace for AgenC. It contains six packages:
 - **Stonks Copilot** — agent-native investing copilot: 50/50 stock analysis,
   portfolio X-Ray with real N-PORT fund overlap, SVG charts, and a decision
   journal that flags when your stated thesis breaks.
+- **Inbox** — the Gmail copilot: your own OAuth client and a loopback redirect
+  (no third-party cloud), a relationship-ranked digest from a local trust
+  graph, the social commitments layer, an attachment vault, newsletter
+  archaeology, and a document bridge that feeds Paper Radar from your mailbox.
+  Read-only: never sends, never deletes.
+- **Paper Radar** — the administrative memory: deterministic Spanish/English
+  extraction of renewal dates, costs and cancellation windows from your own
+  documents, a local urgency radar, cancellation drafts, and calendar export.
+  Fully offline, built to work efficiently with local models.
+- **Pluma** — writing styles with a deterministic verifier: ten output
+  styles (voices and full forms) plus a prose linter that checks register,
+  structure, length and readability before anything is delivered.
+- **Forja** — code writing styles with a deterministic verifier: clean,
+  defensive, functional and solid disciplines plus the minimal-diff surgery
+  protocol, checked by a structural code linter (including measured
+  consistency with the file being edited).
+
 - **Motor3D** — browser 3D and games with verified scaffolds and a
   deterministic verifier: modern three.js/canvas2d/WebGPU patterns retrieved
   (not recalled), an API-era table that kills the classic hallucinations,
   performance heuristics, and a self-checking HTML harness.
+
 
 ## Plugin, skill, and MCP
 
@@ -163,6 +182,16 @@ To validate against a current Core checkout:
 ```bash
 AGENC_BIN='/path/to/agenc-core/runtime/bin/agenc' npm run validate:core
 ```
+
+Exercise the new plugins through compiled Core's actual native MCP sandbox:
+
+```bash
+AGENC_CORE_RUNTIME='/path/to/agenc-core/runtime' npm run validate:built
+```
+
+This uses disposable storage, verifies package signatures, and retains default
+network denial. Inbox OAuth/Gmail flows are tested with synthetic credentials
+against a loopback fixture by `npm test`; real accounts still require user consent.
 
 That test uses a temporary `AGENC_HOME`, validates the catalog and all five
 plugins, registers the local marketplace, installs each package, and checks the

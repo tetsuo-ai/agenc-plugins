@@ -24,7 +24,7 @@ Este skill mueve la verdad fuera del modelo:
    - perf (warn/error): allocation por frame, resize, dispose,
      DPR, delta, instancing — corregí y relinteá.
    - `info`: decisión tuya — pero decíselo al usuario.
-4. **Iterá hasta pass** (score ≥ 85), máximo dos vueltas; lo que siga
+4. **Iterá hasta pass** (score ≥ 85 y cero errores), máximo dos vueltas; lo que siga
    en rojo es una decisión del usuario: mostrala.
 5. **Entregá con harness** — `harness_build` con el código final: HTML
    autocontenido con overlay de errores y contador de FPS. El usuario
@@ -44,6 +44,12 @@ Este skill mueve la verdad fuera del modelo:
 - **WebGPU**: `getCurrentTexture()` NUNCA se cachea (es nueva por frame).
 
 ## Límites
+
+- El linter usa heurísticas de texto, no prueba corrección ni seguridad.
+- El servidor es offline; los HTML de Three.js descargan Three.js 0.170.0
+  de jsDelivr y el ejemplo GLTF usa un modelo externo. Para uso offline,
+  serví copias locales. Probá render e interacción en el navegador objetivo.
+- Instalación MCP nativa: no duplicar el servidor en configuración de usuario.
 
 - Los scaffolds son puntos de partida verificados, no tu juego: la
   mecánica la ponés vos con el usuario.

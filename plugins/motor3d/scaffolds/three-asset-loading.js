@@ -1,10 +1,11 @@
+import { withErrorOverlay } from "../server/overlay.mjs";
 // Scaffold: three-asset-loading — carga de GLTF con progreso visible,
 // gestión de errores y dispose correcto. Nada de pantalla negra silenciosa.
 export default {
   "name": "three-asset-loading",
   "framework": "three",
   "description": "GLTFLoader con LoadingManager: barra de progreso, error explícito, dispose al fallar/recargar.",
-  "html": `<!doctype html>
+  "html": withErrorOverlay(`<!doctype html>
 <html lang="es">
 <head>
 <meta charset="utf-8">
@@ -33,12 +34,14 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 const bar = document.getElementById("bar");
 const msg = document.getElementById("msg");
 
+let loadFailed = false;
 const manager = new THREE.LoadingManager();
 manager.onProgress = (url, loaded, total) => {
   bar.style.width = \`\${Math.round((loaded / total) * 100)}%\`;
 };
-manager.onLoad = () => { bar.style.width = "100%"; msg.style.display = "none"; };
+manager.onLoad = () => { bar.style.width = "100%"; if (!loadFailed) msg.style.display = "none"; };
 manager.onError = (url) => {
+  loadFailed = true; msg.style.display = "block";
   msg.style.color = "#f87171";
   msg.textContent = \`error cargando: \${url} — revisá la URL/CORS\`;
 };
@@ -58,12 +61,15 @@ const key = new THREE.DirectionalLight(0xffffff, 2.4);
 key.position.set(2, 4, 3);
 scene.add(key);
 
-const disposables = [];
+const disposables = new Set();
 function track(model) {
   model.traverse((node) => {
     if (node.isMesh) {
-      disposables.push(node.geometry, node.material);
-      if (Array.isArray(node.material)) disposables.push(...node.material);
+      disposables.add(node.geometry);
+      for (const material of Array.isArray(node.material) ? node.material : [node.material]) {
+        disposables.add(material);
+        for (const value of Object.values(material)) if (value?.isTexture) disposables.add(value);
+      }
     }
   });
 }
@@ -82,6 +88,7 @@ loader.load(
   },
   undefined,
   (error) => {
+    loadFailed = true; msg.style.display = "block";
     msg.style.color = "#f87171";
     msg.textContent = \`fallo la carga: \${error?.message ?? error}\`;
   },
@@ -98,15 +105,17 @@ addEventListener("beforeunload", () => {
   renderer.dispose();
 });
 
+const clock = new THREE.Clock();
 (function animate() {
+  const dt = Math.min(clock.getDelta(), 0.1);
   const model = scene.getObjectByName?.("model");
-  if (model !== undefined && model !== null) model.rotation.y += 0.005;
+  if (model !== undefined && model !== null) model.rotation.y += dt * 0.3;
   renderer.render(scene, camera);
   requestAnimationFrame(animate);
 })();
 </script>
 </body>
-</html>`,
+</html>`),
   "notes": [
     "manager.onError: sin esto, un 404/CORS = pantalla negra silenciosa.",
     "Trackear geometry/material al cargar: el dispose de modelos es manual en three.",

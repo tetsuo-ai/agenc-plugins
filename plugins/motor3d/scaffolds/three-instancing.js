@@ -1,10 +1,11 @@
+import { withErrorOverlay } from "../server/overlay.mjs";
 // Scaffold: three-instancing — InstancedMesh para N objetos idénticos:
 // UN draw call en vez de N. La regla de oro del performance 3D.
 export default {
   "name": "three-instancing",
   "framework": "three",
-  "description": "InstancedMesh con actualización por instancia y conteo dinámico; la diferencia entre 5 y 5000 FPS.",
-  "html": `<!doctype html>
+  "description": "InstancedMesh con actualización por instancia y conteo dinámico; reduce draw calls para objetos repetidos.",
+  "html": withErrorOverlay(`<!doctype html>
 <html lang="es">
 <head>
 <meta charset="utf-8">
@@ -65,6 +66,9 @@ addEventListener("resize", () => {
   renderer.setSize(innerWidth, innerHeight);
 });
 
+addEventListener("beforeunload", () => {
+  instances.dispose(); geometry.dispose(); material.dispose(); renderer.dispose();
+});
 const clock = new THREE.Clock();
 function animate() {
   const dt = Math.min(clock.getDelta(), 0.1);
@@ -83,7 +87,7 @@ function animate() {
 animate();
 </script>
 </body>
-</html>`,
+</html>`),
   "notes": [
     "instanceMatrix.setUsage(DynamicDrawUsage): evita re-reserva del buffer GPU.",
     "dummy (Object3D) reutilizado: la allocation por instancia por frame mata el GC.",
