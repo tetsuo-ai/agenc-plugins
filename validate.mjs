@@ -395,20 +395,18 @@ assert.ok(
   olimpoManifest.mcpServers?.["olimpo-corpus"]?.command === "node",
   "Olimpo must declare its stdio olimpo-corpus MCP server",
 );
-const olimpoCurated = readJson(join(ROOT, "plugins", "olimpo", "corpus", "problems-1.json"));
-assert.ok(olimpoCurated.length >= 12, "Olimpo must ship at least 12 curated problems");
-const olimpoSourced = readJson(join(ROOT, "plugins", "olimpo", "corpus", "problems-sourced.json"));
-assert.ok(olimpoSourced.length >= 380, "Olimpo must ship the complete sourced corpus (380+, 1959-2025)");
-assert.ok(
-  olimpoSourced.every((problem) => typeof problem.sourceNote === "string" && problem.sourceNote.length > 20),
-  "Sourced problems must carry an honest extraction note",
-);
+const olimpoCorpusDir = join(ROOT, "plugins", "olimpo", "corpus");
+assert.deepEqual(readdirSync(olimpoCorpusDir).sort(), ["REVIEW.md", "SOURCES.md", "problems-original.json"], "Only the original reviewed corpus may ship");
+const olimpoCurated = readJson(join(olimpoCorpusDir, "problems-original.json"));
+assert.equal(olimpoCurated.length, 16, "Olimpo must ship its 16 original exercises");
+assert.ok(olimpoCurated.every(problem => problem.provenance?.kind === "original" && problem.provenance?.license === "MIT" && problem.provenance?.check === problem.id), "Original corpus provenance is required");
+assert.equal(readFileSync(join(ROOT, "plugins", "olimpo", "LICENSE"), "utf8"), readFileSync(join(ROOT, "LICENSE"), "utf8"));
 assert.ok(
   olimpoCurated.every((problem) => typeof problem.statement === "string" && problem.statement.length >= 20),
   "Olimpo problems must carry real statements",
 );
 assert.ok(
-  olimpoCurated.every((problem) => problem.solutionType === "full" || problem.solutionType === "sketch"),
+  olimpoCurated.every((problem) => problem.solutionType === "full" && problem.solution.length > 150),
   "Olimpo solutions must be honestly typed",
 );
 const olimpoSkill = readFileSync(

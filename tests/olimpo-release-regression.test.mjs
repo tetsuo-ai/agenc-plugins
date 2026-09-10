@@ -32,7 +32,7 @@ test("olimpo: private stores preserve corrupted files and reject built-in duplic
 });
 test("olimpo: notifications cannot mutate progress via native stdio", async () => {
   await withMcp("olimpo",async({tool,child})=>{
-    child.stdin.write(JSON.stringify({jsonrpc:"2.0",method:"tools/call",params:{name:"progress_mark",arguments:{id:"1959-1",status:"solved"}}})+"\n");
+    child.stdin.write(JSON.stringify({jsonrpc:"2.0",method:"tools/call",params:{name:"progress_mark",arguments:{id:"olimpo-nt-001",status:"solved"}}})+"\n");
     assert.deepEqual((await tool("progress_list")).entries,[]);
   });
 });

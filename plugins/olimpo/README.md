@@ -1,50 +1,46 @@
 # Olimpo
 
-The IMO corpus with guided solving — built to make a Qwen 27B/30B-class
-local model genuinely good at olympiad math. The design insight: small
-models fail at olympiads through **recall** (misremembering problems and
-arithmetic), not through explanation. So the plugin moves the truth out
-of the model:
+Offline olympiad-style practice with **16 original exercises**, four per topic:
+algebra, geometry, number theory and combinatorics. Not an official IMO archive;
+not affiliated with the IMO or AoPS.
 
-- **Retrieval over recall** — 12 curated historic problems (1959-1, the
-  legendary 1988-6 Vieta jumping, Erdős–Ginzburg–Ziv 1989-3, Sophie
-  Germain 1969-1, Fekete 1982-1, fourth powers 1985-4, EGZ, 2000-2 with
-  its gorgeous x/y substitution…) with statements, hint ladders, key
-  ideas and solutions. The model never recites from memory; it
-  retrieves and explains.
-- **Progressive disclosure** — `problem_get` levels: `statement` →
-  `hint1` → `hints` → `keyIdea` → `solution`. Solutions never leak into
-  a context that only asked for a hint — small contexts stay small.
-- **Honest solutions** — each entry carries `solutionType` full/sketch;
-  sketches are labeled as sketches when presented.
-- **Deterministic answer checking** — numeric answers verified by the
-  tool, not by model arithmetic; proof-type problems say "not
-  applicable" instead of pretending.
-- **Study engine** — `study_plan` (deterministic, easy → hard),
-  `problem_random`, a local progress ledger, and `ingest` to grow the
-  corpus with your own problems (validated ids YYYY-N).
-- **Technique lessons** — search by tag (`vieta-jumping`, `invariantes`,
-  `sophie-germain`, `erdos-ginzburg-ziv`) and the family of problems
-  assembles the lesson.
+Original Spanish statements, progressive hints, key ideas and worked solutions.
+Stable IDs such as `olimpo-nt-004`; no invented contest years or attributions.
+Native AgenC registration provides nine offline MCP tools: `problems_list`,
+`problem_search`, `problem_get`, `problem_random`, `answer_check`, `study_plan`,
+`progress_mark`, `progress_list`, `ingest`. Do not add a duplicate manual server.
 
-## MCP server
+## Accuracy and disclosure
 
-`server/main.mjs` (NDJSON JSON-RPC, zero-dep): `problems_list`,
-`problem_search`, `problem_get`, `problem_random`, `answer_check`,
-`study_plan`, `progress_mark`, `progress_list`, `ingest`. Fully offline.
+Solutions were checked by derivation and deterministic tests. This AI-assisted
+work is **not independently human-reviewed or formally verified**. Finite checks
+supplement written proofs; they do not establish universal claims.
+See [review coverage](corpus/REVIEW.md).
 
+`problem_get` defaults to `statement`; other levels are `hint1`, `hints`,
+`keyIdea`, `solution`. Answers and solutions appear only at the last level.
+`answer_check` compares recorded text after conservative normalization.
+A mismatch may just be formatting, not a mathematical error. A matching number
+does not certify a proof. Problems with no short answer report not-applicable.
 
-## Release blocked — corpus review required
+## User data
 
-This PR is not approved for publishing. It bundles 396 entries (12 curated,
-384 mirrored); file/schema checks do not establish mathematical correctness.
-Known blockers: truncated 1959-2 and 1959-3 statements, unverified curated
-solutions, and missing per-source redistribution provenance/license evidence.
-Restore complete statements from authoritative, permitted sources and audit
-the solutions before removing the release gate.
+State lives in AgenC's plugin data directory. Writes are private and atomic;
+linked files are rejected and damaged state is preserved for repair.
+Crash locks require operator recovery after stopping plugin processes.
 
-Runtime fixes conceal answers below solution level, preserve corrupt state
-instead of overwriting it, lock writes and use private atomic files. Answer
-checking is conservative text equality, not a symbolic equivalence/proof check.
-Missing solutions have a null solutionType. Native MCP registration is
-automatic; do not register a duplicate user server.
+Ingest accepts 50 exercises per request and 500 total. IDs such as
+`user-my-exercise` are supported; legacy `YYYY-N` IDs remain valid for private
+imports without asserting an official attribution. Imports cannot replace
+bundled exercises and always carry user-provided/unreviewed provenance.
+Only import material you have rights to use; an import is not a license check.
+
+## Provenance
+
+The prior draft's 396 entries were removed with user approval because of
+unverified copied text, truncation, false attributions and incorrect explanations.
+Git history retains that draft; it is not a redistributable corpus.
+
+The new wording and explanations were written for this project using standard
+mathematics. [MIT](LICENSE) applies to the package; mathematical concepts are
+not claimed as our property. See [sources](corpus/SOURCES.md).

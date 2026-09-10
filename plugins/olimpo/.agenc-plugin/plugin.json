@@ -1,7 +1,7 @@
 {
   "name": "olimpo",
-  "version": "0.2.1",
-  "description": "The IMO corpus with guided solving: historic olympiad problems with statement, hint ladder, key idea and full solutions — retrieved on demand, disclosed progressively. Built to make small local models (Qwen 27B/30B class) genuinely good at olympiad math: the corpus carries the ground truth, the model carries the reasoning, and numeric answers are checked deterministically.",
+  "version": "0.2.2",
+  "description": "Olympiad-style practice with 16 original exercises, complete worked solutions, progressive hints and a private study ledger. Four topics, offline tools and conservative short-answer comparison. Not an official IMO archive.",
   "author": {
     "name": "tetsuo-ai"
   },
@@ -11,27 +11,32 @@
   "keywords": [
     "math",
     "olympiad",
-    "imo",
     "problem-solving",
     "tutoring",
-    "local-models",
     "progressive-disclosure",
     "offline"
   ],
   "mcpServers": {
     "olimpo-corpus": {
       "command": "node",
-      "args": ["./server/main.mjs"],
+      "args": [
+        "./server/main.mjs"
+      ],
       "transport": "stdio",
-      "env_vars": ["PATH"]
+      "env_vars": [
+        "PATH"
+      ]
     }
   },
   "commands": {
     "olimpo": {
       "source": "./commands/olimpo.md",
-      "description": "IMO practice and explanation with hint ladder, deterministic answer checks and full classic solutions",
+      "description": "Practice original math exercises with progressive hints and worked solutions",
       "argumentHint": "<practica|explica|busca> [tema|id|técnica]",
-      "allowedTools": ["Bash", "Read"]
+      "allowedTools": [
+        "Bash",
+        "Read"
+      ]
     }
   },
   "skills": [
@@ -39,15 +44,15 @@
   ],
   "interface": {
     "displayName": "Olimpo",
-    "shortDescription": "Olympiad math your small model can actually teach.",
-    "longDescription": "A curated corpus of historic IMO problems (the 1959 opener, the legendary 1988-6 Vieta jumping, Erdős–Ginzburg–Ziv, Sophie Germain, EGZ…) with statement, hint ladder, key idea and full solutions — honestly labeled full vs sketch. The architecture is the point: retrieval over recall for small local models (the corpus carries the ground truth, the model explains it), progressive disclosure (statement → hint1 → hints → keyIdea → solution; solutions never leak early), deterministic answer checking for numeric problems (no trusting model arithmetic), a local progress ledger, deterministic study plans, and an ingest tool so the corpus grows with your own problems. Technique-based lessons come free: search by tag (vieta-jumping, invariants, sophie-germain) and the family assembles itself. Fully offline.",
+    "shortDescription": "Math practice, one hint at a time.",
+    "longDescription": "Sixteen original exercises across algebra, geometry, number theory and combinatorics, with worked solutions and progressive hints. Search techniques, plan a session, track progress locally and import your own exercises. Short answers use conservative text comparison, not symbolic equivalence or proof verification. Includes derivation-based review and reproducible checks; no claim of independent human or formal verification. Fully offline; not an official IMO collection.",
     "developerName": "tetsuo-ai",
     "category": "education",
     "capabilities": [
-      "imo-corpus",
+      "original-math-corpus",
       "progressive-disclosure",
       "hint-ladder",
-      "deterministic-answer-check",
+      "short-answer-comparison",
       "study-plans",
       "progress-ledger",
       "corpus-ingest",
@@ -57,10 +62,10 @@
     "brandColor": "#06b6d4",
     "logo": "./assets/logo.png",
     "defaultPrompt": [
-      "Explicame el problema más famoso de la IMO",
-      "Práctica de teoría de números",
-      "Dame un hint para el que estoy viendo",
-      "Qué problemas usan Vieta jumping"
+      "Prepara una práctica de teoría de números",
+      "Explícame el ejercicio olimpo-nt-004",
+      "Dame una pista, sin mostrar la solución",
+      "Busca ejercicios de geometría"
     ],
     "screenshots": []
   }

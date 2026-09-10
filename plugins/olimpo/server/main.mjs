@@ -1,13 +1,11 @@
 #!/usr/bin/env node
 /**
- * olimpo MCP server — the IMO corpus with progressive disclosure.
+ * Olimpo MCP server — original exercises with progressive disclosure.
  *
  * Zero-dependency stdio MCP server (JSON-RPC 2.0, newline-delimited),
- * fully offline. Designed for small local models (Qwen 27B/30B class):
- * the corpus carries the ground truth (statements, hint ladders, full
- * solutions of the classics), the model carries only the reasoning —
- * retrieval over recall, hints before solutions, deterministic answer
- * checking over trusted arithmetic. No network, no state beyond the
+ * fully offline. Retrieves the bundled exercises and worked solutions
+ * instead of relying on model recall. Short-answer matching is textual,
+ * not symbolic equivalence or proof verification. No network or state beyond the
  * user's progress and ingested problems.
  */
 import { mkdirSync } from "node:fs";
@@ -25,7 +23,7 @@ import {
 } from "./corpus.mjs";
 
 const PROTOCOL_VERSION = "2025-06-18";
-const SERVER_INFO = { name: "olimpo", version: "0.2.1" };
+const SERVER_INFO = { name: "olimpo", version: "0.2.2" };
 
 const dataDir = resolveDataDir();
 mkdirSync(dataDir, { recursive: true, mode: 0o700 });
@@ -56,7 +54,7 @@ function findProblem(id) {
 const tools = [
   {
     name: "problems_list",
-    description: "The IMO corpus: browse by topic (algebra, geometry, number-theory, combinatorics), year or difficulty. Returns id, title and statement head per problem — never full solutions.",
+    description: "Browse original exercises by topic or difficulty; year filters apply only to dated private imports. Returns titles, IDs and statement previews, never answers or solutions.",
     inputSchema: {
       type: "object",
       properties: {
@@ -73,7 +71,7 @@ const tools = [
   },
   {
     name: "problem_search",
-    description: "Keyword search over titles, statements, tags and key ideas ('vieta', 'invariantes', 'frobenius', 'sophie germain'…).",
+    description: "Search exercise titles, statements, tags and key ideas: 'vieta', 'pigeonhole', 'incirculo', 'induccion'.",
     inputSchema: {
       type: "object",
       properties: {
@@ -93,7 +91,7 @@ const tools = [
     inputSchema: {
       type: "object",
       properties: {
-        id: { type: "string", description: "e.g. 1988-6" },
+        id: { type: "string", description: "e.g. olimpo-nt-004" },
         level: { type: "string", enum: ["statement", "hint1", "hints", "keyIdea", "solution"] },
       },
       required: ["id"],
@@ -127,7 +125,7 @@ const tools = [
   },
   {
     name: "answer_check",
-    description: "Deterministic check of a short answer (numeric or expression) against the recorded one. Proof-type problems report not-applicable — verification then means reading the solution, not guessing.",
+    description: "Compare a short answer with recorded text after conservative normalization. Does not verify proofs or symbolic equivalence; a mismatch can be formatting. No recorded answer means not-applicable.",
     inputSchema: {
       type: "object",
       properties: {
@@ -182,7 +180,7 @@ const tools = [
   },
   {
     name: "ingest",
-    description: "Add problems to the corpus (local, in the plugin data dir): each item needs id 'YYYY-N', statement ≥ 20 chars, and optionally hints/solution/keyIdea/tags/difficulty. Grows the practice set without touching the shipped corpus.",
+    description: "Import 1–50 private exercises, with IDs such as user-my-exercise and a 20–20000 character statement; up to 500 total. Optional hints, solution, keyIdea, tags and difficulty. Always user-provided/unreviewed; never overwrites a bundled exercise.",
     inputSchema: {
       type: "object",
       properties: {
@@ -212,6 +210,23 @@ function structured(value) {
 }
 
 const toolByName = new Map(tools.map((tool) => [tool.name, tool]));
+
+const object = value => value !== null && typeof value === "object" && !Array.isArray(value);
+function validateArguments(tool, args) {
+  if (!object(args)) throw new Error("arguments must be an object");
+  const schema = tool.inputSchema;
+  for (const key of schema.required ?? []) {
+    if (!Object.hasOwn(args, key)) throw new Error("missing argument: " + key);
+  }
+  for (const [key, value] of Object.entries(args)) {
+    const field = schema.properties[key];
+    if (!Object.hasOwn(schema.properties, key)) throw new Error("unknown argument: " + key);
+    if (field.type === "string" && (typeof value !== "string" || !value.trim() || value.length > (key === "attempt" ? 1000 : key === "id" ? 64 : key === "note" ? 200 : 256))) throw new Error("invalid text argument: " + key);
+    if (field.type === "number" && (!Number.isSafeInteger(value) || value < 1 || value > (key === "year" ? 9999 : key === "count" ? 10 : 100))) throw new Error("invalid integer argument: " + key);
+    if (field.type === "array" && (!Array.isArray(value) || value.length < 1 || value.length > 50 || value.some(item => !object(item)))) throw new Error("items must contain 1 to 50 objects");
+    if (field.enum && !field.enum.includes(value)) throw new Error("invalid choice: " + key);
+  }
+}
 
 async function handleMessage(message) {
   if (message === null || typeof message !== "object") return null;
@@ -245,7 +260,10 @@ async function handleMessage(message) {
       if (tool === undefined) {
         return isNotification ? null : reply(id, null, { code: -32602, message: `unknown tool: ${name}` });
       }
-      const result = await tool.handler(params?.arguments ?? {});
+      const args = params?.arguments === undefined ? {} : params.arguments;
+      try { validateArguments(tool, args); }
+      catch (error) { return reply(id, null, { code: -32602, message: error.message }); }
+      const result = await tool.handler(args);
       return isNotification ? null : reply(id, result);
     }
     return isNotification ? null : reply(id, null, { code: -32601, message: `method not found: ${method}` });
@@ -268,12 +286,19 @@ function reply(id, result, error) {
 async function main() {
   process.stdin.setEncoding("utf8");
   let buffer = "";
+  let dropping = false;
+  const maximumFrameBytes = 1024 * 1024;
   for await (const chunk of process.stdin) {
     buffer += chunk;
     let newline;
     while ((newline = buffer.indexOf("\n")) >= 0) {
       const line = buffer.slice(0, newline).trim();
       buffer = buffer.slice(newline + 1);
+      if (dropping || Buffer.byteLength(line) > maximumFrameBytes) {
+        dropping = false;
+        process.stderr.write("olimpo: oversized request discarded\n");
+        continue;
+      }
       if (line.length === 0) continue;
       let message;
       try {
@@ -287,6 +312,7 @@ async function main() {
         process.stdout.write(`${JSON.stringify(response)}\n`);
       }
     }
+    if (Buffer.byteLength(buffer) > maximumFrameBytes) { buffer = ""; dropping = true; }
   }
 }
 

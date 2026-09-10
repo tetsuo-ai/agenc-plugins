@@ -4,59 +4,72 @@
  * disclosure lives here: a small model should never see the solution
  * until it asks for that level explicitly.
  */
-import { readdirSync, readFileSync, existsSync, writeFileSync, renameSync, mkdirSync, rmSync, rmdirSync } from "node:fs";
+import { readdirSync, existsSync } from "node:fs";
 import { join } from "node:path";
-import { randomUUID } from "node:crypto";
+import { readJsonFile, makeDataStore } from "./storage.mjs";
 
 export const TOPICS = ["algebra", "geometry", "number-theory", "combinatorics"];
+export const isProblemId = (id) => typeof id === "string" && /^(?:\d{4}-\d[a-z]?|[a-z][a-z0-9]*(?:-[a-z0-9]+)+)$/u.test(id) && id.length <= 64;
+const object = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
+const optionalText = (value, max) => value == null || (typeof value === "string" && value.length <= max);
 
 export function loadCorpus(corpusDir, extraPath) {
   const problems = [];
   const seen = new Set();
-  const pushFile = (path) => {
+  const pushFile = (path, bundled) => {
     let parsed;
     try {
-      parsed = JSON.parse(readFileSync(path, "utf8"));
+      parsed = readJsonFile(path);
     } catch (error) {
       throw new Error("Cannot read corpus; preserve and repair the source file", {cause:error});
     }
     if (!Array.isArray(parsed)) throw new Error("Corpus must be an array");
     for (const raw of parsed) {
-      const problem = normalizeProblem(raw);
-      if (problem === null || seen.has(problem.id)) continue;
+      const problem = normalizeProblem(raw, { bundled });
+      if (problem === null) throw new Error("Corpus contains an invalid problem; repair the source file");
+      if (seen.has(problem.id)) throw new Error("Corpus contains a duplicate problem id");
       seen.add(problem.id);
       problems.push(problem);
     }
   };
   if (existsSync(corpusDir)) {
     for (const entry of readdirSync(corpusDir).sort()) {
-      if (entry.endsWith(".json")) pushFile(join(corpusDir, entry));
+      if (entry.startsWith("problems-") && entry.endsWith(".json")) pushFile(join(corpusDir, entry), true);
     }
   }
-  if (extraPath !== undefined && existsSync(extraPath)) pushFile(extraPath);
+  if (extraPath !== undefined && existsSync(extraPath)) pushFile(extraPath, false);
   return problems.sort((a, b) => a.id.localeCompare(b.id));
 }
 
-export function normalizeProblem(raw) {
-  if (raw === null || typeof raw !== "object") return null;
-  const id = String(raw.id ?? "").trim();
-  const statement = String(raw.statement ?? "").trim();
-  if (!/^\d{4}-\d[a-z]?$/u.test(id) || statement.length < 20) return null;
-  const solution = String(raw.solution ?? "").trim();
-  const hints = Array.isArray(raw.hints) ? raw.hints.map((h) => String(h).trim()).filter(Boolean).slice(0, 5) : [];
+export function normalizeProblem(raw, { bundled = false } = {}) {
+  if (!object(raw) || !isProblemId(raw.id) || typeof raw.statement !== "string") return null;
+  const id = raw.id;
+  const statement = raw.statement.trim();
+  if (statement.length < 20 || statement.length > 20000
+      || !optionalText(raw.solution, 30000) || !optionalText(raw.answer, 200)
+      || !optionalText(raw.keyIdea, 2000) || !optionalText(raw.title, 120)
+      || !optionalText(raw.sourceNote, 500)
+      || (raw.hints !== undefined && (!Array.isArray(raw.hints) || raw.hints.length > 5 || raw.hints.some(h => typeof h !== "string" || h.length > 2000)))
+      || (raw.tags !== undefined && (!Array.isArray(raw.tags) || raw.tags.length > 8 || raw.tags.some(t => typeof t !== "string" || t.length > 80)))
+      || (raw.topic !== undefined && ![...TOPICS, "other"].includes(raw.topic))
+      || (raw.difficulty !== undefined && !["easy", "medium", "hard", "legendary"].includes(raw.difficulty))
+      || (raw.solutionType != null && !["full", "sketch"].includes(raw.solutionType))) return null;
+  const solution = (raw.solution ?? "").trim();
+  const hints = (raw.hints ?? []).map(h => h.trim()).filter(Boolean);
+  const datedId = /^\d{4}-\d[a-z]?$/u.test(id);
   return {
     id,
-    year: Number(id.slice(0, 4)),
-    number: Number(id.slice(5, 6)),
+    ...(datedId ? { year: Number(id.slice(0, 4)), number: Number(id.slice(5, 6)) } : {}),
     topic: TOPICS.includes(raw.topic) ? raw.topic : "other",
     difficulty: ["easy", "medium", "hard", "legendary"].includes(raw.difficulty) ? raw.difficulty : "medium",
-    tags: Array.isArray(raw.tags) ? raw.tags.map(String).slice(0, 8) : [],
-    title: String(raw.title ?? `IMO ${id}`).slice(0, 120),
+    tags: raw.tags ?? [],
+    title: raw.title ?? `Ejercicio ${id}`,
     statement,
     answer: raw.answer === null || raw.answer === undefined ? null : String(raw.answer).slice(0, 200),
     keyIdea: String(raw.keyIdea ?? "").trim() || null,
     hints,
-    solutionType: !solution ? null : raw.solutionType === "sketch" ? "sketch" : "full",
+    solutionType: !solution ? null : raw.solutionType === "full" ? "full" : "sketch",
+    provenance: bundled ? raw.provenance : { kind: "user", review: "unreviewed", license: "unspecified" },
     ...(solution.length > 0 ? { solution } : {}),
     ...(raw.sourceNote !== undefined ? { sourceNote: String(raw.sourceNote).slice(0, 300) } : {}),
   };
@@ -77,6 +90,7 @@ export function problemAtLevel(problem, level) {
     tags: problem.tags,
     title: problem.title,
     statement: problem.statement,
+    provenance: problem.provenance,
   };
   if (level === undefined || level === "statement") return base;
   if (level === "hints") {
@@ -143,7 +157,11 @@ export function checkAnswer(problem, attempt) {
   const norm = (value) => String(value).normalize("NFKC").toLowerCase().trim()
     .replace(/^(?:[a-z]\)|\d+[.)])\s+/u, "").replace(/\s+/gu, " ");
   const ok = norm(problem.answer) === norm(attempt);
-  return { applicable: true, correct: ok, expectedHint: ok ? null : "not quite — try the hints level before the solution" };
+  return {
+    applicable: true, correct: ok, comparison: "normalized-text-only",
+    note: "Checks only the recorded short answer, not a proof or symbolic equivalence. A text mismatch may be a format difference.",
+    expectedHint: ok ? null : "Compare your format with the question, or request hints before the solution.",
+  };
 }
 
 /** Deterministic study plan: spread over topics, easy → harder. */
@@ -152,94 +170,62 @@ export function studyPlan(problems, { topic, count = 5 }) {
   const order = { easy: 0, medium: 1, hard: 2, legendary: 3 };
   return pool
     .slice()
-    .sort((a, b) => (order[a.difficulty] ?? 1) - (order[b.difficulty] ?? 1) || a.year - b.year)
+    .sort((a, b) => (order[a.difficulty] ?? 1) - (order[b.difficulty] ?? 1) || a.id.localeCompare(b.id))
     .slice(0, Math.max(1, Math.min(count, 10)))
     .map((p) => ({ id: p.id, title: p.title, difficulty: p.difficulty, topic: p.topic }));
 }
 
 export function makeProgressStore(dataDir) {
-  mkdirSync(dataDir, { recursive: true, mode: 0o700 });
-  const path = join(dataDir, "progress.json");
-  const load = () => {
-    try {
-      const parsed = JSON.parse(readFileSync(path, "utf8"));
-      if (!Array.isArray(parsed.entries)) throw new Error("entries must be an array");
-      return parsed.entries;
-    } catch (error) {
-      if (error.code === "ENOENT") return [];
-      throw new Error("Cannot read progress; preserving the original file", {cause:error});
-    }
+  const validate = value => {
+    if (!object(value) || !Array.isArray(value.entries) || value.entries.length > 1000
+        || value.entries.some(e => !object(e) || !isProblemId(e.id) || !["attempted", "solved", "learning"].includes(e.status)
+          || !optionalText(e.note, 200) || typeof e.at !== "string" || !Number.isFinite(Date.parse(e.at)))
+        || new Set(value.entries.map(e => e.id)).size !== value.entries.length) throw new Error("invalid progress store");
   };
+  const store = makeDataStore(dataDir, "progress.json", { entries: [] }, validate);
   return {
     mark(id, { status, note }) {
-      if (!["attempted", "solved", "learning"].includes(status)) throw new Error("invalid progress status");
-      return withLock(path, () => {
-      const entries = load();
-      const entry = entries.find((e) => e.id === id) ?? { id };
-      if (["attempted", "solved", "learning"].includes(status)) entry.status = status;
-      if (note !== undefined) entry.note = String(note).slice(0, 200);
-      entry.at = new Date().toISOString();
-      if (!entries.includes(entry)) entries.push(entry);
-      writeJson(path, { entries });
-      return entry;
+      if (!isProblemId(id) || !["attempted", "solved", "learning"].includes(status) || !optionalText(note, 200)) throw new Error("invalid progress input");
+      return store.update(value => {
+        const entry = value.entries.find(e => e.id === id) ?? { id };
+        entry.status = status;
+        if (note !== undefined) entry.note = note;
+        entry.at = new Date().toISOString();
+        if (!value.entries.includes(entry)) value.entries.push(entry);
+        return entry;
       });
     },
-    list() {
-      return load();
-    },
+    list() { return store.read().entries; },
   };
 }
 
 export function makeIngestStore(dataDir, builtInIds = []) {
-  mkdirSync(dataDir, { recursive: true });
-  const path = join(dataDir, "user-problems.json");
+  const validate = value => {
+    if (!Array.isArray(value) || value.length > 500 || value.some(p => normalizeProblem(p) === null)
+        || new Set(value.map(p => p.id)).size !== value.length) throw new Error("invalid user corpus");
+  };
+  const store = makeDataStore(dataDir, "user-problems.json", [], validate);
   return {
     ingest(items) {
-      return withLock(path, () => {
-      const added = [];
-      const rejected = [];
-      let existing = [];
-      try {
-        const parsed = JSON.parse(readFileSync(path, "utf8"));
-        if (!Array.isArray(parsed)) throw new Error("user corpus must be an array");
-        existing = parsed;
-      } catch (error) {
-        if (error.code !== "ENOENT") throw new Error("Cannot read user corpus; preserving the original file", {cause:error});
-      }
-      for (const raw of Array.isArray(items) ? items : [items]) {
-        const problem = normalizeProblem(raw);
-        if (problem === null) {
-          rejected.push({ id: raw?.id ?? "?", reason: "id must be YYYY-N and statement ≥ 20 chars" });
-          continue;
+      const inputs = Array.isArray(items) ? items : [items];
+      if (inputs.length > 50) throw new Error("ingest accepts at most 50 items");
+      return store.update(existing => {
+        const added = [], rejected = [];
+        for (const raw of inputs) {
+          const problem = normalizeProblem(raw);
+          if (problem === null) {
+            rejected.push({ id: typeof raw?.id === "string" ? raw.id.slice(0, 64) : "?", reason: "invalid problem fields or limits" });
+          } else if (builtInIds.includes(problem.id) || existing.some(p => p.id === problem.id)) {
+            rejected.push({ id: problem.id, reason: "duplicate" });
+          } else if (existing.length >= 500) {
+            rejected.push({ id: problem.id, reason: "user corpus is full (500 problems)" });
+          } else {
+            existing.push(problem);
+            added.push(problem.id);
+          }
         }
-        if (builtInIds.includes(problem.id) || existing.some((p) => p.id === problem.id)) {
-          rejected.push({ id: problem.id, reason: "duplicate" });
-          continue;
-        }
-        existing.push(raw);
-        added.push(problem.id);
-      }
-      if (added.length > 0) {
-        writeJson(path, existing);
-      }
-      return { added, rejected };
+        return { added, rejected };
       });
     },
   };
-}
-function writeJson(path, value) {
-  const temporary = path + "." + randomUUID() + ".tmp";
-  try {
-    writeFileSync(temporary, JSON.stringify(value, null, 2), {mode:0o600, flag:"wx"});
-    renameSync(temporary, path);
-  } finally { rmSync(temporary, {force:true}); }
-}
-function withLock(path, action) {
-  const lock = path + ".lock";
-  try { mkdirSync(lock, {mode:0o700}); }
-  catch(error) {
-    if(error.code === "EEXIST") throw new Error("Store busy; retry. Crash locks require operator recovery.");
-    throw error;
-  }
-  try { return action(); } finally { rmdirSync(lock); }
 }
