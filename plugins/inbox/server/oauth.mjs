@@ -1,246 +1,144 @@
-/**
- * Gmail OAuth2 with a local loopback redirect — no third-party cloud, no
- * browser embedded: the plugin opens the consent URL, Google redirects to
- * http://localhost:<port> on this machine, and the code exchanges there.
- * Tokens live only in the plugin data directory. Endpoints are injectable
- * so the whole flow is testable against a local mock.
- */
+/** Desktop OAuth: loopback + PKCE, read-only Gmail and private local storage. */
 import { createServer } from "node:http";
-import { randomBytes } from "node:crypto";
-import { mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { createHash, randomBytes } from "node:crypto";
+import { mkdirSync, readFileSync, renameSync, writeFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
 
-export const GMAIL_SCOPES = [
-  // Read-only on mail; label modify for triage. No send, no delete.
-  "https://www.googleapis.com/auth/gmail.readonly",
-  "https://www.googleapis.com/auth/gmail.labels",
-];
-
+export const GMAIL_SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"];
 export const DEFAULT_AUTH_BASE = "https://accounts.google.com";
 export const DEFAULT_API_BASE = "https://gmail.googleapis.com";
 
-export function makeOAuth({
-  dataDir,
-  fetchImpl = globalThis.fetch,
-  authBase = DEFAULT_AUTH_BASE,
-  profileUrl = "https://www.googleapis.com/oauth2/v3/userinfo",
-  consoleUrl = "https://console.cloud.google.com/apis/credentials",
-} = {}) {
-  mkdirSync(dataDir, { recursive: true });
+export function makeOAuth({ dataDir, fetchImpl = globalThis.fetch, authBase = DEFAULT_AUTH_BASE,
+  tokenUrl = "https://oauth2.googleapis.com/token",
+  profileUrl = "https://gmail.googleapis.com/gmail/v1/users/me/profile",
+  consoleUrl = "https://console.cloud.google.com/apis/credentials" } = {}) {
+  mkdirSync(dataDir, { recursive: true, mode: 0o700 });
   const tokenPath = join(dataDir, "oauth-tokens.json");
   const credentialsPath = join(dataDir, "oauth-credentials.json");
-  /** Pending loopback flow state, in-process only. */
   let pending = null;
+  let lastError = null;
+  let generation = 0;
+  let refreshing = null;
 
-  function loadJson(path, fallback) {
-    try {
-      return JSON.parse(readFileSync(path, "utf8"));
-    } catch {
-      return fallback;
-    }
+  function loadJson(path) {
+    try { return JSON.parse(readFileSync(path, "utf8")); }
+    catch (error) { if (error.code === "ENOENT") return null; throw new Error("Cannot read local OAuth state; original file preserved"); }
   }
-
   function saveJson(path, value) {
-    writeFileSync(`${path}.tmp`, JSON.stringify(value, null, 2));
-    renameSync(`${path}.tmp`, path);
+    const temporary = path + "." + randomBytes(12).toString("hex") + ".tmp";
+    try {
+      writeFileSync(temporary, JSON.stringify(value, null, 2), { mode: 0o600, flag: "wx" });
+      renameSync(temporary, path);
+    } finally { rmSync(temporary, { force: true }); }
   }
-
+  const credentials = () => loadJson(credentialsPath);
+  const tokens = () => loadJson(tokenPath);
+  function cancelPending() {
+    if (!pending) return;
+    pending.controller.abort();
+    clearTimeout(pending.timer);
+    pending.server?.close();
+    pending = null;
+  }
+  function disconnect() {
+    generation += 1;
+    cancelPending();
+    rmSync(tokenPath, { force: true });
+    return { disconnected: true, note: "Local tokens removed. Revoke Google account access separately if desired." };
+  }
   function storeCredentials({ clientId, clientSecret }) {
-    if (typeof clientId !== "string" || !/^[0-9A-Za-z-]+[0-9A-Za-z._-]*\.apps\.googleusercontent\.com$/u.test(clientId.trim())) {
-      return { error: "clientId must look like <id>.apps.googleusercontent.com (Google Cloud → APIs & Services → Credentials → OAuth client, application type Desktop)" };
-    }
-    if (typeof clientSecret !== "string" || clientSecret.trim().length < 10) {
-      return { error: "clientSecret is required (Desktop OAuth clients always have one)" };
-    }
+    if (typeof clientId !== "string" || !/^[0-9A-Za-z-]+[0-9A-Za-z._-]*\.apps\.googleusercontent\.com$/u.test(clientId.trim())) return { error: "clientId must be a Google Desktop OAuth client ID (*.apps.googleusercontent.com)" };
+    if (typeof clientSecret !== "string" || clientSecret.trim().length < 10) return { error: "clientSecret is required for the Desktop OAuth client" };
+    disconnect();
     saveJson(credentialsPath, { clientId: clientId.trim(), clientSecret: clientSecret.trim() });
     return { stored: true };
   }
-
-  function credentials() {
-    return loadJson(credentialsPath, null);
-  }
-
-  function tokens() {
-    return loadJson(tokenPath, null);
-  }
-
   function status() {
-    const creds = credentials();
-    const tok = tokens();
-    return {
-      credentialsStored: creds !== null,
-      connected: tok?.refreshToken !== undefined,
-      email: tok?.email ?? null,
-      scopes: tok?.scope ?? null,
-      tokenExpiresAt: tok?.accessTokenExpiresAt ?? null,
-      consentUrl: pending?.consentUrl ?? null,
-      pendingSince: pending?.startedAt ?? null,
-      setupHint: creds === null
-        ? `Create a Desktop OAuth client in ${consoleUrl}, enable the Gmail API for the project, then call auth_store_credentials. Keep the Google Cloud app in Testing mode with yourself as test user.`
-        : null,
-    };
+    const creds = credentials(); const tok = tokens();
+    return { credentialsStored: creds !== null, connected: typeof tok?.refreshToken === "string" && tok.refreshToken.length > 0,
+      email: tok?.email ?? null, scopes: tok?.scope ?? null, tokenExpiresAt: tok?.accessTokenExpiresAt ?? null,
+      consentUrl: pending?.consentUrl ?? null, pendingSince: pending?.startedAt ?? null, lastError,
+      setupHint: creds === null ? "Create a Desktop OAuth client in " + consoleUrl + ", enable Gmail API, then use auth_store_credentials. Testing-mode apps require periodic reauthorization." : null };
   }
-
-  /**
-   * Begin the consent flow: spin up the loopback listener, return the URL
-   * for the user to open. Completion happens in the background; poll with
-   * auth_status.
-   */
+  async function requestToken(body, signal) {
+    const response = await fetchImpl(tokenUrl, { method: "POST", redirect: "error",
+      signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(30000)]) : AbortSignal.timeout(30000),
+      headers: { "content-type": "application/x-www-form-urlencoded" }, body: new URLSearchParams(body) });
+    if (!response.ok) throw new Error("Google token request failed: HTTP " + response.status + "; reconnect if access expired or was revoked");
+    const value = await response.json();
+    if (typeof value.access_token !== "string" || !value.access_token || !Number.isFinite(Number(value.expires_in)) || Number(value.expires_in) <= 0) throw new Error("Google returned an invalid token response");
+    return value;
+  }
   async function beginFlow() {
     const creds = credentials();
-    if (creds === null) {
-      return { error: status().setupHint };
-    }
-    if (pending !== null) {
-      return { consentUrl: pending.consentUrl, alreadyPending: true };
-    }
-    const port = await freePort();
-    const redirectUri = `http://localhost:${port}`;
-    const state = randomBytes(16).toString("hex");
-    const consentUrl = new URL(`${authBase}/o/oauth2/v2/auth`);
-    consentUrl.searchParams.set("client_id", creds.clientId);
-    consentUrl.searchParams.set("redirect_uri", redirectUri);
-    consentUrl.searchParams.set("response_type", "code");
-    consentUrl.searchParams.set("scope", GMAIL_SCOPES.join(" "));
-    consentUrl.searchParams.set("access_type", "offline");
-    consentUrl.searchParams.set("prompt", "consent");
-    consentUrl.searchParams.set("state", state);
-
-    pending = { consentUrl: consentUrl.href, startedAt: new Date().toISOString(), port, state, server: null };
+    if (!creds) return { error: status().setupHint };
+    if (pending) return { consentUrl: pending.consentUrl, alreadyPending: true };
+    lastError = null;
+    const flowGeneration = generation;
+    const state = randomBytes(32).toString("base64url");
+    const verifier = randomBytes(32).toString("base64url");
+    const flow = { startedAt: new Date().toISOString(), controller: new AbortController(), claimed: false };
+    pending = flow;
+    let redirectUri;
     const server = createServer(async (req, res) => {
-      const url = new URL(req.url, redirectUri);
-      const respond = (title, detail) => {
-        res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
-        res.end(`<!doctype html><meta charset="utf-8"><title>${title}</title><body style="font-family:system-ui;padding:3rem"><h2>${title}</h2><p>${detail}</p><p>You can close this tab and return to your agent.</p></body>`);
+      const respond = (statusCode, message) => {
+        res.writeHead(statusCode, { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store", "x-content-type-options": "nosniff" });
+        res.end(message);
       };
-      if (url.pathname !== "/" || !url.searchParams.has("code")) {
-        respond("Nothing here", "This page expects the Google OAuth redirect.");
-        return;
-      }
-      if (url.searchParams.get("state") !== state) {
-        respond("State mismatch", "The OAuth state does not match this flow; restart the setup.");
-        return;
-      }
+      const url = new URL(req.url, redirectUri);
+      if (req.method !== "GET" || url.pathname !== "/") return respond(404, "Not found");
+      if (url.searchParams.get("state") !== state) return respond(400, "OAuth state mismatch");
+      if (pending !== flow || flow.claimed) return respond(409, "This consent flow is no longer active");
+      if (url.searchParams.has("error")) { lastError = "Google consent was denied. Start auth_begin to retry."; respond(400, lastError); cancelPending(); return; }
+      const code = url.searchParams.get("code");
+      if (!code) return respond(400, "Missing authorization code");
+      flow.claimed = true;
       try {
-        const exchanged = await exchangeCode(url.searchParams.get("code"), creds, redirectUri);
-        const profile = await fetchProfile(exchanged.accessToken);
-        saveJson(tokenPath, {
-          ...exchanged,
-          email: profile?.email ?? null,
-          savedAt: new Date().toISOString(),
-        });
-        pending.completed = true;
-        respond("Inbox connected", `Gmail access stored locally for ${profile?.email ?? "your account"}.`);
+        const body = await requestToken({ code, client_id: creds.clientId, client_secret: creds.clientSecret,
+          redirect_uri: redirectUri, code_verifier: verifier, grant_type: "authorization_code" }, flow.controller.signal);
+        if (typeof body.refresh_token !== "string" || !body.refresh_token) throw new Error("Google returned no refresh token; reconnect with consent");
+        const profileResponse = await fetchImpl(profileUrl, { headers: { authorization: "Bearer " + body.access_token }, redirect: "error", signal: AbortSignal.any([flow.controller.signal, AbortSignal.timeout(15000)]) });
+        if (!profileResponse.ok) throw new Error("Gmail profile failed: HTTP " + profileResponse.status);
+        const profile = await profileResponse.json();
+        if (pending !== flow || generation !== flowGeneration) throw new Error("Consent was cancelled");
+        saveJson(tokenPath, { refreshToken: body.refresh_token, accessToken: body.access_token,
+          accessTokenExpiresAt: Date.now() + Number(body.expires_in) * 1000, scope: body.scope ?? GMAIL_SCOPES.join(" "),
+          email: profile.emailAddress ?? profile.email ?? null, savedAt: new Date().toISOString() });
+        respond(200, "Inbox connected. You can close this tab and return to the app.");
       } catch (error) {
-        pending.error = String(error instanceof Error ? error.message : error);
-        respond("Connection failed", pending.error);
-      } finally {
-        // One redirect per flow: close the loopback once the browser got
-        // its confirmation (or the failure note).
-        setTimeout(() => {
-          try {
-            server.close();
-          } catch {
-            // already closed
-          }
-          if (pending !== null && pending.server === server) pending = null;
-        }, 1000).unref();
-      }
+        lastError = error instanceof Error ? error.message : "OAuth connection failed";
+        respond(400, lastError);
+      } finally { if (pending === flow) cancelPending(); }
     });
-    pending.server = server;
-    await new Promise((resolve) => server.listen(port, "127.0.0.1", resolve));
-    // Auto-close the listener after 10 minutes of waiting.
-    setTimeout(() => {
-      if (pending !== null && !pending.completed) {
-        server.close();
-        pending = null;
-      }
-    }, 10 * 60 * 1000).unref();
-    return { consentUrl: consentUrl.href, redirectUri, note: "Open the URL, sign in, and the tab will confirm. Poll auth_status until connected:true." };
-  }
-
-  async function exchangeCode(code, creds, redirectUri) {
-    const response = await fetchImpl(`${authBase}/oauth2/v4/token`, {
-      method: "POST",
-      headers: { "content-type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        code,
-        client_id: creds.clientId,
-        client_secret: creds.clientSecret,
-        redirect_uri: redirectUri,
-        grant_type: "authorization_code",
-      }),
-    });
-    if (!response.ok) throw new Error(`token exchange failed: HTTP ${response.status}`);
-    const body = await response.json();
-    if (body.refresh_token === undefined) throw new Error("Google returned no refresh_token; retry after revoking app access or keep prompt=consent");
-    return {
-      refreshToken: body.refresh_token,
-      accessToken: body.access_token,
-      accessTokenExpiresAt: Date.now() + body.expires_in * 1000,
-      scope: body.scope ?? GMAIL_SCOPES.join(" "),
-    };
-  }
-
-  async function fetchProfile(accessToken) {
+    flow.server = server;
     try {
-      const response = await fetchImpl(profileUrl, {
-        headers: { authorization: `Bearer ${accessToken}` },
-      });
-      if (!response.ok) return null;
-      const body = await response.json();
-      return { email: body.email ?? null };
-    } catch {
-      return null;
-    }
+      await new Promise((resolve, reject) => { server.once("error", reject); server.listen(0, "127.0.0.1", resolve); });
+    } catch (error) { cancelPending(); throw error; }
+    redirectUri = "http://127.0.0.1:" + server.address().port;
+    const consentUrl = new URL(authBase + "/o/oauth2/v2/auth");
+    for (const [key, value] of Object.entries({ client_id: creds.clientId, redirect_uri: redirectUri, response_type: "code",
+      scope: GMAIL_SCOPES.join(" "), access_type: "offline", prompt: "consent", state,
+      code_challenge: createHash("sha256").update(verifier).digest("base64url"), code_challenge_method: "S256" })) consentUrl.searchParams.set(key, value);
+    flow.consentUrl = consentUrl.href;
+    flow.timer = setTimeout(() => { if (pending === flow) { lastError = "Consent timed out. Start auth_begin to retry."; cancelPending(); } }, 600000).unref();
+    return { consentUrl: consentUrl.href, redirectUri, note: "Open in your system browser; poll auth_status. Gmail access is read-only." };
   }
-
-  /** Valid access token, refreshing transparently when expired. */
   async function accessToken() {
     const tok = tokens();
-    if (tok?.refreshToken === undefined) return null;
-    if (tok.accessTokenExpiresAt - 60_000 > Date.now()) return tok.accessToken;
-    const creds = credentials();
-    const response = await fetchImpl(`${authBase}/oauth2/v4/token`, {
-      method: "POST",
-      headers: { "content-type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        refresh_token: tok.refreshToken,
-        client_id: creds.clientId,
-        client_secret: creds.clientSecret,
-        grant_type: "refresh_token",
-      }),
-    });
-    if (!response.ok) throw new Error(`token refresh failed: HTTP ${response.status} — if the app is in Testing mode the refresh token expires weekly; reconnect with auth_begin`);
-    const body = await response.json();
-    const updated = {
-      ...tok,
-      accessToken: body.access_token,
-      accessTokenExpiresAt: Date.now() + body.expires_in * 1000,
-    };
-    saveJson(tokenPath, updated);
-    return updated.accessToken;
+    if (!tok?.refreshToken) return null;
+    if (tok.accessToken && tok.accessTokenExpiresAt - 60000 > Date.now()) return tok.accessToken;
+    if (refreshing) return refreshing;
+    const currentGeneration = generation;
+    refreshing = (async () => {
+      const creds = credentials();
+      if (!creds) throw new Error("Missing OAuth credentials; reconnect Gmail");
+      const body = await requestToken({ refresh_token: tok.refreshToken, client_id: creds.clientId, client_secret: creds.clientSecret, grant_type: "refresh_token" });
+      if (generation !== currentGeneration) throw new Error("Gmail was disconnected while refreshing");
+      const updated = { ...tok, accessToken: body.access_token, accessTokenExpiresAt: Date.now() + Number(body.expires_in) * 1000 };
+      saveJson(tokenPath, updated);
+      return updated.accessToken;
+    })();
+    try { return await refreshing; } finally { refreshing = null; }
   }
-
-  function disconnect() {
-    try {
-      writeFileSync(tokenPath, "{}");
-    } catch {
-      // best-effort
-    }
-    return { disconnected: true };
-  }
-
   return { storeCredentials, credentials, tokens, status, beginFlow, accessToken, disconnect };
-}
-
-function freePort() {
-  return new Promise((resolve, reject) => {
-    const server = createServer();
-    server.listen(0, "127.0.0.1", () => {
-      const { port } = server.address();
-      server.close(() => resolve(port));
-    });
-    server.once("error", reject);
-  });
 }

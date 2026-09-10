@@ -39,7 +39,7 @@ export function buildGraph(records) {
       }));
       void entry;
     } else {
-      for (const to of [record.from, ...(record.tos ?? [])].filter(Boolean)) {
+      for (const to of [...new Set(record.tos ?? [])].filter(Boolean)) {
         bump(to, (existing) => ({
           outgoing: existing.outgoing + 1,
           lastSeen: touchLast(existing),

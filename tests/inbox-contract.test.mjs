@@ -98,6 +98,13 @@ test("mime: attachments and List-Unsubscribe harvesting", () => {
   assert.equal(emailAddress("carlos@EJEMPLO.com"), "carlos@ejemplo.com");
 });
 
+test("mime: missing plain payload falls back to html, attachments are not bodies, links are not rewritten", () => {
+  const payload = payloadFixture({ html: "<p>Actual message =20</p>" });
+  payload.parts.unshift({ mimeType: "text/plain", body: {} }, { mimeType: "text/plain", filename: "private.txt", body: { data: Buffer.from("not the body").toString("base64url") } });
+  assert.equal(bodyText(payload), "Actual message =20");
+  assert.equal(listUnsubscribe({ headers: [{ name: "List-Unsubscribe", value: "<http://example.test/u>" }] }).url, "http://example.test/u");
+});
+
 test("dates: es/en prose dates land on the right ISO day (paper-radar engine)", () => {
   const found = extractDates("te envío el informe antes del 15 de octubre de 2026. Also due September 30, 2026. Numérico: 03/11/2026");
   const isos = found.map((entry) => entry.iso);
@@ -303,7 +310,7 @@ test("oauth: consent URL shape, token exchange and refresh against a mock endpoi
     }
     return { ok: false, status: 404, json: async () => ({}) };
   };
-  const oauth = makeOAuth({ dataDir: dir, fetchImpl: fetchMock, authBase: "https://auth.mock", profileUrl: "https://auth.mock/v3/userinfo" });
+  const oauth = makeOAuth({ dataDir: dir, fetchImpl: fetchMock, authBase: "https://auth.mock", tokenUrl: "https://auth.mock/oauth2/v4/token", profileUrl: "https://auth.mock/v3/userinfo" });
   const bad = oauth.storeCredentials({ clientId: "nope", clientSecret: "short" });
   assert.ok(bad.error !== undefined);
   oauth.storeCredentials({ clientId: "1234-abc.apps.googleusercontent.com", clientSecret: "GOCSPX-supersecret" });
@@ -397,7 +404,7 @@ test("mcp server: handshake, catalog, unauthenticated behavior — as a real chi
     for (const expected of [
       "auth_store_credentials", "auth_begin", "auth_status", "auth_disconnect",
       "digest", "search", "read", "loops_scan", "graph_stats",
-      "cleanup_scan", "documents_scan", "vault_fetch", "vault_search", "label_apply",
+      "cleanup_scan", "documents_scan", "vault_fetch", "vault_search",
     ]) {
       assert.ok(names.includes(expected), `tool ${expected} listed`);
     }

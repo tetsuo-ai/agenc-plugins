@@ -16,9 +16,9 @@ export function header(payload, name) {
  */
 export function bodyText(payload, snippet = "") {
   const parts = collectParts(payload);
-  const plain = parts.find((part) => part.mimeType === "text/plain" && part.data !== undefined);
+  const plain = parts.find((part) => part.mimeType === "text/plain" && !part.filename && typeof part.data === "string");
   if (plain !== undefined) return decodeBody(plain);
-  const html = parts.find((part) => part.mimeType === "text/html" && part.data !== undefined);
+  const html = parts.find((part) => part.mimeType === "text/html" && !part.filename && typeof part.data === "string");
   if (html !== undefined) return htmlToText(decodeBody(html));
   return snippet;
 }
@@ -39,11 +39,11 @@ export function listUnsubscribe(payload) {
   const value = header(payload, "List-Unsubscribe");
   if (value === null) return null;
   const mailto = value.match(/<mailto:([^>]+)>/iu);
-  const https = value.match(/<https?:\/\/([^>]+)>/iu);
+  const https = value.match(/<(https?:\/\/[^>]+)>/iu);
   return {
     raw: value,
     ...(mailto !== null ? { mailto: mailto[1] } : {}),
-    ...(https !== null ? { url: `https://${https[1]}` } : {}),
+    ...(https !== null ? { url: https[1] } : {}),
   };
 }
 
@@ -72,10 +72,9 @@ export function decodeBody(part) {
   const data = part.data ?? part.body?.data ?? null;
   if (data === null) return "";
   const buffer = Buffer.from(data, "base64");
-  let text = buffer.toString("utf8");
-  const encoding = encodingOf(part);
-  if (encoding === "quoted-printable") text = decodeQuotedPrintable(text);
-  return text;
+  // Gmail format=full has already decoded MIME Content-Transfer-Encoding.
+  // body.data is base64url, not another quoted-printable layer.
+  return buffer.toString("utf8");
 }
 
 function encodingOf(part) {

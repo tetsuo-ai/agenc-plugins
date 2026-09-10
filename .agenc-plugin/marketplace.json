@@ -54,8 +54,8 @@
       }
     },
     {
-      "name": "inbox",
-      "source": "./plugins/inbox",
+      "name": "paper-radar",
+      "source": "./plugins/paper-radar",
       "category": "productivity",
       "policy": {
         "installation": "AVAILABLE",
@@ -63,8 +63,8 @@
       }
     },
     {
-      "name": "paper-radar",
-      "source": "./plugins/paper-radar",
+      "name": "inbox",
+      "source": "./plugins/inbox",
       "category": "productivity",
       "policy": {
         "installation": "AVAILABLE",
