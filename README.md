@@ -1,6 +1,6 @@
 # AgenC Plugins
 
-The first-party plugin marketplace for AgenC. It contains eight packages:
+The first-party plugin marketplace for AgenC. It contains nine packages:
 
 - **Zero Day Hunter** — a security-research campaign skill.
 - **IoT Builder** — a guarded PlatformIO build/upload workflow.
@@ -21,6 +21,10 @@ The first-party plugin marketplace for AgenC. It contains eight packages:
 - **Pluma** — writing styles with a deterministic verifier: ten output
   styles (voices and full forms) plus a prose linter that checks register,
   structure, length and readability before anything is delivered.
+- **Forja** — code writing styles with a deterministic verifier: clean,
+  defensive, functional and solid disciplines plus the minimal-diff surgery
+  protocol, checked by a structural code linter (including measured
+  consistency with the file being edited).
 
 ## Plugin, skill, and MCP
 
