@@ -1,6 +1,6 @@
 # AgenC Plugins
 
-The first-party plugin marketplace for AgenC. It contains ten packages:
+The first-party plugin marketplace for AgenC. It contains eleven packages:
 
 
 - **Zero Day Hunter** — a security-research campaign skill.
@@ -31,6 +31,11 @@ The first-party plugin marketplace for AgenC. It contains ten packages:
   deterministic verifier: modern three.js/canvas2d/WebGPU patterns retrieved
   (not recalled), an API-era table that kills the classic hallucinations,
   performance heuristics, and a self-checking HTML harness.
+
+
+- **Olimpo** — 16 original olympiad-style exercises across four topics, with
+  progressive hints, worked solutions, conservative short-answer comparison,
+  study plans and private imports. Not an official IMO archive.
 
 
 ## Plugin, skill, and MCP
@@ -76,8 +81,8 @@ agenc plugin marketplace add /path/to/agenc-plugins --name agenc-plugins
 ```
 
 Open `/plugins` inside AgenC, choose `agenc-plugins`, and install a package.
-Core does not currently expose `marketplace catalog` or `marketplace install`
-as CLI commands.
+Current Core also exposes `plugin marketplace catalog` and
+`plugin marketplace install <plugin@marketplace>` as CLI commands.
 
 ## Install from agenc.tech
 
@@ -177,7 +182,9 @@ All ten available plugins ship the approved profile artwork as 512 × 512,
 8-bit RGBA PNGs. Their manifests and signatures include the new assets.
 Refresh the catalog and install or update from its latest pinned source to
 receive them; publication does not automatically install plugins or enable
-permissions on existing clients. Olimpo remains unreleased.
+permissions on existing clients. Olimpo joins the catalog with original,
+MIT-licensed exercises and its matching profile artwork; the copied draft
+corpus is not included.
 
 For an existing install, use the latest catalog source explicitly: a bare
 `plugin update` can reuse the SHA recorded at installation. The remote smoke

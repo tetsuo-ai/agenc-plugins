@@ -1,0 +1,17 @@
+{
+  "publisher": "tetsuo-ai",
+  "signature": "tLH6dZVDK1hcexi/s2IjIqG9TWRJbZiGeKoF8Klc72s0MHuzwxklBAVnazuJbendafpXsMxrwM1IDL98eZ0iBw==",
+  "files": {
+    "assets/logo.png": "sha256:94cc12daafc812b023318ac7779c926a80dfdf5fdc014df7f371cccae0787c5d",
+    "commands/olimpo.md": "sha256:b4667cea2147b281c3d59901613574b081ad8e9a1fd63bb0df21c7638536ce0f",
+    "corpus/problems-original.json": "sha256:74d15e32705ce3d502edb6d021dd09836a6ea9ce694c85f0a8199a57a8ef6c68",
+    "corpus/REVIEW.md": "sha256:eff322ca7b950acb4f9381dbbbfa704f4a0ad8c700d3d0136325310bc2acb549",
+    "corpus/SOURCES.md": "sha256:5408835ca01d19021c29a1752cd4b2c4fab5c074857682b53e64d76cd71059a5",
+    "LICENSE": "sha256:ae0203eb52c146e675b84a04cb108855609d48a05a6661fbbf5cdd295e00b05b",
+    "README.md": "sha256:9275bfff042230a01069c68047c6ee7630db8ded20c3aaacf141211eee555604",
+    "server/corpus.mjs": "sha256:c9cc06703fe80a2f0670bb68cfb559478eced796e329c3f0653cd24947cb415d",
+    "server/main.mjs": "sha256:ccc75320e7bdd30ba744e5a9aabf73964c49e98a0549d016b69aaf1618cdd8fe",
+    "server/storage.mjs": "sha256:df39c92a5f163b28ed28200354405dc4c7800d772c380356e23e3d601d5ee501",
+    "skills/olimpiada/SKILL.md": "sha256:41e91e617f624a59b6af08d92c81825956b028eb54967fe88f3e1d0652984447"
+  }
+}

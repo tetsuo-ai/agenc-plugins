@@ -19,6 +19,18 @@ const probes = {
   pluma: [["styles_list", {}, /email-profesional/], ["style_lint", { text: "Entrega el informe hoy.", style: "directo" }, /violations/]],
   forja: [["code_styles_list", {}, /minimal-diff/], ["code_lint", { code: "export const double = (value) => value * 2;", style: "limpio" }, /violations/]],
   motor3d: [["scaffolds_list", {}, /three-basic-scene/], ["scaffold_get", { name: "three-basic-scene" }, /WebGLRenderer/], ["lint3d", { code: "new THREE.Geometry();" }, /BufferGeometry/], ["harness_build", { code: "document.body.dataset.qa = 'ok';" }, /doctype/]],
+  olimpo: [
+    ["problems_list", {limit:100}, /"count":16/],
+    ["problem_search", {query:"vieta"}, /olimpo-nt-004/],
+    ["problem_get", {id:"olimpo-nt-001",level:"solution"}, /"answer":"1"/],
+    ["answer_check", {id:"olimpo-co-001",attempt:"20"}, /"correct":true/],
+    ["problem_random", {topic:"geometry"}, /olimpo-ge-/],
+    ["study_plan", {count:3}, /"plan"/],
+    ["progress_mark", {id:"olimpo-nt-001",status:"attempted"}, /attempted/],
+    ["progress_list", {}, /olimpo-nt-001/],
+    ["ingest", {items:[{id:"user-native-qa",statement:"A private synthetic QA exercise for the native sandbox."}]}, /user-native-qa/],
+    ["problem_get", {id:"user-native-qa"}, /unreviewed/],
+  ],
 };
 
 function run(args, cwd, env) {
