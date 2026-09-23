@@ -11,7 +11,11 @@ const skill = name => readFileSync(join(root, "skills", name, "SKILL.md"), "utf8
 test("Stonks starts its signed local server without a user-level workaround or shell preapproval", () => {
   assert.deepEqual(manifest.mcpServers["stonks-data"], {
     command: "node", args: ["./server/main.mjs"], transport: "stdio",
+    env: { STONKS_EDGAR_USER_AGENT: "${user_config.edgarContact}" },
   });
+  assert.equal(manifest.userConfig.edgarContact.required, false);
+  assert.equal(manifest.userConfig.edgarContact.sensitive, false);
+  assert.equal(manifest.userConfig.edgarContact.default, "");
   for (const command of Object.values(manifest.commands)) assert.equal(command.allowedTools, undefined);
 });
 
@@ -36,8 +40,10 @@ test("Stonks copy describes requested scans and preserves the app punctuation st
   assert.match(journal, /do not update, close or delete a thesis/);
 });
 
-test("Stonks instructions expose chart paths as actual Desktop media, not hidden code blocks", () => {
-  assert.match(skill("stock-analyzer"), /!\[Price chart\]\(<absolute path>\).*outside code fences/);
+test("Stonks instructions use SVG paths and label partial scores", () => {
+  assert.match(skill("stock-analyzer"), /technical score as technical only/u);
+  assert.match(skill("stock-analyzer"), /Markdown image/u);
+  assert.match(skill("stock-analyzer"), /never recreate it with text characters/u);
   assert.match(skill("portfolio-xray"), /!\[Portfolio exposure\]\(<absolute path>\).*outside code fences/);
   assert.match(skill("portfolio-xray"), /Unknown fees are not zero/);
 });
