@@ -1,10 +1,85 @@
 /**
  * Zero-dependency chart rendering: standalone SVG artifacts (price chart
- * with moving averages, portfolio treemap) plus inline unicode sparklines
- * for terminal output. Pure functions - no I/O.
+ * with moving averages and portfolio treemap), plus a future typed chart
+ * payload. Pure functions, no I/O.
  */
 
 const SPARK_CHARS = ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"];
+
+/** Preserve complete OHLC bars when a long history needs fewer chart points. */
+export function chartBars(bars, maxPoints = 600) {
+  if (bars.length <= maxPoints) return { bars, indices: bars.map((_, i) => i), period: "daily" };
+  const weeks = [];
+  let group = [];
+  let previousWeek = null;
+  for (let i = 0; i < bars.length; i += 1) {
+    const date = new Date(`${bars[i].date}T00:00:00Z`);
+    date.setUTCDate(date.getUTCDate() - (date.getUTCDay() + 6) % 7);
+    const week = date.toISOString().slice(0, 10);
+    if (week !== previousWeek && group.length > 0) weeks.push(group);
+    if (week !== previousWeek) group = [];
+    group.push(i);
+    previousWeek = week;
+  }
+  if (group.length > 0) weeks.push(group);
+  const span = Math.ceil(weeks.length / maxPoints);
+  const groups = [];
+  for (let i = 0; i < weeks.length; i += span) groups.push(weeks.slice(i, i + span).flat());
+  return {
+    bars: groups.map((indices) => {
+      const batch = indices.map((index) => bars[index]);
+      return {
+        date: batch.at(-1).date,
+        open: batch[0].open,
+        high: Math.max(...batch.map((bar) => bar.high)),
+        low: Math.min(...batch.map((bar) => bar.low)),
+        close: batch.at(-1).close,
+        volume: batch.every((bar) => Number.isFinite(bar.volume))
+          ? batch.reduce((sum, bar) => sum + bar.volume, 0) : null,
+      };
+    }),
+    indices: groups.map((indices) => indices.at(-1)),
+    period: span === 1 ? "weekly" : `${span}-week`,
+  };
+}
+
+/** AgenC chat chart format v1. Moving averages remain daily-period values. */
+export function priceChartBlock(bars, { symbol, maxPoints = 600, lastPoints = null } = {}) {
+  if (bars.length === 0) return null;
+  const start = lastPoints === null ? 0 : Math.max(0, bars.length - lastPoints);
+  const sampled = chartBars(bars.slice(start), maxPoints);
+  const closes = bars.map((bar) => bar.close);
+  const series = [{
+    type: "candlestick", name: symbol, scale: "price",
+    data: sampled.bars.map((bar) => ({ time: bar.date, open: bar.open, high: bar.high, low: bar.low, close: bar.close })),
+  }];
+  for (const period of [50, 200]) {
+    const values = smaAligned(closes, period);
+    const data = sampled.indices.flatMap((index) => Number.isFinite(values[index + start])
+      ? [{ time: bars[index + start].date, value: values[index + start] }] : []);
+    if (data.length > 0) series.push({ type: "line", name: `SMA ${period}`, scale: "price", data });
+  }
+  const volume = sampled.bars.flatMap((bar) => Number.isFinite(bar.volume)
+    ? [{ time: bar.date, value: bar.volume }] : []);
+  if (volume.length > 0) series.push({ type: "histogram", name: "Volume", scale: "volume", data: volume });
+  const latest = bars.at(-1);
+  return {
+    version: 1, kind: "timeseries", title: `${symbol}, ${sampled.period}`,
+    subtitle: `Source: ${latest.source ?? "market data"}. Last close ${latest.date}.`,
+    currency: latest.currency ?? "USD", series,
+  };
+}
+
+function smaAligned(values, period) {
+  const out = new Array(values.length);
+  let sum = 0;
+  for (let i = 0; i < values.length; i += 1) {
+    sum += values[i];
+    if (i >= period) sum -= values[i - period];
+    if (i >= period - 1) out[i] = sum / period;
+  }
+  return out;
+}
 
 export function sparkline(values, width = 24) {
   if (values.length < 2 || !values.every(Number.isFinite) || !Number.isInteger(width) || width < 2) return "";
@@ -43,9 +118,9 @@ function escapeXml(value) {
  */
 export function priceChartSvg(bars, { symbol, overlays = {}, width = 960, height = 480 } = {}) {
   if (bars.length < 2 || !bars.every((bar) => Number.isFinite(bar.close)) || !Number.isFinite(width) || width < 240 || !Number.isFinite(height) || height < 180) return null;
-  const margin = { top: 52, right: 72, bottom: 48, left: 72 };
-  const volumeHeight = Math.round((height - margin.top - margin.bottom) * 0.18);
-  const priceHeight = height - margin.top - margin.bottom - volumeHeight - 12;
+  const margin = { top: 100, right: 72, bottom: 42, left: 72 };
+  const volumeHeight = Math.round((height - margin.top - margin.bottom) * 0.20);
+  const priceHeight = height - margin.top - margin.bottom - volumeHeight - 24;
   const highs = bars.map((bar) => Number.isFinite(bar.high) ? bar.high : bar.close);
   const lows = bars.map((bar) => Number.isFinite(bar.low) ? bar.low : bar.close);
   let yMax = Math.max(...highs);
@@ -67,32 +142,33 @@ export function priceChartSvg(bars, { symbol, overlays = {}, width = 960, height
     height - margin.bottom - (volume / maxVolume) * volumeHeight;
 
   const closes = bars.map((bar) => bar.close);
-  const first = closes[0];
   const last = closes[closes.length - 1];
-  const up = last >= first;
-  const lineColor = up ? "#22c55e" : "#ef4444";
+  const previous = closes.at(-2);
+  const change = previous === undefined ? null : last - previous;
+  const lineColor = "#2563eb";
   const closePath = closes.map((value, i) => `${x(i).toFixed(1)},${y(value).toFixed(1)}`).join(" ");
 
   const gridLines = [];
-  for (let step = 0; step <= 4; step += 1) {
-    const value = yMin + ((yMax - yMin) * step) / 4;
+  const tickStep = niceStep(yMax - yMin, 5);
+  const tickDecimals = Math.max(0, Math.min(8, -Math.floor(Math.log10(tickStep) + 1e-9)));
+  for (let value = Math.ceil(yMin / tickStep) * tickStep; value <= yMax + tickStep * 1e-9; value += tickStep) {
     const py = y(value).toFixed(1);
     gridLines.push(
-      `<line x1="${margin.left}" y1="${py}" x2="${width - margin.right}" y2="${py}" stroke="#e2e8f0" stroke-width="1"/>` +
-        `<text x="${width - margin.right + 6}" y="${Number(py) + 4}" font-size="11" fill="#64748b">${fmtPrice(value)}</text>`,
+      `<line x1="${margin.left}" y1="${py}" x2="${width - margin.right}" y2="${py}" stroke="#cbd5e1" stroke-opacity="0.7" stroke-width="1"/>` +
+        `<text x="${width - margin.right + 7}" y="${Number(py) + 4}" font-size="11" fill="#334155">${formatTick(value, tickDecimals)}</text>`,
     );
   }
 
-  const overlayColors = { sma50: "#f59e0b", sma200: "#8b5cf6" };
+  const overlayColors = { sma50: "#a16207", sma200: "#7c3aed" };
   const overlayPaths = Object.entries(overlays)
     .map(([label, series], index) => {
-      const color = overlayColors[label] ?? ["#0ea5e9", "#f43f5e", "#84cc16"][index % 3];
+      const color = overlayColors[label] ?? ["#0f766e", "#be185d", "#4d7c0f"][index % 3];
       const offset = Math.max(0, bars.length - series.length);
       const defined = series.slice(-bars.length)
         .map((value, i) => (!Number.isFinite(value) ? null : `${x(i + offset).toFixed(1)},${y(value).toFixed(1)}`))
         .filter((point) => point !== null);
       if (defined.length < 2) return "";
-      return `<polyline fill="none" stroke="${color}" stroke-width="1.5" points="${defined.join(" ")}"/>`;
+      return `<polyline fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="${defined.join(" ")}"/>`;
     })
     .join("");
 
@@ -100,31 +176,41 @@ export function priceChartSvg(bars, { symbol, overlays = {}, width = 960, height
     .map((bar, i) => {
       if (!Number.isFinite(bar.volume) || bar.volume < 0) return "";
       const barWidth = Math.max((width - margin.left - margin.right) / bars.length - 0.5, 0.5);
-      return `<rect x="${(x(i) - barWidth / 2).toFixed(1)}" y="${volumeY(bar.volume).toFixed(1)}" width="${barWidth.toFixed(1)}" height="${(height - margin.bottom - volumeY(bar.volume)).toFixed(1)}" fill="${bar.close >= bar.open ? "#bbf7d0" : "#fecaca"}"/>`;
+      return `<rect x="${(x(i) - barWidth / 2).toFixed(1)}" y="${volumeY(bar.volume).toFixed(1)}" width="${barWidth.toFixed(1)}" height="${(height - margin.bottom - volumeY(bar.volume)).toFixed(1)}" fill="${bar.close >= bar.open ? "#0f766e" : "#c2410c"}" fill-opacity="0.52"/>`;
     })
     .join("");
 
   const dateTicks = [0, Math.floor(bars.length / 2), bars.length - 1]
-    .map((i) => `<text x="${x(i).toFixed(1)}" y="${height - margin.bottom + 18}" font-size="11" fill="#64748b" text-anchor="middle">${escapeXml(bars[i].date)}</text>`)
+    .map((i, tick) => `<text x="${x(i).toFixed(1)}" y="${height - margin.bottom + 19}" font-size="11" fill="#334155" text-anchor="${tick === 0 ? "start" : tick === 2 ? "end" : "middle"}">${escapeXml(shortDate(bars[i].date))}</text>`)
     .join("");
 
+  // Only overlays that actually draw a line get a legend entry.
   const legend = Object.entries(overlays)
+    .filter(([, series]) => series.slice(-bars.length).filter((value) => Number.isFinite(value)).length >= 2)
     .map(([label], index) => {
-      const color = overlayColors[label] ?? ["#0ea5e9", "#f43f5e", "#84cc16"][index % 3];
-      return `<text x="${margin.left + index * 84}" y="${margin.top - 8}" font-size="12" fill="${color}">${escapeXml(label)}</text>`;
+      const color = overlayColors[label] ?? ["#0f766e", "#be185d", "#4d7c0f"][index % 3];
+      const lx = margin.left + 112 + index * 110;
+      return `<line x1="${lx}" y1="${margin.top - 17}" x2="${lx + 17}" y2="${margin.top - 17}" stroke="${color}" stroke-width="3"/><text x="${lx + 23}" y="${margin.top - 13}" font-size="12" fill="#334155">${escapeXml(label.toUpperCase().replace("SMA", "SMA "))}</text>`;
     })
     .join("");
 
   return [
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" font-family="ui-monospace, monospace">`,
-    `<rect width="${width}" height="${height}" fill="#ffffff"/>`,
-    `<text x="${margin.left}" y="20" font-size="14" font-weight="bold" fill="#0f172a">${escapeXml(symbol)} | daily close</text>`,
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" font-family="Inter, system-ui, sans-serif">`,
+    `<rect width="${width}" height="${height}" fill="#f8fafc" rx="12"/>`,
+    `<text x="${margin.left}" y="34" font-size="14" font-weight="700" fill="#0f172a">${escapeXml(symbol)} · PRICE HISTORY</text>`,
+    `<text x="${margin.left}" y="66" font-size="27" font-weight="700" fill="#0f172a">${fmtPrice(last)} ${escapeXml(bars.at(-1).currency ?? "USD")}</text>`,
+    `<text x="${margin.left + 214}" y="63" font-size="14" font-weight="600" fill="${change === null ? "#475569" : change >= 0 ? "#0f766e" : "#c2410c"}">${change === null ? "Change unavailable" : `${change >= 0 ? "+" : ""}${fmtPrice(change)} (${((change / previous) * 100).toFixed(2)}%)`}</text>`,
+    `<text x="${width - margin.right}" y="34" text-anchor="end" font-size="12" fill="#334155">AS OF ${escapeXml(bars.at(-1).date)}</text>`,
+    `<line x1="${margin.left}" y1="83" x2="${width - margin.right}" y2="83" stroke="#cbd5e1"/>`,
+    `<line x1="${margin.left}" y1="${margin.top + priceHeight + 12}" x2="${width - margin.right}" y2="${margin.top + priceHeight + 12}" stroke="#cbd5e1"/>`,
+    `<text x="${margin.left}" y="${margin.top - 13}" font-size="11" fill="#334155">CLOSE</text>`,
+    `<text x="${margin.left}" y="${height - margin.bottom - volumeHeight - 5}" font-size="11" fill="#334155">VOLUME</text>`,
     legend,
     gridLines.join(""),
     volumeBars,
-    `<polyline fill="none" stroke="${lineColor}" stroke-width="2" points="${closePath}"/>`,
+    `<polyline fill="none" stroke="${lineColor}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" points="${closePath}"/>`,
     overlayPaths,
-    `<circle cx="${x(bars.length - 1).toFixed(1)}" cy="${y(last).toFixed(1)}" r="3.5" fill="${lineColor}"/>`,
+    `<circle cx="${x(bars.length - 1).toFixed(1)}" cy="${y(last).toFixed(1)}" r="4" fill="${lineColor}" stroke="#f8fafc" stroke-width="2"/>`,
     dateTicks,
     `</svg>`,
   ].join("");
@@ -142,27 +228,36 @@ export function treemapSvg(items, { title = "Portfolio", width = 960, height = 6
   const total = normalized.reduce((a, item) => a + item.weight, 0);
   if (total <= 0 || normalized.length === 0) return null;
   const parts = [
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" font-family="ui-monospace, monospace">`,
-    `<rect width="${width}" height="${height}" fill="#0f172a"/>`,
-    `<text x="16" y="28" font-size="16" font-weight="bold" fill="#f8fafc">${escapeXml(title)}</text>`,
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" font-family="Inter, system-ui, sans-serif">`,
+    `<rect width="${width}" height="${height}" fill="#f8fafc" rx="12"/>`,
+    `<text x="24" y="36" font-size="20" font-weight="700" fill="#0f172a">${escapeXml(String(title).length > 50 ? `${String(title).slice(0, 49)}…` : title)}</text>`,
+    `<text x="24" y="59" font-size="12" fill="#334155">AREA = PORTFOLIO WEIGHT</text>`,
+    `<rect x="${width - 297}" y="25" width="12" height="12" rx="2" fill="#0f766e"/><text x="${width - 280}" y="35" font-size="11" fill="#334155">Gain</text>`,
+    `<rect x="${width - 221}" y="25" width="12" height="12" rx="2" fill="#c2410c"/><text x="${width - 204}" y="35" font-size="11" fill="#334155">Loss</text>`,
+    `<rect x="${width - 142}" y="25" width="12" height="12" rx="2" fill="#475569"/><text x="${width - 125}" y="35" font-size="11" fill="#334155">P/L unknown</text>`,
   ];
-  const bodyTop = 44;
-  const bodyHeight = height - bodyTop;
+  const bodyTop = 76;
+  const bodyHeight = height - bodyTop - 18;
+  const bodyWidth = width - 36;
   const bodyRects = squarify(
-    normalized.map((item) => ({ ...item, area: (item.weight / total) * width * bodyHeight })),
-    { x: 0, y: bodyTop, w: width, h: bodyHeight },
+    normalized.map((item) => ({ ...item, area: (item.weight / total) * bodyWidth * bodyHeight })),
+    { x: 18, y: bodyTop, w: bodyWidth, h: bodyHeight },
   );
   for (const rect of bodyRects) {
     const value = rect.value;
-    const fill = !Number.isFinite(value) ? "#475569" : value >= 0 ? mixColor("#14532d", "#22c55e", value) : mixColor("#7f1d1d", "#ef4444", -value);
-    const fontSize = Math.max(Math.min(rect.w / Math.max(rect.label.length * 0.62, 1), rect.h / 3), 9);
+    const fill = !Number.isFinite(value) ? "#475569" : value >= 0 ? mixColor("#0f766e", "#115e59", value) : mixColor("#c2410c", "#9a3412", -value);
+    const label = rect.label.length > 14 ? `${rect.label.slice(0, 13)}…` : rect.label;
+    const fontSize = Math.min(17, Math.floor((rect.w - 18) / Math.max(label.length * 0.63, 1)));
+    const showLabel = fontSize >= 10 && rect.w >= 55 && rect.h >= 44;
     parts.push(
-      `<rect x="${rect.x.toFixed(1)}" y="${rect.y.toFixed(1)}" width="${rect.w.toFixed(1)}" height="${rect.h.toFixed(1)}" fill="${fill}" stroke="#0f172a" stroke-width="2" rx="3"/>`,
+      `<rect x="${(rect.x + 2).toFixed(1)}" y="${(rect.y + 2).toFixed(1)}" width="${Math.max(0, rect.w - 4).toFixed(1)}" height="${Math.max(0, rect.h - 4).toFixed(1)}" fill="${fill}" rx="8"/>`,
     );
-    if (rect.w > 42 && rect.h > 22) {
+    if (showLabel) {
+      const textX = rect.x + 12;
+      const textY = rect.y + Math.min(29, rect.h / 2 - 2);
       parts.push(
-        `<text x="${(rect.x + rect.w / 2).toFixed(1)}" y="${(rect.y + rect.h / 2 - fontSize * 0.2).toFixed(1)}" font-size="${fontSize.toFixed(1)}" fill="#f8fafc" text-anchor="middle" font-weight="bold">${escapeXml(rect.label)}</text>`,
-        `<text x="${(rect.x + rect.w / 2).toFixed(1)}" y="${(rect.y + rect.h / 2 + fontSize * 1.1).toFixed(1)}" font-size="${(fontSize * 0.85).toFixed(1)}" fill="#e2e8f0" text-anchor="middle">${(rect.weight / total * 100).toFixed(1)}%</text>`,
+        `<text x="${textX.toFixed(1)}" y="${textY.toFixed(1)}" font-size="${fontSize}" fill="#fff" font-weight="700">${escapeXml(label)}</text>`,
+        `<text x="${textX.toFixed(1)}" y="${(textY + 17).toFixed(1)}" font-size="11" fill="#fff" fill-opacity="0.9">${(rect.weight / total * 100).toFixed(1)}%${rect.w >= 160 && Number.isFinite(value) ? ` · ${value >= 0 ? "+" : ""}${(value * 100).toFixed(1)}% P/L` : ""}</text>`,
       );
     }
   }
@@ -226,6 +321,27 @@ function mixColor(dark, bright, t) {
   return `rgb(${mix(r1, r2)},${mix(g1, g2)},${mix(b1, b2)})`;
 }
 
+/** A 1, 2, 2.5 or 5 times 10^n step giving about `target` ticks across `range`. */
+export function niceStep(range, target = 5) {
+  if (!Number.isFinite(range) || range <= 0) return 1;
+  const raw = range / target;
+  const magnitude = 10 ** Math.floor(Math.log10(raw));
+  const normalized = raw / magnitude;
+  const factor = normalized < 1.5 ? 1 : normalized < 2.25 ? 2 : normalized < 3.5 ? 2.5 : normalized < 7.5 ? 5 : 10;
+  return factor * magnitude;
+}
+
+function formatTick(value, decimals) {
+  const extra = decimals === 0 && Math.abs(value % 1) > 1e-9 ? 1 : 0;
+  return value.toLocaleString("en-US", { minimumFractionDigits: decimals + extra, maximumFractionDigits: decimals + extra });
+}
+
 function fmtPrice(value) {
-  return value >= 100 ? value.toFixed(0) : value.toFixed(2);
+  return Math.abs(value) >= 1000 ? value.toLocaleString("en-US", { maximumFractionDigits: 0 }) : value.toFixed(2);
+}
+
+function shortDate(value) {
+  const parsed = /^\d{4}-(\d{2})-(\d{2})$/u.exec(value);
+  if (!parsed) return String(value).slice(0, 12);
+  return `${new Date(`${value}T00:00:00Z`).toLocaleString("en-US", { month: "short", timeZone: "UTC" })} ${Number(parsed[2])}, ${value.slice(0, 4)}`;
 }

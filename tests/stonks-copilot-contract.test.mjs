@@ -260,7 +260,7 @@ test("charts: sparkline, price svg and treemap layout", () => {
   assert.ok(svg.startsWith("<svg"));
   assert.ok(svg.includes("<polyline"), "close line exists");
   assert.ok(svg.includes("<rect"), "volume bars exist");
-  assert.ok(svg.includes("sma50"));
+  assert.ok(svg.includes("SMA 50"));
 
   const rects = squarify(
     [

@@ -22,13 +22,26 @@
     "stonks-data": {
       "command": "node",
       "args": ["./server/main.mjs"],
-      "transport": "stdio"
+      "transport": "stdio",
+      "env": {
+        "STONKS_EDGAR_USER_AGENT": "${user_config.edgarContact}"
+      }
+    }
+  },
+  "userConfig": {
+    "edgarContact": {
+      "type": "string",
+      "title": "SEC EDGAR requester contact",
+      "description": "Enter your name or organization and a reachable email address, for example Example Research research@example.com. SEC requires a declared requester for EDGAR requests. Leave blank to use market data tools without EDGAR.",
+      "required": false,
+      "sensitive": false,
+      "default": ""
     }
   },
   "commands": {
     "stock": {
       "source": "./commands/stock.md",
-      "description": "Analyze a stock 50/50: technicals + SEC fundamentals with a blended scorecard and chart",
+      "description": "Analyze a stock using technicals and SEC fundamentals, with a blended score only when both are available",
       "argumentHint": "<symbol>"
     },
     "xray": {

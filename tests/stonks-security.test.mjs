@@ -133,12 +133,19 @@ test("thesis predicates reject prototype operators and coercion, and missing met
   assert.equal(evaluateThesis({ ...thesis, citedMetrics: [null] }, {}).checks[0].status, "invalid");
 });
 
-async function withServer(t) {
+async function withServer(t, { edgarStatus = null, userAgent = "" } = {}) {
   const root = temp(t);
   // A preload replaces fetch before any plugin modules initialize. No test can reach public services.
-  const preload = `data:text/javascript,${encodeURIComponent("globalThis.fetch = async () => { throw new Error('NETWORK_DISABLED_IN_TEST'); };")}`;
+  const facts = { facts: { "us-gaap": { Revenues: { units: { USD: [
+    { start: "2024-01-01", end: "2024-12-31", fy: 2024, fp: "FY", form: "10-K", filed: "2025-02-01", val: 100 },
+    { start: "2025-01-01", end: "2025-12-31", fy: 2025, fp: "FY", form: "10-K", filed: "2026-02-01", val: 150 },
+  ] } } } } };
+  const responseBody = `globalThis.fetch = async (url) => ${edgarStatus === null
+    ? "(() => { throw new Error('NETWORK_DISABLED_IN_TEST'); })()"
+    : `new Response(JSON.stringify(String(url).includes('company_tickers.json') ? {0:{ticker:'AAPL',cik_str:123,title:'Fixture'}} : ${JSON.stringify(facts)}), {status:${edgarStatus}})`};`;
+  const preload = `data:text/javascript,${encodeURIComponent(responseBody)}`;
   const child = spawn(process.execPath, ["--import", preload, SERVER], {
-    env: { PATH: process.env.PATH, AGENC_PLUGIN_DATA: root },
+    env: { PATH: process.env.PATH, AGENC_PLUGIN_DATA: root, STONKS_EDGAR_USER_AGENT: userAgent },
     stdio: ["pipe", "pipe", "pipe"],
   });
   const output = [];
@@ -277,8 +284,71 @@ test("MCP price history includes the full cached series and chart paths use safe
   symlinkSync(outside, join(root, "charts", "aapl-price.svg"));
   const chart = await call("tools/call", { name: "chart_price", arguments: { symbol: "AAPL" } });
   assert.equal(chart.result.structuredContent.bars, bars.length);
+  assert.equal(chart.result.content.length, 1);
+  assert.doesNotMatch(JSON.stringify(chart.result), /```chart|"series"/u);
+  assert.match(chart.result.content[0].text, /SVG chart: .*aapl-price\.svg/u);
+  assert.match(chart.result.content[0].text, /last close 340 USD on .*; change \+1 USD/u);
+  assert.doesNotMatch(JSON.stringify(chart.result), /[▁▂▃▄▅▆▇█]/u);
   assert.equal(readFileSync(outside, "utf8"), "preserved");
   assert.match(readFileSync(chart.result.structuredContent.path, "utf8"), /^<svg/u);
+  const analysis = await call("tools/call", { name: "analyze", arguments: { symbol: "AAPL" } });
+  assert.equal(analysis.result.content.length, 1);
+  assert.equal(analysis.result.structuredContent.blendedScore, null);
+  assert.equal(analysis.result.structuredContent.verdict, null);
+  assert.doesNotMatch(JSON.stringify(analysis.result), /[▁▂▃▄▅▆▇█]/u);
+});
+
+test("all client names receive the same SVG path without a unicode chart", async (t) => {
+  const { root, call } = await withServer(t);
+  makeCache(root).set("bars-v2-AAPL-24m", fixtureBars());
+  await call("initialize", { clientInfo: { name: "sample-cli", version: "1" } });
+  const chart = await call("tools/call", { name: "chart_price", arguments: { symbol: "AAPL" } });
+  assert.equal(chart.result.content.length, 1);
+  assert.match(chart.result.content[0].text, /last close 340 USD on .*SVG chart: .*aapl-price\.svg/u);
+  assert.doesNotMatch(JSON.stringify(chart.result), /[▁▂▃▄▅▆▇█]/u);
+});
+
+test("EDGAR tools explain the missing contact without making a request", async (t) => {
+  const { call } = await withServer(t);
+  const result = await call("tools/call", { name: "fundamentals", arguments: { symbol: "AAPL" } });
+  assert.equal(result.result.isError, true);
+  assert.match(result.result.content[0].text, /config\.toml.*edgarContact/u);
+  assert.match(result.result.content[0].text, /SEC EDGAR requires a requester name and reachable contact email/u);
+});
+
+for (const status of [403, 429, 200]) {
+  test(`analyze score contract with EDGAR HTTP ${status}`, async (t) => {
+    const { root, call } = await withServer(t, { edgarStatus: status, userAgent: "Fixture Research fixture@tests.invalid" });
+    makeCache(root).set("bars-v2-AAPL-24m", fixtureBars());
+    const response = await call("tools/call", { name: "analyze", arguments: { symbol: "AAPL" } });
+    const result = response.result.structuredContent;
+    if (status === 200) {
+      assert.equal(result.technicalOnly, false);
+      assert.ok(Number.isFinite(result.fundamentalScore));
+      assert.ok(Number.isFinite(result.blendedScore));
+      assert.equal(typeof result.verdict, "string");
+      assert.equal(result.fundamentalNote, null);
+    } else {
+      assert.equal(result.technicalOnly, true);
+      assert.equal(result.fundamentalScore, null);
+      assert.equal(result.blendedScore, null);
+      assert.equal(result.verdict, null);
+      assert.match(result.fundamentalNote, new RegExp(`HTTP ${status}`));
+    }
+  });
+}
+
+test("missing EDGAR contact keeps market data working but gives no blended verdict", async (t) => {
+  const { root, call } = await withServer(t);
+  makeCache(root).set("bars-v2-AAPL-24m", fixtureBars());
+  const price = await call("tools/call", { name: "indicators", arguments: { symbol: "AAPL" } });
+  assert.ok(Number.isFinite(price.result.structuredContent.score));
+  const analysis = await call("tools/call", { name: "analyze", arguments: { symbol: "AAPL" } });
+  const result = analysis.result.structuredContent;
+  assert.equal(result.technicalOnly, true);
+  assert.equal(result.blendedScore, null);
+  assert.equal(result.verdict, null);
+  assert.match(result.fundamentalNote, /config\.toml.*edgarContact/u);
 });
 
 test("MCP xray preserves derivative flags and refuses unsupported fund valuation bases", async (t) => {

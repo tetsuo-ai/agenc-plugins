@@ -50,6 +50,23 @@ are public endpoints, not a guaranteed market-data feed. SEC EDGAR company
 facts provide supported US-filing fundamentals. Fund holdings come from the
 latest available verified N-PORT filing, not live fund books.
 
+Before using SEC EDGAR tools, set the required "SEC EDGAR requester contact"
+(`edgarContact`) field in `$AGENC_HOME/config.toml` (normally
+`~/.agenc/config.toml`):
+
+```toml
+[pluginConfigs."stonks-copilot@agenc-plugins".options]
+edgarContact = "Your Organization you@your-domain.com"
+```
+
+Use your own name and reachable email. For standalone MCP
+use, set `STONKS_EDGAR_USER_AGENT` in the server environment. The value must name
+the requester and include a reachable contact email, for example
+`Your Organization you@your-domain.com` with your own details substituted.
+Without this setting, an uncached EDGAR lookup returns a setup message and
+makes no SEC request. SEC requests are paced below 10 per second. The HTTP
+client sends `Accept-Encoding: gzip, deflate`; `Host` comes from each SEC URL.
+
 Read source dates, currency, period basis and warnings before comparing
 metrics. A provider outage, rate limit, missing filing or unsupported symbol
 must not be interpreted as a zero value. EDGAR may reject requests from some
@@ -64,10 +81,12 @@ Its coverage fields identify omitted positions and unsupported derivatives.
 Large portfolio and journal requests run sequentially and can take time; they
 are not a real-time quote service.
 
-Charts are local SVG artifacts with a text sparkline where applicable. Include
-the actual returned absolute path in a Markdown image outside code fences;
-current AgenC Desktop renders these files inline. A terminal can use the
-sparkline and file path. Never fabricate a chart path.
+Stock price tools return a local SVG artifact path with a close line, volume
+and daily SMA 50/200 values. The chart shows its as-of date. The corrected
+OHLC aggregation remains available for a future direct display attachment.
+Show the exact returned SVG path as a Markdown image. Never draw a chart with
+text characters or fabricate a path. Portfolio treemaps also use local SVG
+artifacts.
 
 ## Privacy and storage
 
