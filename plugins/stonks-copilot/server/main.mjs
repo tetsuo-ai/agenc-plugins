@@ -12,12 +12,12 @@
 import { once } from "node:events";
 import { join } from "node:path";
 import { technicalSnapshot } from "./indicators.mjs";
-import { priceChartSvg, treemapSvg } from "./charts.mjs";
+import { priceChartBlock } from "./charts.mjs";
 import { parsePositionsText, xrayPortfolio } from "./portfolio.mjs";
 import { makeCache } from "./cache.mjs";
 import { makeMarketData } from "./bars.mjs";
 import { makeEdgar } from "./edgar.mjs";
-import { makeDataFiles, makeStores } from "./stores.mjs";
+import { makeStores } from "./stores.mjs";
 import {
   SUPPORTED_METRICS,
   evaluateThesis,
@@ -28,7 +28,6 @@ const PROTOCOL_VERSION = "2025-06-18";
 const SERVER_INFO = { name: "stonks-copilot", version: "0.2.5" };
 
 const dataDir = resolveDataDir();
-const chartFiles = makeDataFiles(dataDir, "charts");
 const cache = makeCache(dataDir);
 const marketData = makeMarketData({ cache });
 const edgar = makeEdgar({ cache });
@@ -334,7 +333,7 @@ const tools = [
   },
   {
     name: "chart_price",
-    description: "Render a price chart SVG with a close line, volume and SMA 50/200. Returns its artifact path and a short close summary.",
+    description: "Show a price chart with OHLC, volume and SMA 50/200 as a display attachment. Returns a short price and indicator summary.",
     inputSchema: {
       type: "object",
       properties: {
@@ -346,27 +345,30 @@ const tools = [
     handler: async ({ symbol, months }) => {
       const bars = await marketData.dailyBars(symbol, { months: clampMonths(months) });
       const closes = bars.map((bar) => bar.close);
-      const svg = priceChartSvg(bars, {
-        symbol: symbol.toUpperCase(),
-        overlays: { sma50: smaAligned(closes, 50), sma200: smaAligned(closes, 200) },
+      const chart = priceChartBlock(bars, { symbol: symbol.toUpperCase() });
+      if (chart === null) return text("No bars to draw a chart.");
+      const latest = bars.at(-1);
+      const indicators = { sma50: smaAligned(closes, 50).at(-1) ?? null, sma200: smaAligned(closes, 200).at(-1) ?? null };
+      const period = `${bars[0].date} to ${latest.date} (${chart.title.split(", ").at(-1)})`;
+      const summary = `${symbol.toUpperCase()}, ${period}: last close ${latest.close} ${latest.currency ?? "USD"}; SMA 50 ${indicatorText(indicators.sma50)}, SMA 200 ${indicatorText(indicators.sma200)}.`;
+      return displayResult(summary, [displayResource("chart", `agenc:chart:price:${symbol.toUpperCase()}`, chart)], {
+        symbol: symbol.toUpperCase(), period, asOf: latest.date,
+        lastClose: latest.close, currency: latest.currency ?? "USD", indicators, bars: bars.length,
       });
-      if (svg === null) return text("Not enough bars to draw a chart.");
-      const file = chartFiles.write(`${symbol.toLowerCase()}-price.svg`, svg);
-      return priceResult({ path: file, bars: bars.length, priceData: priceMetadata(bars) }, bars, symbol);
     },
   },
   {
     name: "chart_treemap",
-    description: "Render a portfolio treemap SVG (area = weight, color = position P/L) into the plugin data directory and return its path. Requires a stored portfolio.",
+    description: "Show portfolio position weights as a pie chart and position details as a table. Requires a stored portfolio.",
     inputSchema: { type: "object", properties: {} },
     handler: async () => {
       const holdings = stores.loadHoldings();
       if (holdings.positions.length === 0) {
         return text("No portfolio stored yet. Import one with portfolio_import.");
       }
-      const items = [];
-      const prices = [];
-      const warnings = [];
+      const positions = [];
+      const unpricedSymbols = [];
+      let importedPriceCount = 0;
       for (const position of holdings.positions) {
         let price = position.lastPrice ?? null;
         let priceAsOf = null;
@@ -377,23 +379,45 @@ const tools = [
           price = last.close;
           priceAsOf = last.date;
           priceSource = last.source ?? "market-data";
-        } catch {
-          warnings.push(`${position.symbol}: ${price === null ? "No price available; omitted from chart." : "Using imported price with unknown market date."}`);
-        }
-        prices.push({ symbol: position.symbol, priceAsOf, priceSource });
-        if (price === null) continue;
-        const value = price * position.quantity;
+        } catch { if (price !== null) importedPriceCount += 1; }
+        const value = price === null || !Number.isFinite(price * position.quantity) ? null : price * position.quantity;
+        if (value === null) unpricedSymbols.push(position.symbol);
         const cost = position.costBasis != null ? position.costBasis * position.quantity : null;
-        items.push({
-          label: position.symbol,
-          weight: value,
-          value: cost !== null && cost > 0 ? (value - cost) / cost : 0,
+        positions.push({
+          symbol: position.symbol, quantity: position.quantity, kind: position.kind,
+          lastPrice: price, priceAsOf, priceSource, value, costBasis: position.costBasis ?? null,
+          costTotal: Number.isFinite(cost) ? cost : null,
+          pl: value !== null && cost !== null && Number.isFinite(value - cost) ? value - cost : null,
+          plPct: value !== null && cost !== null && cost > 0 && Number.isFinite((value - cost) / cost) ? (value - cost) / cost : null,
+          expenseRatioPct: position.expenseRatioPct ?? null,
         });
       }
-      const svg = treemapSvg(items, { title: `Portfolio - ${holdings.positions.length} positions` });
-      if (svg === null) return text("No priced positions to draw a treemap.");
-      const file = chartFiles.write("portfolio-treemap.svg", svg);
-      return structured({ path: file, items: items.length, prices, warnings });
+      const priced = positions.filter((position) => position.value !== null);
+      const grossValue = priced.reduce((sum, position) => sum + Math.abs(position.value), 0);
+      if (grossValue <= 0 || !Number.isFinite(grossValue)) return text("No nonzero priced positions to chart.");
+      const netValue = priced.reduce((sum, position) => sum + position.value, 0);
+      const rows = positions.map((position) => ({ ...position, weight: position.value === null ? null : Math.abs(position.value) / grossValue }));
+      const ranked = rows.filter((position) => position.weight !== null && position.weight > 0).sort((a, b) => b.weight - a.weight);
+      const visible = ranked.slice(0, 99);
+      const slices = visible.map((position) => ({ label: position.symbol, value: position.weight }));
+      if (ranked.length > 99) slices.push({ label: `Other (${ranked.length - 99} positions)`, value: ranked.slice(99).reduce((sum, position) => sum + position.weight, 0) });
+      const pie = { version: 1, kind: "pie", title: "Portfolio gross position weights", slices };
+      const table = {
+        version: 1, title: "Portfolio positions",
+        columns: [
+          ["symbol", "Symbol"], ["weight", "Gross weight"], ["value", "Market value"],
+          ["quantity", "Quantity"], ["kind", "Kind"], ["lastPrice", "Last price"],
+          ["priceAsOf", "Price date"], ["priceSource", "Price source"],
+          ["costBasis", "Cost basis"], ["costTotal", "Total cost"],
+          ["pl", "P/L"], ["plPct", "P/L %"], ["expenseRatioPct", "Expense ratio %"],
+        ].map(([key, label]) => ({ key, label })),
+        rows,
+      };
+      const summary = `Portfolio: ${priced.length}/${holdings.positions.length} positions priced; net value ${round2(netValue)} USD, gross value ${round2(grossValue)} USD; ${unpricedSymbols.length} unpriced, ${importedPriceCount} using imported prices.`;
+      return displayResult(summary, [
+        displayResource("chart", "agenc:chart:portfolio-weights", pie),
+        displayResource("table", "agenc:table:portfolio-positions", table),
+      ], { totalValue: round2(netValue), grossValue: round2(grossValue), pricedPositions: priced.length, positions: holdings.positions.length, unpricedCount: unpricedSymbols.length, importedPriceCount });
     },
   },
   {
@@ -522,8 +546,25 @@ function priceResult(value, bars, symbol) {
   const change = previous ? last.close - previous.close : null;
   const changeText = change === null ? "change unavailable" : `change ${change >= 0 ? "+" : ""}${Number(change.toPrecision(12))} ${last.currency ?? "USD"}`;
   const summary = `${symbol.toUpperCase()}: last close ${last.close} ${last.currency ?? "USD"} on ${last.date}; ${changeText}.`;
-  const content = [{ type: "text", text: value.path ? `${summary} SVG chart: ${value.path}` : summary }];
+  const content = [{ type: "text", text: summary }];
   return { structuredContent: { ...value, summary, lastClose: last.close, change, asOf: last.date }, content };
+}
+
+function indicatorText(value) {
+  return value === null ? "unavailable" : Number(value.toPrecision(8)).toString();
+}
+
+function displayResource(kind, uri, data) {
+  const body = JSON.stringify(data);
+  if (Buffer.byteLength(body, "utf8") > 512 * 1024) throw new Error(`${kind} exceeds the 512 KiB display limit`);
+  return {
+    type: "resource", annotations: { audience: ["user"] },
+    resource: { uri, mimeType: `application/vnd.agenc.${kind}+json`, text: body },
+  };
+}
+
+function displayResult(summary, attachments, facts) {
+  return { structuredContent: { ...facts, summary }, content: [{ type: "text", text: summary }, ...attachments] };
 }
 
 function priceMetadata(bars) {

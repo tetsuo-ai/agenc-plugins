@@ -15,5 +15,5 @@ Then run `xray` and `chart_treemap`, and report in the skill's output
 format. Lead with the single most surprising aggregation (a name the
 user probably does not realize they are stacked on). Disclose unresolved
 funds, unpriced positions, partial coverage and the dates of N-PORT constituents.
-Put the actual returned absolute treemap path in Markdown image syntax outside
-code fences so Desktop can show it inline.
+Describe the position weight chart and table shown under the `chart_treemap`
+tool call.

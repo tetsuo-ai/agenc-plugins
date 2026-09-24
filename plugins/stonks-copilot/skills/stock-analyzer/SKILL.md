@@ -33,9 +33,9 @@ tool errors, transport permissions or provider access restrictions.
    three-item quota with invented claims when fewer signals are available.
 3. Check supports/resistances from `indicators` before saying anything
    about entry points.
-4. Call `chart_price`. Include its exact returned SVG path as a Markdown image
-   after the report: `![Price history](<absolute path>)`. The SVG contains the
-   chart; never recreate it with text characters or invent a path.
+4. Call `chart_price`. Its price chart appears for the user under the tool call.
+   Describe the trend, moving averages and volume in the report using the
+   returned facts. Do not recreate the chart with text characters.
 5. Never invent data the tools did not return. If a metric is null
    (non-US filer, no dividends, negative EPS), state the gap.
 
@@ -55,8 +55,7 @@ Sources and gaps: <dates, period basis, missing or stale information>.
 
 Use that structure as ordinary prose, not a fenced code block. If fundamentals
 are unavailable, state the reason and omit the blend and blended verdict. Put
-the exact returned SVG path in the Markdown image after the report. A score is
-a heuristic, not a probability of profit
+the chart in words when useful. A score is a heuristic, not a probability of profit
 or a recommendation to trade.
 
 ## Boundaries

@@ -348,6 +348,11 @@ test("mcp server: handshake, tool catalog, journal round-trip and errors", async
     for (const tool of catalog.result.tools) {
       assert.equal(tool.inputSchema.type, "object", `${tool.name} declares an object input schema`);
     }
+    for (const name of ["chart_price", "chart_treemap"]) {
+      const description = catalog.result.tools.find((tool) => tool.name === name).description;
+      assert.match(description, /display attachment|pie chart and position details/u);
+      assert.doesNotMatch(description, /SVG|artifact path|return its path/u);
+    }
 
     const registry = await call("tools/call", { name: "metrics_registry", arguments: {} });
     const metrics = registry.result.structuredContent.metrics;

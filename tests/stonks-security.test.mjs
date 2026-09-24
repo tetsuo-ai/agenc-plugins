@@ -10,6 +10,7 @@ import { fileURLToPath } from "node:url";
 import { makeCache } from "../plugins/stonks-copilot/server/cache.mjs";
 import { makeDataFiles, makeStores } from "../plugins/stonks-copilot/server/stores.mjs";
 import { currentMetricValue, evaluateThesis, newThesis, normalizePredicate } from "../plugins/stonks-copilot/server/theses.mjs";
+import { validateChartBlock, validateDisplayResource, validatePie, validateTable } from "./support/chart-v1.mjs";
 
 const SERVER = join(dirname(fileURLToPath(import.meta.url)), "../plugins/stonks-copilot/server/main.mjs");
 const thesisInput = {
@@ -253,7 +254,7 @@ test("MCP thesis scans report missing data as partial and can recover a broken t
   assert.equal(readFileSync(join(root, "theses.json"), "utf8"), "corrupt");
 });
 
-test("MCP portfolio fallback prices are explicitly labeled and chart symlinks cannot overwrite outside files", async (t) => {
+test("MCP portfolio displays a pie and table with imported price provenance", async (t) => {
   const { root, call } = await withServer(t);
   makeStores(root).saveHoldings(portfolio);
   const got = await call("tools/call", { name: "portfolio_get", arguments: {} });
@@ -261,16 +262,67 @@ test("MCP portfolio fallback prices are explicitly labeled and chart symlinks ca
   assert.equal(got.result.structuredContent.positions[0].priceSource, "import");
   assert.equal(got.result.structuredContent.positions[0].priceAsOf, null);
   assert.equal(got.result.structuredContent.warnings.length, 1);
-  const outside = join(temp(t), "victim.svg");
-  writeFileSync(outside, "preserved");
-  symlinkSync(outside, join(root, "charts", "portfolio-treemap.svg"));
   const chart = await call("tools/call", { name: "chart_treemap", arguments: {} });
-  assert.equal(chart.result.structuredContent.warnings.length, 1);
-  assert.equal(readFileSync(outside, "utf8"), "preserved");
-  assert.equal(lstatSync(chart.result.structuredContent.path).isSymbolicLink(), false);
+  assert.equal(chart.result.content.length, 3);
+  const [caption, pieBlock, tableBlock] = chart.result.content;
+  assert.deepEqual(Object.keys(caption), ["type", "text"]);
+  assert.equal(caption.type, "text");
+  assert.match(caption.text, /1\/1 positions priced; net value 30 USD, gross value 30 USD; 0 unpriced, 1 using imported prices/u);
+  assert.ok(caption.text.length < 200);
+  assert.doesNotMatch(JSON.stringify([caption, chart.result.structuredContent]), /"rows"|"slices"|\.svg|\/charts\//u);
+  const pie = validatePie(validateDisplayResource(pieBlock, "chart"));
+  const table = validateTable(validateDisplayResource(tableBlock, "table"));
+  assert.deepEqual(pie.slices, [{ label: "AAPL", value: 1 }]);
+  assert.equal(table.rows.length, 1);
+  assert.deepEqual(table.rows[0], {
+    symbol: "AAPL", quantity: 2, kind: "stock", lastPrice: 15,
+    priceAsOf: null, priceSource: "import", value: 30, costBasis: 10,
+    costTotal: 20, pl: 10, plPct: 0.5, expenseRatioPct: null, weight: 1,
+  });
+  assert.equal(existsSync(join(root, "charts")), false);
 });
 
-test("MCP price history includes the full cached series and chart paths use safe atomic writes", async (t) => {
+test("MCP portfolio groups pie slices beyond Core's 100-slice limit but keeps table rows", async (t) => {
+  const { root, call } = await withServer(t);
+  makeStores(root).saveHoldings({
+    ...portfolio,
+    positions: Array.from({ length: 105 }, (_, index) => ({
+      symbol: `P${index}`, quantity: 1, costBasis: null, lastPrice: 1,
+      expenseRatioPct: null, kind: "stock",
+    })),
+  });
+  const result = (await call("tools/call", { name: "chart_treemap", arguments: {} })).result;
+  assert.equal(result.content.length, 3);
+  const pie = validatePie(validateDisplayResource(result.content[1], "chart"));
+  const table = validateTable(validateDisplayResource(result.content[2], "table"));
+  assert.equal(pie.slices.length, 100);
+  assert.equal(pie.slices.at(-1).label, "Other (6 positions)");
+  assert.ok(Math.abs(pie.slices.reduce((sum, slice) => sum + slice.value, 0) - 1) < 1e-12);
+  assert.equal(table.rows.length, 105);
+});
+
+test("MCP portfolio table retains unpriced positions without inventing weights", async (t) => {
+  const { root, call } = await withServer(t);
+  makeStores(root).saveHoldings({
+    ...portfolio,
+    positions: [...portfolio.positions, {
+      symbol: "MISS", quantity: 3, costBasis: 12, lastPrice: null,
+      expenseRatioPct: null, kind: "stock",
+    }],
+  });
+  const result = (await call("tools/call", { name: "chart_treemap", arguments: {} })).result;
+  const pie = validatePie(validateDisplayResource(result.content[1], "chart"));
+  const table = validateTable(validateDisplayResource(result.content[2], "table"));
+  assert.deepEqual(pie.slices, [{ label: "AAPL", value: 1 }]);
+  assert.equal(table.rows.length, 2);
+  assert.equal(table.rows[1].symbol, "MISS");
+  assert.equal(table.rows[1].value, null);
+  assert.equal(table.rows[1].weight, null);
+  assert.equal(table.rows[1].pl, null);
+  assert.match(result.content[0].text, /1\/2 positions priced.*1 unpriced/u);
+});
+
+test("MCP price history stays complete while chart data appears only in a user attachment", async (t) => {
   const { root, call } = await withServer(t);
   const bars = fixtureBars();
   makeCache(root).set("bars-v2-AAPL-24m", bars);
@@ -279,18 +331,20 @@ test("MCP price history includes the full cached series and chart paths use safe
   assert.equal(response.result.structuredContent.priceData.source, "yahoo");
   const snapshot = await call("tools/call", { name: "indicators", arguments: { symbol: "AAPL" } });
   assert.equal(snapshot.result.structuredContent.priceData.asOf, bars.at(-1).date);
-  const outside = join(temp(t), "victim.svg");
-  writeFileSync(outside, "preserved");
-  symlinkSync(outside, join(root, "charts", "aapl-price.svg"));
   const chart = await call("tools/call", { name: "chart_price", arguments: { symbol: "AAPL" } });
   assert.equal(chart.result.structuredContent.bars, bars.length);
-  assert.equal(chart.result.content.length, 1);
-  assert.doesNotMatch(JSON.stringify(chart.result), /```chart|"series"/u);
-  assert.match(chart.result.content[0].text, /SVG chart: .*aapl-price\.svg/u);
-  assert.match(chart.result.content[0].text, /last close 340 USD on .*; change \+1 USD/u);
-  assert.doesNotMatch(JSON.stringify(chart.result), /[▁▂▃▄▅▆▇█]/u);
-  assert.equal(readFileSync(outside, "utf8"), "preserved");
-  assert.match(readFileSync(chart.result.structuredContent.path, "utf8"), /^<svg/u);
+  assert.equal(chart.result.content.length, 2);
+  const [caption, resource] = chart.result.content;
+  assert.deepEqual(Object.keys(caption), ["type", "text"]);
+  assert.equal(caption.type, "text");
+  assert.match(caption.text, /AAPL, .* to .* \(daily\): last close 340 USD; SMA 50 .*SMA 200/u);
+  assert.ok(caption.text.length < 200);
+  assert.doesNotMatch(JSON.stringify([caption, chart.result.structuredContent]), /"series"|"data"|\.svg|\/charts\//u);
+  const priceChart = validateChartBlock(validateDisplayResource(resource, "chart"));
+  assert.equal(priceChart.series[0].data.length, bars.length);
+  assert.equal(priceChart.series[0].data.at(-1).close, 340);
+  assert.deepEqual(priceChart.series.map((series) => series.name), ["AAPL", "SMA 50", "SMA 200", "Volume"]);
+  assert.equal(existsSync(join(root, "charts")), false);
   const analysis = await call("tools/call", { name: "analyze", arguments: { symbol: "AAPL" } });
   assert.equal(analysis.result.content.length, 1);
   assert.equal(analysis.result.structuredContent.blendedScore, null);
@@ -298,14 +352,15 @@ test("MCP price history includes the full cached series and chart paths use safe
   assert.doesNotMatch(JSON.stringify(analysis.result), /[▁▂▃▄▅▆▇█]/u);
 });
 
-test("all client names receive the same SVG path without a unicode chart", async (t) => {
+test("all client names receive the same chart attachment without a unicode chart", async (t) => {
   const { root, call } = await withServer(t);
   makeCache(root).set("bars-v2-AAPL-24m", fixtureBars());
   await call("initialize", { clientInfo: { name: "sample-cli", version: "1" } });
   const chart = await call("tools/call", { name: "chart_price", arguments: { symbol: "AAPL" } });
-  assert.equal(chart.result.content.length, 1);
-  assert.match(chart.result.content[0].text, /last close 340 USD on .*SVG chart: .*aapl-price\.svg/u);
-  assert.doesNotMatch(JSON.stringify(chart.result), /[▁▂▃▄▅▆▇█]/u);
+  assert.equal(chart.result.content.length, 2);
+  assert.match(chart.result.content[0].text, /last close 340 USD/u);
+  validateChartBlock(validateDisplayResource(chart.result.content[1], "chart"));
+  assert.doesNotMatch(JSON.stringify(chart.result.content[0]), /[▁▂▃▄▅▆▇█]|\.svg/u);
 });
 
 test("EDGAR tools explain the missing contact without making a request", async (t) => {
