@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { chartBars, priceChartBlock } from "../plugins/stonks-copilot/server/charts.mjs";
 import { makeEdgar } from "../plugins/stonks-copilot/server/edgar.mjs";
-import { validateChartBlock } from "./support/chart-v1.mjs";
+import { validateChartBlock, validateDisplayResource, validatePie, validateTable } from "./support/chart-v1.mjs";
 
 function bars(count) {
   return Array.from({ length: count }, (_, i) => {
@@ -18,7 +18,7 @@ function bars(count) {
 test("chart block validates against v1 with real daily OHLC, volume and daily SMAs", () => {
   const input = bars(240);
   const chart = priceChartBlock(input, { symbol: "TEST" });
-  const validated = validateChartBlock(`\`\`\`chart\n${JSON.stringify(chart)}\n\`\`\``);
+  const validated = validateChartBlock(chart);
   assert.equal(validated.title, "TEST, daily");
   assert.match(validated.subtitle, /Stooq.*2020-08-27/u);
   assert.deepEqual(validated.series.map((series) => series.name), ["TEST", "SMA 50", "SMA 200", "Volume"]);
@@ -27,13 +27,19 @@ test("chart block validates against v1 with real daily OHLC, volume and daily SM
   });
   assert.equal(validated.series.at(-1).data.length, 239, "unknown volume is omitted");
   const recent = priceChartBlock(input, { symbol: "TEST", lastPoints: 60 });
-  validateChartBlock(`\`\`\`chart\n${JSON.stringify(recent)}\n\`\`\``);
+  validateChartBlock(recent);
   assert.equal(recent.series[0].data.length, 60);
   assert.equal(recent.series.find((series) => series.name === "SMA 200").data.length, 41,
     "recent chart keeps daily SMA values computed from the full history");
   const broken = structuredClone(chart);
   broken.series[0].data[0].high = broken.series[0].data[0].low - 1;
-  assert.throws(() => validateChartBlock(`\`\`\`chart\n${JSON.stringify(broken)}\n\`\`\``));
+  assert.throws(() => validateChartBlock(broken));
+  const mixed = structuredClone(chart);
+  mixed.series[1].data[0].time = Date.parse(`${mixed.series[1].data[0].time}T00:00:00Z`) / 1000;
+  assert.throws(() => validateChartBlock(mixed), /one time format/u);
+  const duplicate = structuredClone(chart);
+  duplicate.series[0].data[1].time = duplicate.series[0].data[0].time;
+  assert.throws(() => validateChartBlock(duplicate), /ascend/u);
 });
 
 test("long histories aggregate whole weekly OHLC bars and stay within 600 points", () => {
@@ -52,7 +58,23 @@ test("long histories aggregate whole weekly OHLC bars and stay within 600 points
     assert.ok(bar.high >= Math.max(bar.open, bar.close, bar.low));
     assert.ok(bar.low <= Math.min(bar.open, bar.close, bar.high));
   }
-  validateChartBlock(`\`\`\`chart\n${JSON.stringify(priceChartBlock(input, { symbol: "TEST" }))}\n\`\`\``);
+  validateChartBlock(priceChartBlock(input, { symbol: "TEST" }));
+});
+
+test("display resources obey Core's JSON shape, size and count limits", () => {
+  const chart = priceChartBlock(bars(2400), { symbol: "TEST" });
+  const block = { type: "resource", annotations: { audience: ["user"] }, resource: {
+    uri: "agenc:chart:price:TEST", mimeType: "application/vnd.agenc.chart+json", text: JSON.stringify(chart),
+  } };
+  assert.deepEqual(validateChartBlock(validateDisplayResource(block, "chart")), chart);
+  assert.ok(chart.series.length <= 8);
+  assert.ok(chart.series.every((series) => series.data.length <= 5000));
+  assert.ok(Buffer.byteLength(block.resource.text, "utf8") <= 512 * 1024);
+  assert.throws(() => validateDisplayResource({ ...block, annotations: { audience: ["assistant"] } }, "chart"));
+  assert.throws(() => validateDisplayResource({ ...block, resource: { ...block.resource, text: " ".repeat(512 * 1024 + 1) } }, "chart"));
+  validatePie({ version: 1, kind: "pie", title: "Weights", slices: [{ label: "TEST", value: 1 }] });
+  validateTable({ version: 1, title: "Positions", columns: [{ key: "symbol", label: "Symbol" }], rows: [{ symbol: "TEST" }] });
+  assert.throws(() => validatePie({ version: 1, kind: "pie", title: "Too many", slices: Array(101).fill({ label: "X", value: 1 }) }));
 });
 
 test("EDGAR requires a named contact and sends SEC headers at a serialized rate", async () => {

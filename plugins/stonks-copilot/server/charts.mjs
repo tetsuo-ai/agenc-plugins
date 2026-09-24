@@ -1,7 +1,6 @@
 /**
- * Zero-dependency chart rendering: standalone SVG artifacts (price chart
- * with moving averages and portfolio treemap), plus a future typed chart
- * payload. Pure functions, no I/O.
+ * Pure chart builders. Tool results use chart v1 JSON display attachments;
+ * legacy SVG renderers remain available to callers that need SVG output.
  */
 
 const SPARK_CHARS = ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"];

@@ -40,10 +40,17 @@ test("Stonks copy describes requested scans and preserves the app punctuation st
   assert.match(journal, /do not update, close or delete a thesis/);
 });
 
-test("Stonks instructions use SVG paths and label partial scores", () => {
+test("Stonks instructions describe display charts and label partial scores", () => {
   assert.match(skill("stock-analyzer"), /technical score as technical only/u);
-  assert.match(skill("stock-analyzer"), /Markdown image/u);
-  assert.match(skill("stock-analyzer"), /never recreate it with text characters/u);
-  assert.match(skill("portfolio-xray"), /!\[Portfolio exposure\]\(<absolute path>\).*outside code fences/);
+  assert.match(skill("stock-analyzer"), /chart appears for the user under the tool call/u);
+  assert.match(skill("stock-analyzer"), /Do not recreate the chart with text characters/u);
+  assert.match(skill("portfolio-xray"), /pie chart and details table appear for the user under the tool call/u);
   assert.match(skill("portfolio-xray"), /Unknown fees are not zero/);
+  for (const name of ["stock-analyzer", "portfolio-xray"]) {
+    assert.doesNotMatch(skill(name), /Markdown image|SVG path|absolute path|!\[[^\]]*\]\(<[^>]*path>\)/iu);
+  }
+  for (const command of ["stock", "xray"]) {
+    const body = readFileSync(join(root, "commands", `${command}.md`), "utf8");
+    assert.doesNotMatch(body, /Markdown image|SVG path|absolute path|!\[[^\]]*\]\(<[^>]*path>\)/iu);
+  }
 });
