@@ -51,8 +51,8 @@ When the user picks an entry:
 ## Calendar
 
 `ics_export` writes one .ics with every active entry (alarms at the
-notice deadline when present). Give the user the file path - desktop
-opens it directly into their calendar.
+notice deadline when present) and attaches the calendar file for the user.
+Tell them the file is attached, with the event count and export span.
 
 ## Boundaries
 
