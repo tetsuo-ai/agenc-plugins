@@ -33,7 +33,7 @@ function company() {
 }
 
 test("SEC companyfacts envelope works through the real client without a cache", async () => {
-  const edgar = makeEdgar({ fetchImpl: async (url) => json(url.endsWith("company_tickers.json")
+  const edgar = makeEdgar({ userAgent: "Fixture Tests fixture@tests.invalid", fetchImpl: async (url) => json(url.endsWith("company_tickers.json")
     ? { 0: { ticker: "TEST", cik_str: 123, title: "Fixture Inc" } } : company()) });
   const result = await edgar.fundamentalsSnapshot("TEST", { price: 60 });
   assert.equal(result.metrics.revenueUsd, 150);
@@ -125,7 +125,7 @@ test("N-PORT exposes omitted dollar valuations for the portfolio coverage guard"
 
 test("N-PORT resolves the fund series within a shared CIK and isolates cached funds", async () => {
   const requests = [];
-  const edgar = makeEdgar({ cache: cache(), fetchImpl: async (url) => {
+  const edgar = makeEdgar({ cache: cache(), userAgent: "Fixture Tests fixture@tests.invalid", fetchImpl: async (url) => {
     requests.push(url);
     if (url.endsWith("company_tickers_mf.json")) return json({ fields: ["cik", "seriesId", "classId", "symbol"], data: [[123, "S000000001", "C1", "ONE"], [123, "S000000002", "C2", "TWO"]] });
     if (url.includes("submissions/")) return json({ filings: { recent: { form: ["NPORT-P", "NPORT-P"], accessionNumber: ["0000000123-26-000002", "0000000123-26-000001"], primaryDocument: ["second.xml", "first.xml"], filingDate: ["2026-08-01", "2026-08-01"] } } });

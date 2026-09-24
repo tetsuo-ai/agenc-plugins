@@ -12,7 +12,7 @@
     "validate:stonks-core": "node validate-stonks-core.mjs",
     "validate:stonks-built": "node validate-stonks-built.mjs",
     "validate:stonks-visuals": "node capture-stonks-visuals.mjs",
-    "test:stonks": "node --test tests/stonks-copilot-contract.test.mjs tests/stonks-data-regression.test.mjs tests/stonks-security.test.mjs tests/stonks-metadata.test.mjs",
+    "test:stonks": "node --test tests/stonks-copilot-contract.test.mjs tests/stonks-data-regression.test.mjs tests/stonks-security.test.mjs tests/stonks-metadata.test.mjs tests/stonks-chart-v1.test.mjs",
     "validate:core:remote": "node validate-core-remote.mjs",
     "test": "npm run validate:copy && npm run build && node --test tests/*.test.mjs && npm run validate"
   },

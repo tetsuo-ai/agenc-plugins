@@ -12,7 +12,7 @@
 import { once } from "node:events";
 import { join } from "node:path";
 import { technicalSnapshot } from "./indicators.mjs";
-import { priceChartSvg, treemapSvg, sparkline } from "./charts.mjs";
+import { priceChartSvg, treemapSvg } from "./charts.mjs";
 import { parsePositionsText, xrayPortfolio } from "./portfolio.mjs";
 import { makeCache } from "./cache.mjs";
 import { makeMarketData } from "./bars.mjs";
@@ -103,7 +103,7 @@ const tools = [
   },
   {
     name: "analyze",
-    description: "Combined 50/50 scorecard: technical score + fundamental score blended at technicalWeight (default 50). Returns both sub-scores, the blend, signal-level reasons, and a one-line verdict for the agent to elaborate on.",
+    description: "Technical and SEC fundamental scorecard. A blended score and verdict are returned only when both scores exist. Missing fundamentals yield a labeled technical-only score and an explanation.",
     inputSchema: {
       type: "object",
       properties: {
@@ -124,25 +124,33 @@ const tools = [
       } catch (error) {
         fundamentalError = error instanceof Error ? error.message : String(error);
       }
-      const blended = fundamental === null
-        ? technical.score
-        : Math.round((technical.score * weight + fundamental.score * (100 - weight)) / 100);
-      return structured({
+      const fundamentalScored = Number.isFinite(fundamental?.score);
+      const canBlend = Number.isFinite(technical.score) && fundamentalScored;
+      const blended = canBlend
+        ? Math.round((technical.score * weight + fundamental.score * (100 - weight)) / 100)
+        : null;
+      const fundamentalNote = canBlend ? null : fundamentalError
+        ? `Fundamentals are unavailable: ${fundamentalError}`
+        : fundamental === null
+          ? `Fundamentals are unavailable for ${symbol.toUpperCase()}: no usable SEC filing data was found.`
+          : `Fundamentals are unavailable for ${symbol.toUpperCase()}: the SEC filing did not yield a valid fundamental score.`;
+      return priceResult({
         symbol: symbol.toUpperCase(),
         asOf: technical.asOf,
         lastClose: technical.lastClose,
         priceData: priceMetadata(bars),
-        sparkline: sparkline(bars.slice(-60).map((bar) => bar.close)),
         technicalScore: technical.score,
         fundamentalScore: fundamental?.score ?? null,
-        fundamentalAvailable: fundamental !== null,
+        fundamentalAvailable: fundamentalScored,
         fundamentalError,
+        fundamentalNote,
+        technicalOnly: !canBlend && Number.isFinite(technical.score),
         technicalWeight: weight,
         blendedScore: blended,
-        verdict: verdictLine(blended),
+        verdict: canBlend ? verdictLine(blended) : null,
         technical,
         fundamental,
-      });
+      }, bars, symbol);
     },
   },
   {
@@ -326,7 +334,7 @@ const tools = [
   },
   {
     name: "chart_price",
-    description: "Render a price chart SVG (close line + SMA50/SMA200 + volume) into the plugin data directory and return its absolute path plus an inline unicode sparkline for terminals.",
+    description: "Render a price chart SVG with a close line, volume and SMA 50/200. Returns its artifact path and a short close summary.",
     inputSchema: {
       type: "object",
       properties: {
@@ -344,7 +352,7 @@ const tools = [
       });
       if (svg === null) return text("Not enough bars to draw a chart.");
       const file = chartFiles.write(`${symbol.toLowerCase()}-price.svg`, svg);
-      return structured({ path: file, sparkline: sparkline(closes.slice(-60)), bars: bars.length, priceData: priceMetadata(bars) });
+      return priceResult({ path: file, bars: bars.length, priceData: priceMetadata(bars) }, bars, symbol);
     },
   },
   {
@@ -506,6 +514,16 @@ function smaAligned(values, period) {
     if (i >= period - 1) out[i] = sum / period;
   }
   return out;
+}
+
+function priceResult(value, bars, symbol) {
+  const last = bars.at(-1);
+  const previous = bars.at(-2);
+  const change = previous ? last.close - previous.close : null;
+  const changeText = change === null ? "change unavailable" : `change ${change >= 0 ? "+" : ""}${Number(change.toPrecision(12))} ${last.currency ?? "USD"}`;
+  const summary = `${symbol.toUpperCase()}: last close ${last.close} ${last.currency ?? "USD"} on ${last.date}; ${changeText}.`;
+  const content = [{ type: "text", text: value.path ? `${summary} SVG chart: ${value.path}` : summary }];
+  return { structuredContent: { ...value, summary, lastClose: last.close, change, asOf: last.date }, content };
 }
 
 function priceMetadata(bars) {

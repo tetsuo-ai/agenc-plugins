@@ -1,24 +1,34 @@
 /**
  * SEC EDGAR client: ticker→CIK resolution, XBRL company facts for
  * fundamentals, and N-PORT fund holdings - all public, keyless endpoints
- * behind the shared TTL cache. SEC asks for a descriptive User-Agent;
- * keep the default honest rather than spoofing a browser.
+ * behind the shared TTL cache. SEC requires a declared requester and a
+ * reachable contact address in the User-Agent.
  */
 import { parseNportXml, holdingsWithWeights } from "./nport.mjs";
 import { fundamentalSnapshot } from "./fundamentals.mjs";
 import { TTL } from "./cache.mjs";
 import { fetchPublic } from "./http.mjs";
 
-const UA_DEFAULT = "tetsuo-ai stonks-copilot plugin (+https://github.com/tetsuo-ai/agenc-plugins)";
+const UA_SETTING = "STONKS_EDGAR_USER_AGENT";
 
-export function makeEdgar({ cache, fetchImpl = globalThis.fetch, userAgent = UA_DEFAULT } = {}) {
-  const headers = { "user-agent": userAgent, "accept-encoding": "gzip" };
+export function makeEdgar({ cache, fetchImpl = globalThis.fetch, userAgent = process.env[UA_SETTING] } = {}) {
   let lastRequest = 0;
+  let requestTail = Promise.resolve();
   async function request(url, options = {}) {
-    const wait = 125 - (Date.now() - lastRequest);
-    if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
-    lastRequest = Date.now();
-    return fetchPublic(url, { fetchImpl, headers, allowNotFound: true, ...options });
+    if (typeof userAgent !== "string" || !/^\S(?:.*\S)?\s+[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/u.test(userAgent.trim())) {
+      throw new Error(`SEC EDGAR requires a requester name and reachable contact email. In $AGENC_HOME/config.toml (normally ~/.agenc/config.toml), set [pluginConfigs."stonks-copilot@agenc-plugins".options] edgarContact = "Your Organization you@your-domain.com" using your own details. This is the "SEC EDGAR requester contact" plugin setting. For standalone MCP use, set ${UA_SETTING} to the same value. Market data tools remain available.`);
+    }
+    const headers = { "user-agent": userAgent.trim(), "accept-encoding": "gzip, deflate" };
+    // Serialize requests so concurrent tool calls cannot exceed SEC's limit.
+    const turn = requestTail.then(async () => {
+      const wait = 125 - (Date.now() - lastRequest);
+      if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
+      lastRequest = Date.now();
+      // Fetch sets Host from the URL for both www.sec.gov and data.sec.gov.
+      return fetchPublic(url, { fetchImpl, headers, allowNotFound: true, ...options });
+    });
+    requestTail = turn.catch(() => {});
+    return turn;
   }
 
   async function fetchJson(url, ttl) {
