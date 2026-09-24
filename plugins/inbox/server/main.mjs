@@ -27,7 +27,7 @@ import { extractDates } from "./dates.mjs";
 import { buildGraph, digestRows } from "./graph.mjs";
 import { commitmentCandidates, replyDebtRows, waitingOnRows } from "./loops.mjs";
 import { cleanupRows } from "./cleanup.mjs";
-import { makeVault } from "./vault.mjs";
+import { makeVault, vaultDisplayResult } from "./vault.mjs";
 import { documentRows, eventRows } from "./bridge.mjs";
 
 const PROTOCOL_VERSION = "2025-06-18";
@@ -406,7 +406,8 @@ const tools = [
         date: message.internalDate ? new Date(Number(message.internalDate)).toISOString() : null,
         messageId,
       });
-      return structured({ ...stored, filename: target.filename });
+      const result = { ...stored, filename: target.filename };
+      return vaultDisplayResult(result, [{ ...result, storedAs: stored.path, mimeType: target.mimeType }]);
     },
   },
   {
@@ -420,7 +421,10 @@ const tools = [
         after: { type: "string", description: "ISO date floor" },
       },
     },
-    handler: async (args) => structured({ results: vault.search(args), stats: vault.stats() }),
+    handler: async (args) => {
+      const results = vault.search(args);
+      return vaultDisplayResult({ results, stats: vault.stats() }, results);
+    },
   },
 ];
 
