@@ -8,7 +8,7 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 
@@ -329,9 +329,31 @@ test("mcp server: full offline journey — extract → upsert → radar → canc
     assert.equal(draftEn.language, "en");
     assert.equal(draftEn.sourceLanguage, "en");
 
-    const ics = await tool("ics_export", {});
+    const exportResponse = await call("tools/call", { name: "ics_export", arguments: {} });
+    const ics = exportResponse.result.structuredContent;
     assert.ok(existsSync(ics.path));
-    const body = readFileSync(ics.path, "utf8");
+    assert.equal(ics.spanYears, 2);
+    assert.ok(ics.events >= 2);
+    assert.equal(exportResponse.result.content.length, 2);
+    const userBlocks = exportResponse.result.content.filter((block) =>
+      JSON.stringify(block.annotations?.audience) === JSON.stringify(["user"]));
+    assert.equal(userBlocks.length, 1);
+    const attachment = userBlocks[0];
+    assert.equal(attachment.type, "resource");
+    assert.deepEqual(attachment.annotations, { audience: ["user"] });
+    assert.equal(attachment.resource.mimeType, "text/calendar");
+    assert.match(attachment.resource.name, /^paper-radar-\d{4}-\d{2}-\d{2}\.ics$/u);
+    assert.equal(attachment.resource.name, basename(ics.path));
+    const fileBytes = readFileSync(ics.path);
+    assert.equal(attachment.resource.blob, fileBytes.toString("base64"));
+    assert.deepEqual(Buffer.from(attachment.resource.blob, "base64"), fileBytes);
+    const modelText = exportResponse.result.content[0].text;
+    assert.ok(modelText.length < 160, "model text remains short");
+    assert.match(modelText, new RegExp(`${ics.events} calendar events over ${ics.spanYears} years`, "u"));
+    assert.match(modelText, /calendar file is attached for the user/u);
+    assert.ok(!modelText.includes(ics.path));
+    assert.doesNotMatch(modelText, /BEGIN:VCALENDAR|BEGIN:VEVENT/u);
+    const body = fileBytes.toString("utf8");
     assert.match(body, /BEGIN:VCALENDAR/u);
     assert.match(body, /TRIGGER:-P30D/u, "alarm fires at the notice window");
     assert.match(body, /SUMMARY:Home insurance — Allianz/u);
@@ -342,6 +364,24 @@ test("mcp server: full offline journey — extract → upsert → radar → canc
     notify("notifications/initialized");
     await new Promise((resolve) => setTimeout(resolve, 80));
     assert.ok(responses.every((m) => m.id !== undefined), "no response to notifications");
+  });
+});
+
+test("ics export refuses a file above Core's 32 MiB attachment limit", { timeout: 30000 }, async () => {
+  await withServer(async ({ call, dataDir }) => {
+    const entry = {
+      id: "oversized",
+      title: "X".repeat(11 * 1024 * 1024),
+      period: "one_time",
+      anchorDate: addDaysIso(todayIso(), 1),
+      status: "active",
+    };
+    writeFileSync(join(dataDir, "ledger.json"), JSON.stringify({ entries: [entry] }));
+    const exportResponse = await call("tools/call", { name: "ics_export", arguments: {} });
+    assert.match(exportResponse.result.content[0].text, /exceeds the 32 MiB attachment limit/u);
+    assert.equal(exportResponse.result.content.length, 1);
+    assert.equal(exportResponse.result.structuredContent, undefined);
+    assert.ok(!existsSync(join(dataDir, "exports", `paper-radar-${todayIso()}.ics`)));
   });
 });
 
