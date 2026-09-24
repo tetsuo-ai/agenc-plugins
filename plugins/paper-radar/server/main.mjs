@@ -18,6 +18,7 @@ import { makeStores } from "./stores.mjs";
 
 const PROTOCOL_VERSION = "2025-06-18";
 const SERVER_INFO = { name: "paper-radar", version: "0.2.5" };
+const DISPLAY_FILE_LIMIT = 32 * 1024 * 1024;
 
 const dataDir = resolveDataDir();
 const stores = makeStores(dataDir);
@@ -255,7 +256,7 @@ const tools = [
   },
   {
     name: "ics_export",
-    description: "Write a calendar file with one VEVENT per active entry (alarm at the notice deadline when present, else 7 days before). Returns the .ics path.",
+    description: "Write and attach a calendar file with one VEVENT per active entry (alarm at the notice deadline when present, else 7 days before). The calendar file is shown to the user.",
     inputSchema: {
       type: "object",
       properties: {
@@ -287,9 +288,29 @@ const tools = [
         }
       }
       if (events.length === 0) return text("No upcoming dates within the export window.");
-      const file = join(dataDir, "exports", `paper-radar-${today}.ics`);
-      writeFileSync(file, renderIcs(events, today), { mode: 0o600 });
-      return structured({ path: file, events: events.length, spanYears: span });
+      const name = `paper-radar-${today}.ics`;
+      const bytes = Buffer.from(renderIcs(events, today), "utf8");
+      if (bytes.length > DISPLAY_FILE_LIMIT) {
+        return text("Calendar export exceeds the 32 MiB attachment limit. Export fewer entries or a shorter span.");
+      }
+      const file = join(dataDir, "exports", name);
+      writeFileSync(file, bytes, { mode: 0o600 });
+      return {
+        structuredContent: { path: file, events: events.length, spanYears: span },
+        content: [
+          { type: "text", text: `Exported ${events.length} calendar events over ${span} ${span === 1 ? "year" : "years"}. The calendar file is attached for the user.` },
+          {
+            type: "resource",
+            annotations: { audience: ["user"] },
+            resource: {
+              uri: `agenc:paper-radar:calendar:${today}`,
+              name,
+              mimeType: "text/calendar",
+              blob: bytes.toString("base64"),
+            },
+          },
+        ],
+      };
     },
   },
 ];

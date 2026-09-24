@@ -16,7 +16,7 @@ Follow the `paper-ingest` and `paper-radar` skills and their boundaries.
   with nextDue and notice deadline.
 - `cost`: `cost_report` - monthly and annual totals by category, top-5
   biggest, annualized framing.
-- `calendar`: `ics_export` and hand back the .ics path.
+- `calendar`: run `ics_export` and tell the user the calendar file is attached.
 - `cancel <id>`: the cancellation flow from the radar skill - ask for the
   holder name if unknown, `cancel_draft`, show the draft, and only mark
   `cancelled` after the user confirms they sent it.
