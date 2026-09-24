@@ -40,9 +40,9 @@ a complete portfolio because a filing was found.
 3. **Interpret like a person.** "You own 4.1% NVDA in total: 1.2%
    directly and the rest via VOO and QQQ" beats any table. Lead with the
    single most surprising aggregation.
-4. **Treemap.** Offer `chart_treemap`. After the report, include the exact
-   returned absolute path as `![Portfolio exposure](<absolute path>)` outside
-   code fences. A raw tool result alone does not create a Desktop media card.
+4. **Position chart.** Offer `chart_treemap`. Its position weight pie chart and
+   details table appear for the user under the tool call. Describe the largest
+   weights and any pricing gaps in the report.
 5. **Privacy.** Holdings stay in the plugin's local data directory.
    The server sends ticker and filing requests to public data providers, not
    portfolio quantities, costs or journal text. Tool results still enter the
@@ -60,8 +60,8 @@ Fee drag: ~$<f>/yr (when expense ratios were imported)
 Gaps: unpriced positions, unresolved funds, unsupported derivatives, filing dates
 ```
 
-Use ordinary prose rather than a fenced report. Place the chart Markdown after
-it. Disclose coverage beside every concentration or overlap conclusion.
+Use ordinary prose rather than a fenced report. Describe the position chart
+when useful. Disclose coverage beside every concentration or overlap conclusion.
 
 ## Boundaries
 

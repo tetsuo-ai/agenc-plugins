@@ -81,18 +81,16 @@ Its coverage fields identify omitted positions and unsupported derivatives.
 Large portfolio and journal requests run sequentially and can take time; they
 are not a real-time quote service.
 
-Stock price tools return a local SVG artifact path with a close line, volume
-and daily SMA 50/200 values. The chart shows its as-of date. The corrected
-OHLC aggregation remains available for a future direct display attachment.
-Show the exact returned SVG path as a Markdown image. Never draw a chart with
-text characters or fabricate a path. Portfolio treemaps also use local SVG
-artifacts.
+`chart_price` shows a price chart with OHLC bars, volume and daily SMA 50/200
+values under the tool call. `chart_treemap` shows a pie chart of gross position
+weights and a details table. Describe these displays in the report. The model
+receives short summaries, not chart data or file paths.
 
 ## Privacy and storage
 
 The server uses AGENC_PLUGIN_DATA, provided by Core, or a standalone local data
-directory. It stores imported positions, journal entries, public-data caches
-and chart files there. Importing positions replaces the saved portfolio;
+directory. It stores imported positions, journal entries and public-data caches
+there. Importing positions replaces the saved portfolio;
 confirm the parsed positions before using them in a report.
 
 The server sends ticker/filing requests to public data providers. It does not
