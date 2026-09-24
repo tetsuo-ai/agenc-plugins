@@ -5,8 +5,77 @@
  * Downloading is explicit - nothing is fetched behind the user's back.
  */
 import { createHash, randomUUID } from "node:crypto";
-import { mkdirSync, readFileSync, writeFileSync, renameSync, rmSync } from "node:fs";
-import { join } from "node:path";
+import { lstatSync, mkdirSync, readFileSync, writeFileSync, renameSync, rmSync } from "node:fs";
+import { basename, join } from "node:path";
+import { imageMime } from "./image-validation.mjs";
+
+const IMAGE_LIMIT = 5 * 1024 * 1024;
+const FILE_LIMIT = 32 * 1024 * 1024;
+const ATTACHMENT_LIMIT = 8;
+const WORK_LIMIT = 64 * 1024 * 1024;
+const FILE_MIMES = new Set(["text/plain", "text/csv", "text/calendar", "application/pdf", "application/zip"]);
+
+/** Build user-only MCP resources while retaining the ordinary structured result. */
+export function vaultDisplayResult(value, files) {
+  const content = [];
+  const attached = [];
+  const notAttached = [];
+  let imageBytes = 0;
+  let workBytes = 0;
+  for (const file of files) {
+    const name = String(file.filename ?? basename(file.storedAs ?? file.path ?? "attachment"))
+      .replace(/[\x00-\x1f\x7f]/gu, " ").trim().slice(0, 120) || "attachment";
+    const path = file.storedAs ?? file.path;
+    let size = file.sizeBytes;
+    let reason;
+    if (attached.length >= ATTACHMENT_LIMIT) reason = "8 attachment limit";
+    if (!reason) {
+      try {
+        const stat = lstatSync(path);
+        if (!stat.isFile()) reason = "not a regular file";
+        else size = stat.size;
+      } catch { reason = "file unavailable"; }
+    }
+    if (!reason && size > FILE_LIMIT) reason = "file exceeds 32 MiB";
+    let bytes;
+    if (!reason) {
+      try { bytes = readFileSync(path); } catch { reason = "file unavailable"; }
+    }
+    if (!reason && bytes.length > FILE_LIMIT) reason = "file exceeds 32 MiB";
+    const detectedImage = !reason ? imageMime(bytes) : null;
+    const mimeType = detectedImage ?? (FILE_MIMES.has(file.mimeType) ? file.mimeType : "application/octet-stream");
+    if (!reason && detectedImage && bytes.length > IMAGE_LIMIT) reason = "image exceeds 5 MiB";
+    if (!reason && detectedImage && imageBytes + bytes.length > IMAGE_LIMIT) reason = "images exceed 5 MiB per result";
+    const base64Length = !reason ? Math.ceil(bytes.length / 3) * 4 : 0;
+    if (!reason && workBytes + 1 + base64Length > WORK_LIMIT) reason = "64 MiB result budget";
+    if (reason) {
+      notAttached.push({ filename: name, sizeBytes: size, reason });
+      continue;
+    }
+    workBytes += 1 + base64Length;
+    if (detectedImage) imageBytes += bytes.length;
+    attached.push({ filename: name, sizeBytes: bytes.length, mimeType });
+    content.push({
+      type: "resource",
+      annotations: { audience: ["user"] },
+      resource: {
+        uri: `agenc:inbox:vault:${createHash("sha256").update(bytes).digest("hex")}`,
+        name,
+        mimeType,
+        blob: bytes.toString("base64"),
+      },
+    });
+  }
+  const summary = [
+    `Attached ${attached.length} file${attached.length === 1 ? "" : "s"} for the user.`,
+    ...attached.map((file) => `${file.filename} (${file.sizeBytes} bytes, ${file.mimeType}): attached.`),
+    ...notAttached.map((file) => `${file.filename} (${file.sizeBytes ?? "unknown"} bytes): not attached, ${file.reason}.`),
+  ];
+  return {
+    structuredContent: notAttached.length ? { ...value, notAttached } : value,
+    content: [{ type: "text", text: summary.join("\n") }, ...content],
+  };
+}
 
 export function makeVault(dataDir) {
   const vaultDir = join(dataDir, "vault");

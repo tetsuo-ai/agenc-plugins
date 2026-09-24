@@ -33,7 +33,9 @@ Google policy, not a plugin bug.
    "Alex (frequent contact, asks a question, mentions Sep 30)". The
    reasons are in the row - quote them, do not invent new ones.
 3. Offer follow-ups per row: `read` for the full body, `vault_fetch` for
-   attachments, or an answer drafted later with their confirmation.
+   attachments, or an answer drafted later with their confirmation. Vault
+   files appear as attachments for the user. Refer to their names and do not
+   give the user local vault paths.
 4. `search` for anything specific the user names - pass their query
    through in native Gmail syntax; do not translate it into guesswork.
 5. Empty digest: report no matches in the sampled window and its scanned/unread counts. This is not proof that the whole mailbox is empty.
