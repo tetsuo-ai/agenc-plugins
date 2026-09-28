@@ -326,6 +326,7 @@ test("MCP price history stays complete while chart data appears only in a user a
   const { root, call } = await withServer(t);
   const bars = fixtureBars();
   makeCache(root).set("bars-v2-AAPL-24m", bars);
+  makeCache(root).set("bars-v2-AAPL-36m", bars);
   const response = await call("tools/call", { name: "ohlcv", arguments: { symbol: "AAPL" } });
   assert.deepEqual(response.result.structuredContent.bars, bars);
   assert.equal(response.result.structuredContent.priceData.source, "yahoo");
@@ -337,12 +338,12 @@ test("MCP price history stays complete while chart data appears only in a user a
   const [caption, resource] = chart.result.content;
   assert.deepEqual(Object.keys(caption), ["type", "text"]);
   assert.equal(caption.type, "text");
-  assert.match(caption.text, /AAPL, .* to .* \(daily\): last close 340 USD; SMA 50 .*SMA 200/u);
+  assert.match(caption.text, /AAPL, .* to .*: last close 340 USD; SMA 50 .*SMA 200/u);
   assert.ok(caption.text.length < 200);
   assert.doesNotMatch(JSON.stringify([caption, chart.result.structuredContent]), /"series"|"data"|\.svg|\/charts\//u);
   const priceChart = validateChartBlock(validateDisplayResource(resource, "chart"));
   assert.equal(priceChart.series[0].data.length, bars.length);
-  assert.equal(priceChart.series[0].data.at(-1).close, 340);
+  assert.equal(priceChart.series[0].data.at(-1).value, 340);
   assert.deepEqual(priceChart.series.map((series) => series.name), ["AAPL", "SMA 50", "SMA 200", "Volume"]);
   assert.equal(existsSync(join(root, "charts")), false);
   const analysis = await call("tools/call", { name: "analyze", arguments: { symbol: "AAPL" } });
@@ -354,13 +355,55 @@ test("MCP price history stays complete while chart data appears only in a user a
 
 test("all client names receive the same chart attachment without a unicode chart", async (t) => {
   const { root, call } = await withServer(t);
-  makeCache(root).set("bars-v2-AAPL-24m", fixtureBars());
+  makeCache(root).set("bars-v2-AAPL-36m", fixtureBars());
   await call("initialize", { clientInfo: { name: "sample-cli", version: "1" } });
   const chart = await call("tools/call", { name: "chart_price", arguments: { symbol: "AAPL" } });
   assert.equal(chart.result.content.length, 2);
   assert.match(chart.result.content[0].text, /last close 340 USD/u);
   validateChartBlock(validateDisplayResource(chart.result.content[1], "chart"));
   assert.doesNotMatch(JSON.stringify(chart.result.content[0]), /[▁▂▃▄▅▆▇█]|\.svg/u);
+});
+
+test("text-only terminals explicitly request the sparkline fallback", async (t) => {
+  const { root, call } = await withServer(t);
+  makeCache(root).set("bars-v2-AAPL-36m", fixtureBars());
+  const chart = (await call("tools/call", { name: "chart_price", arguments: { symbol: "AAPL", format: "terminal" } })).result;
+  assert.equal(chart.content.length, 1);
+  assert.match(chart.content[0].text, /last close 340 USD/u);
+  assert.match(chart.content[0].text, /\n[▁▂▃▄▅▆▇█]{24}$/u);
+  assert.equal(chart.structuredContent.lastClose, 340);
+  const invalid = await call("tools/call", { name: "chart_price", arguments: { symbol: "AAPL", format: "svg" } });
+  assert.equal(invalid.error.code, -32602);
+});
+
+test("a short window has warmed daily SMAs and the same indicator zones", async (t) => {
+  const { root, call } = await withServer(t);
+  const history = fixtureBars(400).map((bar, index) => {
+    const close = 200 + Math.sin(index / 1.5) * 20;
+    return { ...bar, open: close, high: close + 2, low: close - 2, close };
+  });
+  makeCache(root).set("bars-v2-AAPL-13m", history);
+  const cutoff = new Date();
+  cutoff.setUTCMonth(cutoff.getUTCMonth() - 1);
+  const windowBars = history.filter((bar) => bar.date >= cutoff.toISOString().slice(0, 10));
+  makeCache(root).set("bars-v2-AAPL-1m", windowBars);
+  const indicators = (await call("tools/call", { name: "indicators", arguments: { symbol: "AAPL", months: 1 } })).result.structuredContent;
+  const result = (await call("tools/call", { name: "chart_price", arguments: { symbol: "AAPL", months: 1 } })).result;
+  const chart = validateChartBlock(validateDisplayResource(result.content[1], "chart"));
+  assert.deepEqual(chart.series[0].data, windowBars.map((bar) => ({ time: bar.date, value: bar.close })));
+  for (const period of [50, 200]) {
+    const line = chart.series.find((series) => series.name === `SMA ${period}`);
+    assert.equal(line.data.length, windowBars.length);
+    assert.equal(line.data.at(-1).value, result.structuredContent.indicators[`sma${period}`]);
+  }
+  for (const [key, label] of [["supports", "Support"], ["resistances", "Resistance"]]) {
+    assert.deepEqual(result.structuredContent[key], indicators[key]);
+    assert.ok(indicators[key].length > 0);
+    for (const zone of indicators[key].slice(0, 2)) {
+      assert.deepEqual(chart.series.find((series) => series.name === `${label} ${zone.level}`).data,
+        windowBars.map((bar) => ({ time: bar.date, value: zone.level })));
+    }
+  }
 });
 
 test("EDGAR tools explain the missing contact without making a request", async (t) => {

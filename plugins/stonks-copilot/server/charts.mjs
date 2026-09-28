@@ -43,14 +43,15 @@ export function chartBars(bars, maxPoints = 600) {
 }
 
 /** AgenC chat chart format v1. Moving averages remain daily-period values. */
-export function priceChartBlock(bars, { symbol, maxPoints = 600, lastPoints = null } = {}) {
+export function priceChartBlock(bars, { symbol, maxPoints = 600, lastPoints = null, supports = [], resistances = [] } = {}) {
   if (bars.length === 0) return null;
   const start = lastPoints === null ? 0 : Math.max(0, bars.length - lastPoints);
   const sampled = chartBars(bars.slice(start), maxPoints);
+  if (sampled.bars.length === 0) return null;
   const closes = bars.map((bar) => bar.close);
   const series = [{
-    type: "candlestick", name: symbol, scale: "price",
-    data: sampled.bars.map((bar) => ({ time: bar.date, open: bar.open, high: bar.high, low: bar.low, close: bar.close })),
+    type: "line", name: symbol, scale: "price",
+    data: sampled.bars.map((bar) => ({ time: bar.date, value: bar.close })),
   }];
   for (const period of [50, 200]) {
     const values = smaAligned(closes, period);
@@ -58,13 +59,24 @@ export function priceChartBlock(bars, { symbol, maxPoints = 600, lastPoints = nu
       ? [{ time: bars[index + start].date, value: values[index + start] }] : []);
     if (data.length > 0) series.push({ type: "line", name: `SMA ${period}`, scale: "price", data });
   }
+  // Two zones per side leave room for close, both SMAs and volume in v1's
+  // eight-series limit. Use the indicator ranking, not invented price targets.
+  for (const [label, zones] of [["Support", supports], ["Resistance", resistances]]) {
+    for (const { level } of zones.filter((zone) => Number.isFinite(zone.level)).slice(0, 2)) {
+      series.push({
+        type: "line", name: `${label} ${level}`, scale: "price",
+        // Include every displayed date for inspection and autoscaling on zoom.
+        data: sampled.bars.map((bar) => ({ time: bar.date, value: level })),
+      });
+    }
+  }
   const volume = sampled.bars.flatMap((bar) => Number.isFinite(bar.volume)
     ? [{ time: bar.date, value: bar.volume }] : []);
   if (volume.length > 0) series.push({ type: "histogram", name: "Volume", scale: "volume", data: volume });
   const latest = bars.at(-1);
   return {
-    version: 1, kind: "timeseries", title: `${symbol}, ${sampled.period}`,
-    subtitle: `Source: ${latest.source ?? "market data"}. Last close ${latest.date}.`,
+    version: 1, kind: "timeseries", title: `${symbol}: last close ${latest.close} ${latest.currency ?? "USD"}`,
+    subtitle: `${sampled.bars[0].date} to ${latest.date}, ${sampled.period}. Source: ${latest.source ?? "market data"}. Support and resistance are current zones.`,
     currency: latest.currency ?? "USD", series,
   };
 }

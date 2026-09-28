@@ -81,8 +81,13 @@ Its coverage fields identify omitted positions and unsupported derivatives.
 Large portfolio and journal requests run sequentially and can take time; they
 are not a real-time quote service.
 
-`chart_price` shows a price chart with OHLC bars, volume and daily SMA 50/200
-values under the tool call. `chart_treemap` shows a pie chart of gross position
+`chart_price` defaults to a Desktop display attachment: a dated closing-price
+line, daily SMA50/SMA200, volume and up to two ranked support and two resistance
+zones, titled with the symbol and last close. It fetches up to 12 extra months
+for SMA warmup, within the provider's 120-month limit, and plots only the
+requested analysis window. Missing history or zones are not fabricated.
+Text-only terminals can explicitly request `format: "terminal"` for a sparkline
+fallback. Client names do not select the output format. `chart_treemap` shows a pie chart of gross position
 weights and a details table. Describe these displays in the report. The model
 receives short summaries, not chart data or file paths.
 

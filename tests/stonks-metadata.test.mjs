@@ -43,7 +43,10 @@ test("Stonks copy describes requested scans and preserves the app punctuation st
 test("Stonks instructions describe display charts and label partial scores", () => {
   assert.match(skill("stock-analyzer"), /technical score as technical only/u);
   assert.match(skill("stock-analyzer"), /chart appears for the user under the tool call/u);
-  assert.match(skill("stock-analyzer"), /Do not recreate the chart with text characters/u);
+  assert.match(skill("stock-analyzer"), /Do not recreate the chart with text characters in Desktop/u);
+  assert.match(skill("stock-analyzer"), /same `months` analysis window/u);
+  assert.match(skill("stock-analyzer"), /format: "terminal"/u);
+  assert.match(skill("stock-analyzer"), /SMA50 and SMA200/u);
   assert.match(skill("portfolio-xray"), /pie chart and details table appear for the user under the tool call/u);
   assert.match(skill("portfolio-xray"), /Unknown fees are not zero/);
   for (const name of ["stock-analyzer", "portfolio-xray"]) {

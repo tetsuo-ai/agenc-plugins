@@ -12,7 +12,7 @@
 import { once } from "node:events";
 import { join } from "node:path";
 import { technicalSnapshot } from "./indicators.mjs";
-import { priceChartBlock } from "./charts.mjs";
+import { priceChartBlock, sparkline } from "./charts.mjs";
 import { parsePositionsText, xrayPortfolio } from "./portfolio.mjs";
 import { makeCache } from "./cache.mjs";
 import { makeMarketData } from "./bars.mjs";
@@ -333,28 +333,42 @@ const tools = [
   },
   {
     name: "chart_price",
-    description: "Show a price chart with OHLC, volume and SMA 50/200 as a display attachment. Returns a short price and indicator summary.",
+    description: "Show a dated closing-price line with SMA 50/200, support/resistance and volume as a display attachment. Use the default display format in AgenC Desktop; terminal format provides a text sparkline only for text-only terminals.",
     inputSchema: {
       type: "object",
       properties: {
         symbol: { type: "string" },
         months: { type: "number", description: "Window in months (default 24)" },
+        format: { type: "string", enum: ["display", "terminal"], description: "Default display. Use terminal only in a text-only terminal without display attachments." },
       },
       required: ["symbol"],
     },
-    handler: async ({ symbol, months }) => {
-      const bars = await marketData.dailyBars(symbol, { months: clampMonths(months) });
+    handler: async ({ symbol, months, format = "display" }) => {
+      const windowMonths = clampMonths(months);
+      // Warm up daily SMAs before the visible analysis window where history exists.
+      const bars = await marketData.dailyBars(symbol, { months: Math.min(120, windowMonths + 12) });
+      const cutoff = new Date();
+      cutoff.setUTCMonth(cutoff.getUTCMonth() - windowMonths);
+      const windowBars = bars.filter((bar) => bar.date >= cutoff.toISOString().slice(0, 10));
+      if (windowBars.length === 0) return text("No bars to draw a chart.");
+      const { supports, resistances } = technicalSnapshot(windowBars);
       const closes = bars.map((bar) => bar.close);
-      const chart = priceChartBlock(bars, { symbol: symbol.toUpperCase() });
+      const chart = priceChartBlock(bars, { symbol: symbol.toUpperCase(), lastPoints: windowBars.length, supports, resistances });
       if (chart === null) return text("No bars to draw a chart.");
       const latest = bars.at(-1);
       const indicators = { sma50: smaAligned(closes, 50).at(-1) ?? null, sma200: smaAligned(closes, 200).at(-1) ?? null };
-      const period = `${bars[0].date} to ${latest.date} (${chart.title.split(", ").at(-1)})`;
+      const period = `${windowBars[0].date} to ${latest.date}`;
       const summary = `${symbol.toUpperCase()}, ${period}: last close ${latest.close} ${latest.currency ?? "USD"}; SMA 50 ${indicatorText(indicators.sma50)}, SMA 200 ${indicatorText(indicators.sma200)}.`;
-      return displayResult(summary, [displayResource("chart", `agenc:chart:price:${symbol.toUpperCase()}`, chart)], {
+      const facts = {
         symbol: symbol.toUpperCase(), period, asOf: latest.date,
-        lastClose: latest.close, currency: latest.currency ?? "USD", indicators, bars: bars.length,
-      });
+        lastClose: latest.close, currency: latest.currency ?? "USD", indicators, bars: windowBars.length,
+        supports, resistances, plottedSupports: supports.slice(0, 2), plottedResistances: resistances.slice(0, 2),
+      };
+      if (format === "terminal") {
+        const trend = sparkline(windowBars.map((bar) => bar.close));
+        return displayResult(`${summary}${trend ? `\n${trend}` : ""}`, [], facts);
+      }
+      return displayResult(summary, [displayResource("chart", `agenc:chart:price:${symbol.toUpperCase()}`, chart)], facts);
     },
   },
   {
