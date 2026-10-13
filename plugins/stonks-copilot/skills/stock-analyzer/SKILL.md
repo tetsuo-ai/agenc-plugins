@@ -33,9 +33,16 @@ tool errors, transport permissions or provider access restrictions.
    three-item quota with invented claims when fewer signals are available.
 3. Check supports/resistances from `indicators` before saying anything
    about entry points.
-4. Call `chart_price`. Its price chart appears for the user under the tool call.
-   Describe the trend, moving averages and volume in the report using the
-   returned facts. Do not recreate the chart with text characters.
+4. Call `chart_price` for each symbol discussed, with the same `months` analysis
+   window. In AgenC Desktop use its default `format: "display"`: the price
+   chart appears for the user under the tool call as a display attachment.
+   It has dates, a price axis, a closing-price line, daily SMA50 and SMA200,
+   volume and up to two ranked support and two resistance zones from the
+   indicators. Its title includes the symbol and last close. Describe the
+   returned facts. Do not recreate the chart with text characters in Desktop.
+   Only in a text-only terminal without display attachments, request
+   `format: "terminal"` and use the returned sparkline as the fallback.
+   Missing history or zones stay unavailable; do not invent overlay values.
 5. Never invent data the tools did not return. If a metric is null
    (non-US filer, no dividends, negative EPS), state the gap.
 

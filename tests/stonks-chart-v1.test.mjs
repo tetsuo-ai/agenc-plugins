@@ -15,15 +15,15 @@ function bars(count) {
   });
 }
 
-test("chart block validates against v1 with real daily OHLC, volume and daily SMAs", () => {
+test("chart block validates against v1 with a dated close line, volume and daily SMAs", () => {
   const input = bars(240);
   const chart = priceChartBlock(input, { symbol: "TEST" });
   const validated = validateChartBlock(chart);
-  assert.equal(validated.title, "TEST, daily");
-  assert.match(validated.subtitle, /Stooq.*2020-08-27/u);
+  assert.equal(validated.title, "TEST: last close 124.9 USD");
+  assert.match(validated.subtitle, /2020-01-01 to 2020-08-27, daily.*Stooq/u);
   assert.deepEqual(validated.series.map((series) => series.name), ["TEST", "SMA 50", "SMA 200", "Volume"]);
   assert.deepEqual(validated.series[0].data[3], {
-    time: input[3].date, open: input[3].open, high: input[3].high, low: input[3].low, close: input[3].close,
+    time: input[3].date, value: input[3].close,
   });
   assert.equal(validated.series.at(-1).data.length, 239, "unknown volume is omitted");
   const recent = priceChartBlock(input, { symbol: "TEST", lastPoints: 60 });
@@ -32,7 +32,7 @@ test("chart block validates against v1 with real daily OHLC, volume and daily SM
   assert.equal(recent.series.find((series) => series.name === "SMA 200").data.length, 41,
     "recent chart keeps daily SMA values computed from the full history");
   const broken = structuredClone(chart);
-  broken.series[0].data[0].high = broken.series[0].data[0].low - 1;
+  broken.series[0].data[0].value = NaN;
   assert.throws(() => validateChartBlock(broken));
   const mixed = structuredClone(chart);
   mixed.series[1].data[0].time = Date.parse(`${mixed.series[1].data[0].time}T00:00:00Z`) / 1000;
@@ -40,6 +40,51 @@ test("chart block validates against v1 with real daily OHLC, volume and daily SM
   const duplicate = structuredClone(chart);
   duplicate.series[0].data[1].time = duplicate.series[0].data[0].time;
   assert.throws(() => validateChartBlock(duplicate), /ascend/u);
+});
+
+test("daily SMAs use history before the visible window, including after weekly sampling", () => {
+  const input = bars(2400);
+  for (const lastPoints of [30, 700]) {
+    const chart = priceChartBlock(input, { symbol: "TEST", lastPoints });
+    validateChartBlock(chart);
+    for (const period of [50, 200]) {
+      const line = chart.series.find((series) => series.name === `SMA ${period}`);
+      assert.deepEqual(line.data.map((point) => point.time), chart.series[0].data.map((point) => point.time));
+      for (const point of line.data) {
+        const end = input.findIndex((bar) => bar.date === point.time);
+        const expected = input.slice(end - period + 1, end + 1).reduce((sum, bar) => sum + bar.close, 0) / period;
+        assert.ok(Math.abs(point.value - expected) < 1e-9);
+      }
+    }
+    assert.equal(chart.series[0].data.at(-1).value, input.at(-1).close);
+  }
+});
+
+test("support and resistance span the displayed dates within v1 limits", () => {
+  const input = bars(240);
+  const chart = priceChartBlock(input, {
+    symbol: "TEST", lastPoints: 30,
+    supports: [{ level: NaN }, { level: 110 }, { level: 105 }, { level: 100 }],
+    resistances: [{ level: 130 }, { level: 140 }, { level: 150 }],
+  });
+  validateChartBlock(chart);
+  assert.equal(chart.series.length, 8);
+  const levels = chart.series.filter((series) => /^(Support|Resistance) /u.test(series.name));
+  assert.deepEqual(levels.map((series) => series.name), ["Support 110", "Support 105", "Resistance 130", "Resistance 140"]);
+  for (const [index, value] of [110, 105, 130, 140].entries()) {
+    assert.equal(levels[index].type, "line");
+    assert.equal(levels[index].scale, "price");
+    assert.deepEqual(levels[index].data, input.slice(-30).map((bar) => ({ time: bar.date, value })));
+  }
+});
+
+test("empty and short histories omit unavailable overlays without inventing data", () => {
+  assert.equal(priceChartBlock([], { symbol: "TEST" }), null);
+  assert.equal(priceChartBlock(bars(20), { symbol: "TEST", lastPoints: 0 }), null);
+  const chart = priceChartBlock(bars(1), { symbol: "TEST", supports: [{ level: 90 }] });
+  validateChartBlock(chart);
+  assert.deepEqual(chart.series.map((series) => series.name), ["TEST", "Support 90", "Volume"]);
+  assert.deepEqual(chart.series[1].data, [{ time: "2020-01-01", value: 90 }]);
 });
 
 test("long histories aggregate whole weekly OHLC bars and stay within 600 points", () => {
@@ -62,7 +107,9 @@ test("long histories aggregate whole weekly OHLC bars and stay within 600 points
 });
 
 test("display resources obey Core's JSON shape, size and count limits", () => {
-  const chart = priceChartBlock(bars(2400), { symbol: "TEST" });
+  const chart = priceChartBlock(bars(2400), {
+    symbol: "TEST", supports: [{ level: 110 }, { level: 105 }], resistances: [{ level: 350 }, { level: 360 }],
+  });
   const block = { type: "resource", annotations: { audience: ["user"] }, resource: {
     uri: "agenc:chart:price:TEST", mimeType: "application/vnd.agenc.chart+json", text: JSON.stringify(chart),
   } };
