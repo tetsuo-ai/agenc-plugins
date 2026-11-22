@@ -37,16 +37,28 @@ function run(executable, args, { cwd, env, timeout = 60_000 }) {
   return result.stdout.trim();
 }
 
+// Names exported by a compiled chunk's final `export {...}` block, minified or not.
+function exportedNames(source) {
+  const match = /export\s*\{([^}]*)\}\s*;?\s*(?:\/\/# sourceMappingURL=\S+\s*)?$/u.exec(source);
+  if (!match) return new Set();
+  return new Set(match[1].split(",").map((part) => part.trim().split(/\s+as\s+/u).pop()).filter(Boolean));
+}
+
 // Discover only named exports in built artifacts so hashed chunk names can change.
 function builtModule(runtime, symbols) {
   const dist = join(runtime, "dist");
   const matches = readdirSync(dist).filter((name) => /^chunk-[A-Z0-9]+\.js$/u.test(name)).filter((name) => {
-    const text = readFileSync(join(dist, name), "utf8");
-    const exports = text.slice(text.lastIndexOf("export {"));
-    return symbols.every((symbol) => new RegExp(`(?:^|\\n)\\s*${symbol}(?:,|\\s|$)`, "u").test(exports));
+    const exports = exportedNames(readFileSync(join(dist, name), "utf8"));
+    return symbols.every((symbol) => exports.has(symbol));
   });
   assert.equal(matches.length, 1, `Expected one built chunk exporting ${symbols.join(", ")}`);
   return pathToFileURL(join(dist, matches[0])).href;
+}
+
+// A live view over several compiled chunks: esbuild exports stay unset until their init_* runs.
+async function builtNamespace(runtime, ...groups) {
+  const parts = await Promise.all(groups.map((symbols) => import(builtModule(runtime, symbols))));
+  return new Proxy({}, { get: (_target, key) => parts.find((part) => key in part)?.[key] });
 }
 
 function resultObject(result) {
@@ -65,7 +77,7 @@ function resultObject(result) {
 async function isolatedChild(runtime, approvedNetwork = false, symbol = "AAPL") {
   assert.ok(isAbsolute(runtime), "Child requires an absolute built Core path");
   const environment = Object.freeze({ ...process.env });
-  const sessionModule = await import(builtModule(runtime, ["ConfigStore", "init_store", "createSessionMcpManager", "init_mcp_startup"]));
+  const sessionModule = await builtNamespace(runtime, ["ConfigStore", "init_store"], ["createSessionMcpManager", "init_mcp_startup"]);
   const configModule = await import(builtModule(runtime, ["getAllMcpConfigs", "init_config"]));
   const sandboxModule = await import(builtModule(runtime, ["SandboxExecutionBroker", "init_execution_broker", "pluginMcpPermissionProfile"]));
   sessionModule.init_store(); sessionModule.init_mcp_startup(); configModule.init_config(); sandboxModule.init_execution_broker();
