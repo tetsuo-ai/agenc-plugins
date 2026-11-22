@@ -94,4 +94,6 @@ test("the manifest stays a skill-only, read-only package", () => {
   assert.deepEqual(Object.keys(manifest.commands), ["ledger-balance"]);
   assert.ok(manifest.interface.capabilities.includes("readonly-staking-positions"));
   assert.match(manifest.interface.longDescription, /never signs, broadcasts, or asks for a recovery phrase/u);
+  // Core shows at most three starter prompts and drops the rest silently.
+  assert.ok(manifest.interface.defaultPrompt.length <= 3);
 });

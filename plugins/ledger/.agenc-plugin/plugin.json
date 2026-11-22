@@ -35,7 +35,6 @@
     "logo": "./assets/logo.png",
     "defaultPrompt": [
       "What is on my Ledger?",
-      "Show my Ledger accounts and balances",
       "Show my staking positions on my Ledger",
       "Verify a receive address on my Ledger"
     ],
