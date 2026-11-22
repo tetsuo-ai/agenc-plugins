@@ -61,7 +61,7 @@ the flags shown here or in `wallet-cli <command> --help`. Never guess a flag.
   the default sandbox.
 - `balances`, `operations`, `earn positions`, `assets token` and
   `assets token-by-id` read Ledger's online services. In the default sandbox
-  they fail with `ENOTFOUND`. Run each one with
+  they fail with `ENOTFOUND` or the error code `NetworkDown`. Run each one with
   `sandbox_permissions: "with_additional_permissions"`,
   `additional_permissions: {"network": {"enabled": true}}` and a one-line
   justification. Do not ask for a full sandbox bypass for these reads.
