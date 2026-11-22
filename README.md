@@ -279,6 +279,14 @@ Exercise the new plugins through compiled Core's actual native MCP sandbox:
 AGENC_CORE_RUNTIME='/path/to/agenc-core/runtime' npm run validate:built
 ```
 
+This uses disposable storage, verifies package signatures, and retains default
+network denial. Inbox OAuth/Gmail flows are tested with synthetic credentials
+against a loopback fixture by `npm test`; real accounts still require user consent.
+
+That test uses a temporary `AGENC_HOME`, validates the catalog and all five
+plugins, registers the local marketplace, installs each package, and checks the
+resulting inventory. It does not modify the operator's AgenC configuration.
+
 Run the commands that the Ledger, LLM Checker and IoT skills prescribe through
 the same native sandbox, with and without the grant each skill requests:
 
@@ -292,14 +300,6 @@ It uses a disposable home and a wallet-cli session of fresh random public
 addresses, and never runs a Ledger device command or a board upload. Without
 `--approved-network` it skips the cases that read Ledger's public services and
 PlatformIO's registry.
-
-This uses disposable storage, verifies package signatures, and retains default
-network denial. Inbox OAuth/Gmail flows are tested with synthetic credentials
-against a loopback fixture by `npm test`; real accounts still require user consent.
-
-That test uses a temporary `AGENC_HOME`, validates the catalog and all five
-plugins, registers the local marketplace, installs each package, and checks the
-resulting inventory. It does not modify the operator's AgenC configuration.
 
 Stonks has a focused offline regression suite and an isolated native MCP check:
 
