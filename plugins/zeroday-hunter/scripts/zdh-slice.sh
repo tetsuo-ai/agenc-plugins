@@ -46,7 +46,14 @@ is_keyword() {
   esac
 }
 
-declare -A SEEN_FILE=() VISITED_SYM=()
+# Newline-delimited sets instead of associative arrays, so the stock macOS
+# bash 3.2 runs this script too. The quoted "$1" matches literally.
+SEEN_FILES=$'\n'; VISITED_SYMS=$'\n'
+seen_file() { case "$SEEN_FILES" in *$'\n'"$1"$'\n'*) return 0 ;; esac; return 1; }
+mark_file() { SEEN_FILES="$SEEN_FILES$1"$'\n'; }
+visited_sym() { case "$VISITED_SYMS" in *$'\n'"$1"$'\n'*) return 0 ;; esac; return 1; }
+mark_sym() { VISITED_SYMS="$VISITED_SYMS$1"$'\n'; }
+
 queue=("$SYMBOL"); level=0
 ORDERED_FILES=()
 
@@ -54,36 +61,39 @@ while [ "${#queue[@]}" -gt 0 ] && [ "$level" -le "$DEPTH" ]; do
   next=()
   for sym in "${queue[@]}"; do
     [ -z "$sym" ] && continue
-    [ -n "${VISITED_SYM[$sym]:-}" ] && continue
-    VISITED_SYM[$sym]=1
-    for f in $(def_files "$sym"); do
-      if [ -z "${SEEN_FILE[$f]:-}" ]; then
-        SEEN_FILE[$f]=1; ORDERED_FILES+=("$f")
+    visited_sym "$sym" && continue
+    mark_sym "$sym"
+    # Read paths line by line so a file name with spaces stays one path.
+    while IFS= read -r f; do
+      [ -z "$f" ] && continue
+      if ! seen_file "$f"; then
+        mark_file "$f"; ORDERED_FILES+=("$f")
         if [ "$level" -lt "$DEPTH" ]; then
           while IFS= read -r c; do
             [ -z "$c" ] && continue
             is_keyword "$c" && continue
             [ "$c" = "$sym" ] && continue
-            [ -z "${VISITED_SYM[$c]:-}" ] && next+=("$c")
+            visited_sym "$c" || next+=("$c")
           done < <(body_callees "$f" "$sym")
         fi
       fi
-    done
+    done < <(def_files "$sym")
     # callers: files referencing the symbol
-    for f in $(grep -rlE "\b$sym[[:space:]]*\(" "$REPO" "${inc[@]}" 2>/dev/null || true); do
-      if [ -z "${SEEN_FILE[$f]:-}" ]; then
-        SEEN_FILE[$f]=1; ORDERED_FILES+=("$f")
+    while IFS= read -r f; do
+      [ -z "$f" ] && continue
+      if ! seen_file "$f"; then
+        mark_file "$f"; ORDERED_FILES+=("$f")
       fi
-    done
+    done < <(grep -rlE "\b$sym[[:space:]]*\(" "$REPO" "${inc[@]}" 2>/dev/null || true)
   done
   if [ "${#next[@]}" -gt 0 ]; then queue=("${next[@]}"); else queue=(); fi
   level=$((level+1))
 done
 
 total=0; truncated=0
-for f in ${ORDERED_FILES[@]:-}; do
+for f in ${ORDERED_FILES[@]+"${ORDERED_FILES[@]}"}; do
   [ -z "$f" ] && continue
-  lines=$(wc -l < "$f")
+  lines=$(wc -l < "$f" | tr -d ' ')
   if [ $((total + lines)) -gt "$MAXLINES" ]; then truncated=1; break; fi
   printf '===== %s (%s lines) =====\n' "${f#"$REPO"/}" "$lines"
   cat "$f"

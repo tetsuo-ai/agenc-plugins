@@ -13,7 +13,7 @@ MAXCOST="${3:-10}"
 
 PLUGIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 REPO="$(cd "$REPO" && pwd)"
-slug="$(printf '%s' "$CLASS" | tr '[:upper:]' '[:lower:]' | tr -cs 'a-z0-9' '-' | sed 's/^-\|-$//g')"
+slug="$(printf '%s' "$CLASS" | tr '[:upper:]' '[:lower:]' | tr -cs 'a-z0-9' '-' | sed -e 's/^-*//' -e 's/-*$//')"
 ID="zdh-$(date +%Y%m%d)-${slug}"
 DIR="$REPO/.zdh/$ID"
 
@@ -29,14 +29,16 @@ cp "$PLUGIN_DIR/templates/finding.md" "$DIR/findings/_template.md"
 
 commit="$(git -C "$REPO" rev-parse HEAD 2>/dev/null || echo 'no-git')"
 
-# fill campaign.yaml fields (portable sed -i)
-sed -i \
+# fill campaign.yaml fields. BSD sed (macOS) and GNU sed disagree on -i, so
+# write a temporary file and move it into place.
+sed \
   -e "s|  id: \"\"|  id: \"$ID\"|" \
   -e "s|  target_repo: \"\"|  target_repo: \"$REPO\"|" \
   -e "s|  baseline_commit: \"\"|  baseline_commit: \"$commit\"|" \
   -e "s|  bug_class: \"\"|  bug_class: \"$CLASS\"|" \
   -e "s|  max_cost_usd: 10|  max_cost_usd: $MAXCOST|" \
-  "$DIR/campaign.yaml"
+  "$DIR/campaign.yaml" > "$DIR/campaign.yaml.tmp"
+mv "$DIR/campaign.yaml.tmp" "$DIR/campaign.yaml"
 
 cat > "$DIR/state.yaml" <<EOF
 gate: G0

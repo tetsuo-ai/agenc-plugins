@@ -202,9 +202,11 @@ network names, reads staking positions and paginated history, parses the JSON
 results and exit codes, and still never signs or broadcasts. LLM Checker
 targets `llm-checker` 3.8.2. Ledger, LLM Checker and IoT Builder now name the
 scoped AgenC sandbox grant each command needs; without it their CLIs fail in
-the default sandbox. Stonks Copilot, Paper Radar and Inbox ship the display
-attachments merged after 0.2.5. Every package moves to 0.3.0 and must be
-re-signed before the catalog is rebuilt.
+the default sandbox. Zero Day Hunter's `zdh-init.sh` and `zdh-slice.sh` run
+on the stock macOS bash 3.2 and BSD sed, and the slice keeps paths that contain
+spaces. Stonks Copilot, Paper Radar and Inbox ship the display attachments
+merged after 0.2.5. Every package moves to 0.3.0 and must be re-signed before
+the catalog is rebuilt.
 
 ### English command-label release (0.2.5)
 
