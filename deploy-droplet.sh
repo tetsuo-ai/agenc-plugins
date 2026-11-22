@@ -21,19 +21,19 @@ npm ci --ignore-scripts
 npm test
 
 remote_stage="/var/www/agenc-tech/.plugins-upload-$head_sha"
-ssh -o BatchMode=yes agenc-mainnet \
+ssh -o BatchMode=yes agenc-game-01 \
   "rm -rf '$remote_stage' && mkdir -p '$remote_stage/.agenc-plugin'"
 scp -o BatchMode=yes \
   public/marketplace.json \
   public/plugin-publishers.json \
   public/agenc-plugins.pub \
   public/agenc-plugins-2026-09.pub \
-  "agenc-mainnet:$remote_stage/"
+  "agenc-game-01:$remote_stage/"
 scp -o BatchMode=yes \
   public/.agenc-plugin/marketplace.json \
-  "agenc-mainnet:$remote_stage/.agenc-plugin/marketplace.json"
+  "agenc-game-01:$remote_stage/.agenc-plugin/marketplace.json"
 
-ssh -o BatchMode=yes agenc-mainnet "
+ssh -o BatchMode=yes agenc-game-01 "
   set -eu
   mkdir -p /var/www/agenc-tech/plugins/.agenc-plugin
   mv '$remote_stage/marketplace.json' /var/www/agenc-tech/plugins/marketplace.json
