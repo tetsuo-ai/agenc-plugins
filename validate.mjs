@@ -262,6 +262,9 @@ const iotSkill = readFileSync(
 for (const command of ["pio device list --json-output", "pio run -e", "--upload-port"]) {
   assert.ok(iotSkill.includes(command), `IoT skill is missing ${command}`);
 }
+for (const required of ["ledger_wallet_cli_status", "with_additional_permissions", "require_escalated"]) {
+  assert.ok(ledgerSkill.includes(required), `Ledger skill is missing sandbox guidance: ${required}`);
+}
 
 const stonksManifest = readJson(
   join(ROOT, "plugins", "stonks-copilot", ".agenc-plugin", "plugin.json"),
