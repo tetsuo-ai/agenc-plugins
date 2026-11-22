@@ -262,6 +262,17 @@ const iotSkill = readFileSync(
 for (const command of ["pio device list --json-output", "pio run -e", "--upload-port"]) {
   assert.ok(iotSkill.includes(command), `IoT skill is missing ${command}`);
 }
+// CLI-backed skills must say which scoped AgenC sandbox grant each command needs.
+for (const required of ["with_additional_permissions", "<home>/.platformio", "require_escalated"]) {
+  assert.ok(iotSkill.includes(required), `IoT skill is missing sandbox guidance: ${required}`);
+}
+const llmCheckerSkill = readFileSync(
+  join(ROOT, "plugins", "llm-checker", "skills", "local-model-fit", "SKILL.md"),
+  "utf8",
+);
+for (const required of ["llm-checker` 3.8.2", "with_additional_permissions", "<home>/.llm-checker", "\"network\": {\"enabled\": true}"]) {
+  assert.ok(llmCheckerSkill.includes(required), `LLM Checker skill is missing ${required}`);
+}
 for (const required of ["ledger_wallet_cli_status", "with_additional_permissions", "require_escalated"]) {
   assert.ok(ledgerSkill.includes(required), `Ledger skill is missing sandbox guidance: ${required}`);
 }

@@ -20,8 +20,23 @@ llm-checker registry-recommend --help
 
 If the binary is absent, stop and tell the user to install it with
 `npm install -g llm-checker`. Do not install it automatically or substitute
-`npx`. This skill targets `llm-checker` 3.8.1; if the installed help lacks a
+`npx`. This skill targets `llm-checker` 3.8.2; if the installed help lacks a
 documented command or flag, report the version mismatch instead of guessing.
+
+## Sandbox in AgenC
+
+`--version`, `--help` and `hw-detect` run in the default sandbox. llm-checker
+keeps its model registry and caches in `~/.llm-checker`, so every other
+command below fails there with
+`EPERM: operation not permitted, mkdir '.../.llm-checker'`. Run those commands
+with `sandbox_permissions: "with_additional_permissions"`,
+`additional_permissions: {"file_system": {"write": ["<home>/.llm-checker"]}}`
+and a one-line justification. Use the absolute path that
+`echo "$HOME/.llm-checker"` prints. The Ollama commands (`ollama`,
+`installed`, `ollama-plan` and `verify-context`) also talk to the local Ollama
+server, which the default sandbox blocks: add `"network": {"enabled": true}`
+to their `additional_permissions`. Do not ask for a full sandbox bypass for
+any of these commands.
 
 ## Measure the budget
 
@@ -54,7 +69,10 @@ llm-checker registry-recommend --category coding --runtime auto --target-context
 Valid categories are `general`, `coding`, `reasoning`, `embeddings`, and
 `multimodal`. If the user's task does not map cleanly to one, use `general` and
 say so. Valid runtime targets are `auto`, `ollama`, `llama.cpp`, `vllm`, `mlx`,
-and `transformers`.
+`transformers`, and `docker` (Docker Model Runner). Valid `--source` filters
+are `ollama`, `huggingface`, `gpt4all`, `docker`, and `modelscope`. Add
+`--cpu-only` when the user wants CPU and system RAM only, even with a GPU
+present.
 
 `--runtime auto` chooses a preferred runtime from artifact metadata; it does
 not prove that runtime is installed, serving, or supported by this operating
@@ -107,8 +125,8 @@ benchmark result.
 
 Do not accept a fit verdict for FP16/BF16 (including `F16`, `FP32`, or `F32`) or
 a sharded safetensors/bin artifact when `memory.memorySource` is not
-`observed_artifact_size`. Version 3.8.1 can underestimate those weights from
-parameter count. Without an observed total size, report exact fit as unknown.
+`observed_artifact_size`. An estimate from parameter count can understate
+those weights. Without an observed total size, report exact fit as unknown.
 
 If `recommendations` is empty, inspect the counters. `total_artifacts: 0` means
 no eligible artifact matched the active query and filters; gated artifacts are
@@ -134,7 +152,7 @@ to isolate the requested artifact. Only treat a recommendation as the requested
 model when its `source`, `artifact`, and `quantization` identify the same row
 from `registry-search`.
 
-The 3.8.1 selector can hypothesize a more compressed quantization than the
+The selector can hypothesize a more compressed quantization than the
 indexed artifact while retaining that artifact's install command. If the
 recommendation's `quantization` differs from the uniquely matched search row,
 do not use its fit verdict or install command for that artifact. Search for a
@@ -170,6 +188,7 @@ command -v ollama
 command -v llama-cli
 command -v llama-server
 command -v vllm
+command -v docker
 ```
 
 If `python3` is available, locate Python runtimes without importing them:
@@ -179,7 +198,10 @@ python3 -c 'import importlib.util as u; print({m: bool(u.find_spec(m)) for m in 
 ```
 
 For Ollama, use `llm-checker ollama` to distinguish an installed client from a
-reachable server. For MLX, also require Apple Silicon/Metal. Report a missing
+reachable server. For Docker Model Runner, a `docker` binary is necessary but
+does not prove that Model Runner is enabled; say so instead of running
+`docker model` commands that pull or start anything. For MLX, also require
+Apple Silicon/Metal. Report a missing
 runtime separately from model fit; do not convert it into a claim that the
 artifact itself does not fit. LM Studio's `lms` command is not a valid
 `--runtime` value for this CLI.

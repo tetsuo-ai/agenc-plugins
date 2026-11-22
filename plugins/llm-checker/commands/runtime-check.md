@@ -3,7 +3,8 @@ description: Show this machine's usable model-memory budget and installed Ollama
 argument-hint: ""
 ---
 
-Follow the `local-model-fit` skill and its boundaries.
+Follow the `local-model-fit` skill and its boundaries, including its AgenC
+sandbox permissions for `~/.llm-checker` and the local Ollama server.
 
 Run `llm-checker hw-detect --json`. Report `summary.effectiveMemory`, the
 dedicated or unified-memory context, CPU, and selected backend exactly as
