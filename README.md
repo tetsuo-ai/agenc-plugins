@@ -160,6 +160,7 @@ sign-plugins.mjs                      Ed25519 release signer
 build-manifest.mjs                    SHA-pinned hosted catalog builder
 validate.mjs                          repository and signature checks
 validate-core.mjs                     isolated real-Core smoke test
+validate-cli-plugins-built.mjs        CLI skill commands under Core's sandbox
 ```
 
 Generated files under `public/` are intentionally ignored. A hosted build
@@ -246,6 +247,20 @@ Exercise the new plugins through compiled Core's actual native MCP sandbox:
 ```bash
 AGENC_CORE_RUNTIME='/path/to/agenc-core/runtime' npm run validate:built
 ```
+
+Run the commands that the Ledger, LLM Checker and IoT skills prescribe through
+the same native sandbox, with and without the grant each skill requests:
+
+```bash
+AGENC_CORE_RUNTIME='/path/to/agenc-core/runtime' \
+AGENC_PLUGIN_CLI_PATH='/dir/with/wallet-cli:/dir/with/llm-checker:/dir/with/pio' \
+  npm run validate:cli-built -- --approved-network
+```
+
+It uses a disposable home and a wallet-cli session of fresh random public
+addresses, and never runs a Ledger device command or a board upload. Without
+`--approved-network` it skips the cases that read Ledger's public services and
+PlatformIO's registry.
 
 This uses disposable storage, verifies package signatures, and retains default
 network denial. Inbox OAuth/Gmail flows are tested with synthetic credentials
