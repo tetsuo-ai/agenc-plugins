@@ -1,6 +1,6 @@
 {
   "name": "ledger",
-  "version": "0.2.5",
+  "version": "0.3.0",
   "description": "Read Ledger accounts, balances, history and staking positions, and verify receive addresses with Ledger's wallet-cli 3.",
   "author": { "name": "tetsuo-ai" },
   "homepage": "https://agenc.tech",

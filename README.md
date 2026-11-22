@@ -5,7 +5,9 @@ The first-party plugin marketplace for AgenC. It contains eleven packages:
 
 - **Zero Day Hunter**: a security-research campaign skill.
 - **IoT Builder**: a guarded PlatformIO build/upload workflow.
-- **Ledger**: read-only wallet inspection with Ledger's official `wallet-cli`.
+- **Ledger**: read-only wallet inspection with Ledger's official `wallet-cli` 3:
+  accounts, balances, history and staking positions, plus receive addresses
+  verified on the device.
 - **LLM Checker**: hardware-measured local-model recommendations.
 - **Stonks Copilot**: agent-native investing copilot: 50/50 stock analysis,
   portfolio X-Ray with real N-PORT fund overlap, SVG charts, and a decision
@@ -70,9 +72,23 @@ thesis journal, and chart rendering over keyless public endpoints.
   and [approved plugin networking](https://github.com/tetsuo-ai/agenc-core/pull/2213).
   These determine whether an installed client can verify and run Stonks;
   publishing the catalog does not update that client's runtime or trust.
-- Ledger plugin: globally installed `@ledgerhq/wallet-cli` (`wallet-cli` 2.1+
-  recommended). The plugin never installs or downloads it automatically.
-- IoT plugin: an existing `platformio.ini` and a locally installed `pio`.
+- Ledger plugin: Ledger's official `@ledgerhq/wallet-cli` 3 (3.6.0 tested),
+  either on `PATH` or installed by AgenC's own `install_ledger_wallet_cli`
+  tool, which downloads nothing before the user approves its prompt. The
+  plugin never installs it through a package manager. wallet-cli 3 rewrites
+  its session file in place, so an older wallet-cli cannot read it afterwards.
+  It reaches a Ledger over USB only; a device paired only over Bluetooth is
+  not supported. wallet-cli sends anonymous usage events to Ledger (a fixed
+  user id, addresses redacted) and has no switch to turn them off.
+- LLM Checker plugin: a locally installed `llm-checker` 3.8.2.
+- IoT plugin: an existing `platformio.ini` and a locally installed `pio`
+  (PlatformIO Core 6.2.0 or newer recommended).
+- AgenC's default sandbox blocks network access and writes outside the
+  workspace. The Ledger, LLM Checker and IoT skills tell the agent which scoped
+  grant each command needs (network for wallet-cli reads, write access to
+  `~/.llm-checker` or `~/.platformio`) and AgenC asks the user before granting
+  it. Ledger device commands and board uploads run outside the sandbox only
+  after the user approves them.
 
 ## Install from a local checkout
 
@@ -132,12 +148,12 @@ agenc plugin marketplace add \
 
 Use `/plugins` to browse and install.
 
-## Zero Day Hunter and the built-in copy
+## Zero Day Hunter and the former built-in copy
 
-Current Core builds already bundle `zeroday-hunter@builtin`. The marketplace
-copy is opt-in and has a separate ID, `zeroday-hunter@agenc-plugins`. Until Core
-gains a `replaces`/`conflicts` contract, avoid enabling both copies. To use the
-marketplace package, disable the built-in explicitly in `config.toml`:
+Current Core no longer bundles `zeroday-hunter@builtin`: the marketplace copy,
+`zeroday-hunter@agenc-plugins`, is its only distribution. Older Core builds
+still carry the built-in. On those, avoid enabling both copies and disable the
+built-in explicitly in `config.toml`:
 
 ```toml
 [plugins.plugins."zeroday-hunter@builtin"]
@@ -145,8 +161,9 @@ enabled = false
 ```
 
 The marketplace copy is vendored from the Core revision recorded in
-`plugins/zeroday-hunter/UPSTREAM.json`; its scripts, templates, methodology, and
-references are part of the signed payload.
+`plugins/zeroday-hunter/UPSTREAM.json`, the last one before Core removed its
+copy; its scripts, templates, methodology, and references are part of the
+signed payload.
 
 ## Repository layout
 
@@ -176,6 +193,18 @@ not require an npm publication, a Core/Desktop binary release, or an Apple
 distribution certificate. Never upload the private signing key. Validate the
 catalog against compatible Core before deployment, preserve historical packages
 and the legacy public key, and keep a rollback copy of the previous hosted artifacts.
+
+### Wallet CLI 3 release (0.3.0)
+
+Ledger moves to Ledger's official wallet-cli 3 (3.6.0 tested). It finds the
+CLI through AgenC (`ledger_wallet_cli_status`), uses the wallet-cli 3 flags and
+network names, reads staking positions and paginated history, parses the JSON
+results and exit codes, and still never signs or broadcasts. LLM Checker
+targets `llm-checker` 3.8.2. Ledger, LLM Checker and IoT Builder now name the
+scoped AgenC sandbox grant each command needs; without it their CLIs fail in
+the default sandbox. Stonks Copilot, Paper Radar and Inbox ship the display
+attachments merged after 0.2.5. Every package moves to 0.3.0 and must be
+re-signed before the catalog is rebuilt.
 
 ### English command-label release (0.2.5)
 
