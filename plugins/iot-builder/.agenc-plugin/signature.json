@@ -1,9 +1,9 @@
 {
   "publisher": "tetsuo-ai",
-  "signature": "aS4xhRWyXgUxFVWAnHbY8MRYpu4St1v4SPTJYQ0vDZq5loyloeDDoOJo/tdsUTkx7sapVMOVhU/RIcscsKopAw==",
+  "signature": "dhgEsnf5ZVVDmxz5AsvZYIeWNQ3MEWOC9m9qXOqo/TC3mSVl20c/jJG7sve5kHTx8Jcu0G6rTJSFPGSbF0zMCw==",
   "files": {
     "assets/logo.png": "sha256:b7786958b47a94abdaa2124d35541ea915d50a55f674e6000407c09292d6656d",
-    "commands/flash.md": "sha256:37576b5a3b098ccfcf26a6e1261cbef4a22b9a144d0491a0ab50014a72cd549c",
-    "skills/flash-board/SKILL.md": "sha256:070711c54f7b969a13f74a4bb48e11ecb9fd9f3efc3b7fe630267921ab08e430"
+    "commands/flash.md": "sha256:363b27e1b615490a61bfd34c0b56986a092a3a3651ff57d72f9151c24588012c",
+    "skills/flash-board/SKILL.md": "sha256:c2922c145fff03a82ee1d4c3f99041e6a311eeaa6200cba4b49995b7cdc2b8d3"
   }
 }

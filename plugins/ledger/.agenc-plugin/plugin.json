@@ -1,12 +1,12 @@
 {
   "name": "ledger",
-  "version": "0.2.5",
-  "description": "Read Ledger accounts, balances and history, and verify receive addresses with wallet-cli.",
+  "version": "0.3.0",
+  "description": "Read Ledger accounts, balances, history and staking positions, and verify receive addresses with Ledger's wallet-cli 3.",
   "author": { "name": "tetsuo-ai" },
   "homepage": "https://agenc.tech",
   "repository": "https://github.com/tetsuo-ai/agenc-plugins",
   "license": "MIT",
-  "keywords": ["ledger", "wallet", "hardware", "balances", "readonly"],
+  "keywords": ["ledger", "wallet", "hardware", "balances", "staking", "readonly"],
   "commands": {
     "ledger-balance": {
       "source": "./commands/ledger-balance.md",
@@ -19,13 +19,14 @@
   "interface": {
     "displayName": "Ledger",
     "shortDescription": "Inspect a Ledger wallet without signing or sending.",
-    "longDescription": "Uses the official wallet-cli to discover accounts, read balances and history, verify receive addresses on the trusted device display, and check device authenticity. This plugin never signs, broadcasts, or asks for a recovery phrase.",
+    "longDescription": "Uses Ledger's official wallet-cli (version 3, USB) to discover accounts, read balances, history and staking positions, verify receive addresses on the trusted device display, and check device authenticity. It finds the CLI through AgenC and only installs it after you approve. This plugin never signs, broadcasts, or asks for a recovery phrase.",
     "developerName": "tetsuo-ai",
     "category": "wallets",
     "capabilities": [
       "account-discovery",
       "readonly-balances",
       "readonly-history",
+      "readonly-staking-positions",
       "verified-receive-addresses",
       "genuine-check"
     ],
@@ -34,7 +35,7 @@
     "logo": "./assets/logo.png",
     "defaultPrompt": [
       "What is on my Ledger?",
-      "Show my Ledger accounts and balances",
+      "Show my staking positions on my Ledger",
       "Verify a receive address on my Ledger"
     ],
     "screenshots": []

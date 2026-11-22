@@ -3,7 +3,8 @@ description: Recommend a local model artifact that fits this machine's measured 
 argument-hint: "[category or model name]"
 ---
 
-Follow the `local-model-fit` skill and its boundaries.
+Follow the `local-model-fit` skill and its boundaries, including its AgenC
+sandbox permissions for `~/.llm-checker`.
 
 Measure the machine with `llm-checker hw-detect --json`. Then run
 `llm-checker registry-recommend --category <category> --runtime auto --target-context 8192 --limit 5 --json`.

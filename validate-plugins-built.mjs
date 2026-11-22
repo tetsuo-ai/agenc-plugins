@@ -39,20 +39,32 @@ function run(args, cwd, env) {
   assert.equal(result.status, 0, result.stdout + result.stderr);
   return result.stdout;
 }
+// Names exported by a compiled chunk's final `export {...}` block, minified or not.
+function exportedNames(source) {
+  const match = /export\s*\{([^}]*)\}\s*;?\s*(?:\/\/# sourceMappingURL=\S+\s*)?$/u.exec(source);
+  if (!match) return new Set();
+  return new Set(match[1].split(",").map((part) => part.trim().split(/\s+as\s+/u).pop()).filter(Boolean));
+}
+
 function builtModule(runtime, symbols) {
   const dist = join(runtime, "dist");
   const matches = readdirSync(dist).filter((name) => /^chunk-[A-Z0-9]+\.js$/u.test(name)).filter((name) => {
-    const source = readFileSync(join(dist, name), "utf8");
-    const exports = source.slice(source.lastIndexOf("export {"));
-    return symbols.every((symbol) => new RegExp(`(?:^|\\n)\\s*${symbol}(?:,|\\s|$)`, "u").test(exports));
+    const exports = exportedNames(readFileSync(join(dist, name), "utf8"));
+    return symbols.every((symbol) => exports.has(symbol));
   });
   assert.equal(matches.length, 1, `Missing compiled Core exports: ${symbols}`);
   return pathToFileURL(join(dist, matches[0])).href;
 }
 
+// A live view over several compiled chunks: esbuild exports stay unset until their init_* runs.
+async function builtNamespace(runtime, ...groups) {
+  const parts = await Promise.all(groups.map((symbols) => import(builtModule(runtime, symbols))));
+  return new Proxy({}, { get: (_target, key) => parts.find((part) => key in part)?.[key] });
+}
+
 async function child(runtime, plugin) {
   const environment = Object.freeze({ ...process.env });
-  const session = await import(builtModule(runtime, ["ConfigStore", "init_store", "createSessionMcpManager", "init_mcp_startup"]));
+  const session = await builtNamespace(runtime, ["ConfigStore", "init_store"], ["createSessionMcpManager", "init_mcp_startup"]);
   const config = await import(builtModule(runtime, ["getAllMcpConfigs", "init_config"]));
   const sandbox = await import(builtModule(runtime, ["SandboxExecutionBroker", "init_execution_broker", "pluginMcpPermissionProfile"]));
   session.init_store(); session.init_mcp_startup(); config.init_config(); sandbox.init_execution_broker();

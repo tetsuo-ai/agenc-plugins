@@ -24,16 +24,42 @@ copying, or writes to a guessed address.
 - Do not kill another process to free a port. Ask the user to close its serial
   monitor or other owner.
 
+## Sandbox in AgenC
+
+PlatformIO keeps its state, platforms and toolchains in `~/.platformio`
+(`PLATFORMIO_CORE_DIR` when set). In AgenC's default sandbox every `pio`
+command, even `pio --version`, fails with
+`PermissionError: [Errno 1] Operation not permitted: '.../.platformio'`.
+
+- Run `pio` commands with
+  `sandbox_permissions: "with_additional_permissions"`,
+  `additional_permissions: {"file_system": {"write": ["<home>/.platformio"]}}`
+  and a one-line justification. Use the absolute path that
+  `echo "$HOME/.platformio"` prints, or the `PLATFORMIO_CORE_DIR` value.
+- A build that has to download a platform, framework or toolchain also needs
+  `"network": {"enabled": true}`. Once they are installed, later builds of the
+  same environment work without network.
+- The upload opens the selected serial device, which the sandbox does not
+  grant. After the user confirms the target, run the exact upload command
+  with `sandbox_permissions: "require_escalated"` and a justification that
+  names the environment and port.
+
+Never ask for a full sandbox bypass for builds or inventory reads.
+
 ## 1. Inspect the project and tool
 
 ```bash
 command -v pio
 test -f platformio.ini
+pio --version
 ```
 
-If either check fails, stop. Tell the user PlatformIO must be installed through
-their preferred method, or that the project is outside this plugin's scope.
-Do not fall back to a different uploader.
+If either of the first two checks fails, stop. Tell the user PlatformIO must
+be installed through their preferred method, or that the project is outside
+this plugin's scope. Do not fall back to a different uploader. PlatformIO Core
+6.2.0 or newer is recommended: it fixes a ZIP extraction flaw that could
+change permissions or timestamps outside the package folder. On an older
+release, say so before building.
 
 Inspect `platformio.ini` before executing it. Surface `extra_scripts`, a custom
 `upload_command`, custom package or platform URLs, and other executable hooks.

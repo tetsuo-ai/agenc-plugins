@@ -21,7 +21,7 @@ assert.deepEqual(repositoryCopyIssues(ROOT), [], "plugin copy policy violations"
 const MARKETPLACE_PATH = join(ROOT, ".agenc-plugin", "marketplace.json");
 const EXPECTED_PLUGINS = ["zeroday-hunter","iot-builder","ledger","llm-checker","stonks-copilot","paper-radar","inbox","pluma","forja","motor3d","olimpo"];
 
-const EXPECTED_PLUGIN_VERSION = "0.2.5";
+const EXPECTED_PLUGIN_VERSION = "0.3.0";
 const EXPECTED_LOGO_PATH = "./assets/logo.png";
 const LOGO_PAYLOAD_PATH = "assets/logo.png";
 const PNG_MAGIC = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
@@ -261,6 +261,20 @@ const iotSkill = readFileSync(
 );
 for (const command of ["pio device list --json-output", "pio run -e", "--upload-port"]) {
   assert.ok(iotSkill.includes(command), `IoT skill is missing ${command}`);
+}
+// CLI-backed skills must say which scoped AgenC sandbox grant each command needs.
+for (const required of ["with_additional_permissions", "<home>/.platformio", "require_escalated"]) {
+  assert.ok(iotSkill.includes(required), `IoT skill is missing sandbox guidance: ${required}`);
+}
+const llmCheckerSkill = readFileSync(
+  join(ROOT, "plugins", "llm-checker", "skills", "local-model-fit", "SKILL.md"),
+  "utf8",
+);
+for (const required of ["llm-checker` 3.8.2", "with_additional_permissions", "<home>/.llm-checker", "\"network\": {\"enabled\": true}"]) {
+  assert.ok(llmCheckerSkill.includes(required), `LLM Checker skill is missing ${required}`);
+}
+for (const required of ["ledger_wallet_cli_status", "with_additional_permissions", "require_escalated"]) {
+  assert.ok(ledgerSkill.includes(required), `Ledger skill is missing sandbox guidance: ${required}`);
 }
 
 const stonksManifest = readJson(
